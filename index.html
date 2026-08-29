@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#050915" />
+  <meta name="description" content="NextGen Miner — futuristic mining management dashboard." />
+  <title>NextGen Miner — Invest • Mine • Earn • Grow</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+  <meta name="theme-color" content="#060918">
+</head>
+<body>
+  <div class="noise"></div>
+  <div class="stars" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <a class="brand" href="#home" aria-label="NextGen Miner home">
+      <span class="brand-mark"><span>NG</span></span>
+      <span class="brand-text"><strong>NEXTGEN</strong><small>MINER</small></span>
+    </a>
+    <nav class="nav-links" aria-label="Primary">
+      <a href="#home">Home</a><a href="#how">How It Works</a><a href="#plans">Plans</a><a href="#levels">Levels</a><a href="#faq">FAQ</a>
+    </nav>
+    <div class="nav-actions">
+      <button class="ghost-btn" id="loginBtn">Login</button>
+      <button class="primary-btn" id="createBtn">Create Account</button>
+    </div>
+  </header>
+
+  <main id="publicApp">
+    <section class="hero container" id="home">
+      <div class="hero-copy">
+        <div class="eyebrow">NEXT-GENERATION DIGITAL MINING PLATFORM</div>
+        <h1>Build Your <span>Mining Future.</span></h1>
+        <p class="hero-lead">Choose a mining rig, select your level, track your mining output in real time, and manage your wallet from one futuristic workspace.</p>
+        <div class="hero-actions">
+          <button class="primary-btn large" id="heroCreate">Start Mining</button>
+          <a class="ghost-btn large" href="#how">Explore Platform</a>
+        </div>
+        <div class="credit-rates"><div><strong>1,000 💎</strong><span>per $1 top-up</span></div><div><strong>5,000 💎</strong><span>per $1 payout</span></div></div>
+        <div class="hero-mini-stats">
+          <div><strong>50</strong><span>levels / rig</span></div>
+          <div><strong>5</strong><span>rig families</span></div>
+          <div><strong>24/7</strong><span>dashboard access</span></div>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <div class="halo halo-a"></div><div class="halo halo-b"></div>
+        <div class="orbital-card orbital-top">LIVE HASH POWER <strong>8.42 TH/s</strong></div>
+        <div class="core-rig">
+          <div class="rig-ring"><div class="rig-core">NG</div></div>
+          <div class="rig-panel"><span>CORE STATUS</span><b>ONLINE</b><i></i></div>
+        </div>
+        <div class="orbital-card orbital-bottom">PROJECTED OUTPUT <strong>$18.72 / month</strong></div>
+      </div>
+    </section>
+
+    <section class="ticker">
+      <div class="container ticker-inner">
+        <span>SECURE AUTH</span><span>SERVER-SIDE RLS</span><span>REAL-TIME WALLET</span><span>LEVELS 01–50</span><span>FUTURISTIC UX</span>
+      </div>
+    </section>
+
+    <section class="section container" id="how">
+      <div class="section-head"><div><div class="eyebrow">PLATFORM FLOW</div><h2>One System. <span>Four Moves.</span></h2></div><p>Designed as a complete journey from account creation to wallet management.</p></div>
+      <div class="feature-grid four">
+        <article class="glass-card feature"><div class="feature-icon">01</div><h3>Create Account</h3><p>Register with secure authentication, terms consent, and anti-bot verification.</p></article>
+        <article class="glass-card feature"><div class="feature-icon">02</div><h3>Choose a Rig</h3><p>Compare five rig families and select any level from 1 through 50.</p></article>
+        <article class="glass-card feature"><div class="feature-icon">03</div><h3>Track Output</h3><p>Accrual is synced server-side from active mining positions.</p></article>
+        <article class="glass-card feature"><div class="feature-icon">04</div><h3>Manage Wallet</h3><p>Submit deposits, monitor transactions, and request withdrawals for review.</p></article>
+      </div>
+    </section>
+
+    <section class="section container" id="plans">
+      <div class="section-head"><div><div class="eyebrow">MINING FAMILIES</div><h2>Choose Your <span>Core.</span></h2></div><p>Each family scales from Level 1 to Level 50 with its own hash-power profile.</p></div>
+      <div class="plan-grid" id="planGrid"></div>
+    </section>
+
+    <section class="section container" id="levels">
+      <div class="section-head"><div><div class="eyebrow">PROGRESSION</div><h2>Level <span>System 01–50</span></h2></div><p>Use the selector to inspect minimum investment and projected output.</p></div>
+      <div class="level-layout">
+        <div class="glass-card level-selector-card">
+          <div class="selector-row"><label for="levelFamily">Rig Family</label><select id="levelFamily"></select></div>
+          <div class="selector-row"><label for="levelSelect">Level</label><select id="levelSelect"></select></div>
+          <div class="selected-rig" id="selectedRig"></div>
+        </div>
+        <div class="glass-card level-table-wrap">
+          <table><thead><tr><th>Level</th><th>Min. USD</th><th>Hash Power</th><th>/ Hour</th><th>/ Day</th><th>/ Month</th></tr></thead><tbody id="levelTable"></tbody></table>
+        </div>
+      </div>
+    </section>
+
+    <section class="section container" id="liveActivityPublic">
+      <div class="section-head"><div><div class="eyebrow">LIVE ACTIVITY</div><h2>Recent Deposits <span>& Payouts.</span></h2></div><p>Verified deposits and payouts are shown with privacy-safe public aliases. Only approved real transactions appear here.</p></div>
+      <div class="live-activity-columns">
+        <article class="glass-card dash-panel"><div class="panel-head"><h3>Live Deposits & Payouts</h3><span class="pill verified-pill">VERIFIED</span></div><div id="publicVerifiedActivityList" class="live-activity-list"><div class="empty">Loading live activity…</div></div></article>
+      </div>
+    </section>
+
+    <section class="section container trust-strip">
+      <div class="trust-card"><span>◈</span><div><strong>RLS Protected</strong><small>Users only access their own wallet data.</small></div></div>
+      <div class="trust-card"><span>⌁</span><div><strong>Secure Sessions</strong><small>Supabase authentication with verified sessions.</small></div></div>
+      <div class="trust-card"><span>✦</span><div><strong>Bot Defense</strong><small>Cloudflare Turnstile slot on auth and sensitive actions.</small></div></div>
+    </section>
+
+    <section class="section container legal-grid">
+      <article class="glass-card legal-card"><div class="eyebrow">TERMS & CONDITIONS</div><h3>Read Before You Start</h3><p>NextGen Miner manages mining positions, account balances, and transaction records. Projected output shown on plan cards is configuration-based and is not a promise of profit, yield, or investment return. Real-world mining, digital-asset prices, taxes, and regulatory requirements can affect outcomes.</p><a href="#terms" class="text-link">Read the full terms →</a></article>
+      <article class="glass-card legal-card" id="terms"><div class="eyebrow">RISK NOTICE</div><h3>No Guaranteed Returns</h3><p>Do not deposit money you cannot afford to lose. Wallet balances, mining output, and transaction status must always be treated as account-system data subject to platform rules and review.</p><button class="ghost-btn" id="termsBtn">Open Terms</button></article>
+    </section>
+
+    <section class="section container" id="faq">
+      <div class="section-head"><div><div class="eyebrow">SUPPORT</div><h2>Frequently <span>Asked.</span></h2></div></div>
+      <div class="faq-list">
+        <details><summary>How are hourly, daily, and monthly figures calculated?</summary><p>They are derived from the plan-level configuration stored in Supabase. The dashboard uses the hourly value and server-side elapsed time to accrue earnings.</p></details>
+        <details><summary>Can I use all 50 levels?</summary><p>Yes. Each of the five rig families has levels 1–50. The interface lets you inspect and activate a specific level once your account has enough available balance.</p></details>
+        <details><summary>Is withdrawal automatic?</summary><p>No. Withdrawal requests are created as pending records and can be reviewed/approved before being processed.</p></details>
+      </div>
+    </section>
+  </main>
+
+  <section id="dashboardApp" class="dashboard hidden">
+    <div class="dashboard-shell container">
+      <aside class="sidebar glass-card">
+        <div class="side-brand"><span class="brand-mark small"><span>NG</span></span><strong>NEXTGEN<span>MINER</span></strong></div>
+        <button class="side-link active" data-view="overview">Overview</button>
+        <button class="side-link" data-view="miners">My Miners</button>
+        <button class="side-link" data-view="plans-view">Investment Plans</button>
+        <button class="side-link" data-view="resources">Resources</button>
+        <button class="side-link" data-view="workers">Workers</button>
+        <button class="side-link" data-view="transport">Transport</button>
+        <button class="side-link" data-view="deposit">Deposit</button>
+        <button class="side-link" data-view="withdraw">Withdraw</button>
+        <button class="side-link" data-view="exchange">Exchange</button>
+        <button class="side-link" data-view="transactions">Transactions</button>
+        <button class="side-link" data-view="referral">Referral</button>
+        <button class="side-link" data-view="support">Support</button>
+        <button class="side-link hidden" id="adminConsoleBtn" data-view="admin">Admin Console</button>
+        <div class="side-bottom"><button class="side-link" id="logoutBtn">Logout</button></div>
+      </aside>
+      <section class="dash-main">
+        <div class="dash-top"><div><div class="eyebrow">COMMAND CENTER</div><h2>Welcome back, <span id="userLabel">Miner</span>.</h2></div><div class="dash-actions"><button class="ghost-btn" id="refreshBtn">Sync Mining</button><div class="user-chip" id="userChip">NG</div></div></div>
+        <div id="dashView"></div>
+      </section>
+    </div>
+  </section>
+
+  <footer class="footer"><div class="container footer-inner"><div class="brand"><span class="brand-mark"><span>NG</span></span><span class="brand-text"><strong>NEXTGEN</strong><small>MINER</small></span></div><div class="footer-links"><a href="#terms">Terms</a><a href="#faq">FAQ</a><a href="mailto:support@nextgenminer.com">Support</a></div><small>© 2026 NextGen Miner.</small></div></footer>
+
+  <div class="modal hidden" id="authModal" role="dialog" aria-modal="true" aria-label="Authentication">
+    <div class="modal-backdrop"></div><div class="modal-card glass-card">
+      <button class="modal-close" data-close="authModal">×</button>
+      <div class="auth-tabs"><button class="auth-tab active" data-auth="login">Login</button><button class="auth-tab" data-auth="signup">Create Account</button></div>
+      <div id="authContent"></div>
+    </div>
+  </div>
+
+  <div class="modal hidden" id="termsModal"><div class="modal-backdrop"></div><div class="modal-card glass-card wide"><button class="modal-close" data-close="termsModal">×</button><div class="eyebrow">LEGAL</div><h2>Terms & Conditions</h2><div class="terms-scroll"><ol><li>Accounts must use accurate information and one account per person unless explicitly permitted.</li><li>Projected mining figures are configuration values for planning and are not guaranteed returns.</li><li>Deposits may require network confirmation and manual review before crediting.</li><li>Withdrawals may be held for fraud, compliance, wallet validation, or operational review.</li><li>Never share passwords, recovery phrases, API keys, or private wallet keys with support staff.</li><li>Abuse, automated attacks, botting, chargeback fraud, and manipulation can result in suspension.</li><li>The platform may update fees, supported networks, plan parameters, and compliance requirements with notice.</li></ol></div><button class="primary-btn" data-close="termsModal">I Understand</button></div></div>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
