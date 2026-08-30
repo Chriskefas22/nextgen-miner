@@ -1,0 +1,1 @@
+import Link from 'next/link';export default function NotFound(){return <div className="auth-page"><div className="glass auth-card"><div className="eyebrow">404 // NODE NOT FOUND</div><h1>Page unavailable.</h1><p className="muted">The requested module is not connected to this grid.</p><Link href="/dashboard" className="btn btn-primary">Return to Dashboard</Link></div></div>}
