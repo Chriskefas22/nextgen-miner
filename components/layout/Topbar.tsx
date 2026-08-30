@@ -1,0 +1,3 @@
+'use client';
+import {Bell,Menu,Plus,WalletCards} from 'lucide-react';
+export function Topbar({onMenu}:{onMenu?:()=>void}){return <header className="topbar"><button className="icon-btn mobile-menu" onClick={onMenu}><Menu size={18}/></button><div className="brand"><div className="brand-mark">N</div><div className="brand-title">NEXTGEN <span>MINER</span></div></div><div className="top-actions"><div className="diamond-pill"><span>💎</span><b>12,450</b><button><Plus size={15}/></button></div><button className="icon-btn"><Bell size={18}/><i className="notify-dot"/></button><button className="icon-btn"><WalletCards size={18}/></button></div></header>}

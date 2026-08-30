@@ -1,0 +1,2 @@
+import Link from 'next/link';import {Boxes,Faucet,Target,Wallet,Coins} from 'lucide-react';
+export function BottomNav(){return <nav className="bottom-nav"><Link href="/dashboard"><Coins size={17}/>Home</Link><Link href="/miners"><Boxes size={17}/>Miners</Link><Link href="/faucet"><Faucet size={17}/>Faucet</Link><Link href="/quests"><Target size={17}/>Quests</Link><Link href="/wallet"><Wallet size={17}/>Wallet</Link></nav>}
