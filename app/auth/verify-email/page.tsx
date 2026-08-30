@@ -1,0 +1,1 @@
+export default function Verify(){return <div className="auth-page"><div className="glass auth-card"><div className="eyebrow">VERIFY EMAIL</div><h1>Check your inbox</h1><p className="muted">Your account must be verified before protected actions are enabled.</p><div className="notice success">Verification link sent.</div></div></div>}
