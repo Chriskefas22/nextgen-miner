@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 500">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#aafcff"/>
+      <stop offset=".36" stop-color="#24e8ff"/>
+      <stop offset=".7" stop-color="#5968ff"/>
+      <stop offset="1" stop-color="#ef45ff"/>
+    </linearGradient>
+    <linearGradient id="g2" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0" stop-color="#26e8ff"/>
+      <stop offset=".5" stop-color="#6f5dff"/>
+      <stop offset="1" stop-color="#ff4dd7"/>
+    </linearGradient>
+    <radialGradient id="gl">
+      <stop offset="0" stop-color="#ffffff" stop-opacity=".95"/>
+      <stop offset=".18" stop-color="#24e8ff" stop-opacity=".88"/>
+      <stop offset=".55" stop-color="#6c57ff" stop-opacity=".18"/>
+      <stop offset="1" stop-color="#6c57ff" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="blur" x="-80%" y="-80%" width="260%" height="260%">
+      <feGaussianBlur stdDeviation="7" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="soft" x="-80%" y="-80%" width="260%" height="260%">
+      <feGaussianBlur stdDeviation="2.5"/>
+    </filter>
+  </defs>
+
+  <!-- holographic energy field -->
+  <ellipse cx="300" cy="382" rx="230" ry="40" fill="none" stroke="#24e8ff" stroke-opacity=".18" stroke-width="2"/>
+  <ellipse cx="300" cy="382" rx="170" ry="25" fill="none" stroke="#8b3dff" stroke-opacity=".22" stroke-width="2"/>
+  <ellipse cx="300" cy="382" rx="110" ry="15" fill="none" stroke="#35f3b4" stroke-opacity=".18" stroke-width="2"/>
+
+  <!-- miniature holographic city / mining nodes -->
+  <g fill="none" stroke="url(#g2)" opacity=".46">
+    <path d="M80 364v-50h22v50M112 364v-82h24v82M146 364v-38h18v38"/>
+    <path d="M436 364v-54h23v54M468 364v-91h26v91M504 364v-36h18v36"/>
+    <path d="M190 364v-66h20v66M390 364v-66h20v66"/>
+  </g>
+  <g stroke="#24e8ff" stroke-width="2" opacity=".5">
+    <path d="M92 314h10M116 292h20M440 310h19M472 273h22M195 298h15M395 298h15"/>
+  </g>
+
+  <!-- outer prism -->
+  <g fill="none" stroke="url(#g)" stroke-linejoin="round">
+    <path d="M300 58 478 161 452 345 300 430 148 345 122 161Z" stroke-width="2" opacity=".28"/>
+    <path d="M300 94 434 171 414 321 300 386 186 321 166 171Z" stroke-width="2" opacity=".45"/>
+    <path d="M300 126 394 181 380 294 300 343 220 294 206 181Z" stroke-width="3" opacity=".7"/>
+  </g>
+
+  <!-- circuit traces -->
+  <g fill="none" stroke="#24e8ff" stroke-width="2" opacity=".7">
+    <path d="M206 181h-50v-23h-35"/>
+    <path d="M394 181h50v-23h35"/>
+    <path d="M220 294h-54v26h-34"/>
+    <path d="M380 294h54v26h34"/>
+    <path d="M300 126V84h28"/>
+    <path d="M300 343v46h-34"/>
+  </g>
+  <g fill="#24e8ff">
+    <circle cx="121" cy="158" r="4"/><circle cx="479" cy="158" r="4"/>
+    <circle cx="132" cy="320" r="4"/><circle cx="488" cy="320" r="4"/>
+    <circle cx="328" cy="84" r="4"/><circle cx="266" cy="389" r="4"/>
+  </g>
+
+  <!-- energy halo -->
+  <circle cx="300" cy="238" r="128" fill="url(#gl)" opacity=".55"/>
+
+  <!-- central 3D crystal -->
+  <g filter="url(#blur)">
+    <path d="M300 118 390 170 370 289 300 338 230 289 210 170Z"
+          fill="url(#g)" fill-opacity=".58" stroke="#c7fbff" stroke-width="4"/>
+    <path d="M300 144 354 176 343 266 300 298 257 266 246 176Z"
+          fill="#06192c" fill-opacity=".72" stroke="#24e8ff" stroke-width="3"/>
+    <path d="M300 158 332 178 327 237 300 258 273 237 268 178Z"
+          fill="url(#gl)" opacity=".9"/>
+  </g>
+
+  <g fill="#fff">
+    <circle cx="300" cy="181" r="4"/>
+    <circle cx="300" cy="211" r="7"/>
+    <circle cx="300" cy="245" r="4"/>
+  </g>
+
+  <!-- lift columns -->
+  <g fill="url(#g)" opacity=".55" filter="url(#soft)">
+    <rect x="146" y="344" width="3" height="52"/>
+    <rect x="451" y="344" width="3" height="52"/>
+    <rect x="215" y="334" width="3" height="42"/>
+    <rect x="382" y="334" width="3" height="42"/>
+  </g>
+
+  <text x="300" y="410" text-anchor="middle"
+        fill="#8eefff" font-family="Arial, sans-serif"
+        font-size="14" letter-spacing="6">N • CORE</text>
+</svg>
