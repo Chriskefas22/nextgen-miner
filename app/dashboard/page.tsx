@@ -1,5 +1,5 @@
 import { AppShell } from '@/components/layout/AppShell';
-import { HologramCore } from '@/components/hologram/HologramCore';
+import Dynamic from 'next/dynamic';
 import Link from 'next/link';
 import {
   Boxes,
@@ -17,6 +17,19 @@ import {
   Activity,
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
+
+// Load Komponen 3D Real-time (Client-Side Only untuk cegah error SSR)
+const DiamondCanvas = Dynamic(() => import('@/components/hologram/DiamondCanvas'), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-[380px] bg-slate-950/80 rounded-2xl border border-cyan-500/30 flex flex-col items-center justify-center gap-3">
+      <div className="w-8 h-8 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin" />
+      <span className="text-xs font-mono text-cyan-400 tracking-wider animate-pulse">
+        MEMUAT CORE HOLOGRAPHIC 3D...
+      </span>
+    </div>
+  ),
+});
 
 const quickActions = [
   ['Buy Miner', '/miners', Boxes, 'cyan'],
@@ -97,7 +110,9 @@ export default async function Dashboard() {
           <div className="eyebrow">COMMAND CENTER</div>
           <h1>Welcome back,<br />{username} ◇</h1>
           <p>Mine smart. Upgrade fast.<br />Build your future.</p>
-          <div className="bp-standby"><span /> {activeMiners > 0 ? 'MINING ONLINE' : 'MINING STANDBY'}</div>
+          <div className="bp-standby">
+            <span /> {activeMiners > 0 ? 'MINING ONLINE' : 'MINING STANDBY'}
+          </div>
         </div>
 
         <div className="bp-status-stack">
@@ -110,8 +125,9 @@ export default async function Dashboard() {
       </div>
 
       <div className="bp-main-scene">
-        <section className="bp-holo-wrap">
-          <HologramCore />
+        {/* Visual 3D Hologram Core Utama */}
+        <section className="bp-holo-wrap w-full">
+          <DiamondCanvas />
         </section>
 
         <aside className="bp-left-metrics glass">
