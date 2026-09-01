@@ -56,39 +56,64 @@ const FILTERS = [
 ] as const;
 
 /**
- * Normalize miner image paths.
+ * Supabase currently exposes generic result types in this project.
+ * Convert the returned value to an unknown array first, then use
+ * our local row interfaces for deterministic application mapping.
+ */
+function asRows<T>(value: unknown): T[] {
+  return Array.isArray(value)
+    ? (value as unknown as T[])
+    : [];
+}
+
+/**
+ * Normalize image paths from Supabase.
  *
- * Supabase stores the image path as data.
- * The actual public assets live under:
+ * Expected database value:
+ *   /assets/miners/starter-keyboard.webp
  *
- * public/assets/miners/
- *
- * Supported database values:
- *   assets/miners/miner.webp
- *   /assets/miners/miner.webp
- *   miners/miner.webp
- *   /miners/miner.webp
+ * Browser URL:
+ *   /assets/miners/starter-keyboard.webp
  */
 function normalizeMinerImagePath(
-  imagePath: string | null | undefined
+  imagePath: string | null | undefined,
+  slug: string
 ): string {
+  const fallback =
+    `/assets/miners/${slug}.webp`;
+
   if (!imagePath) {
-    return '/assets/miners/default.webp';
+    return fallback;
   }
 
-  const cleaned = imagePath
-    .trim()
-    .replace(/^\/+/, '');
+  const cleaned =
+    String(imagePath)
+      .trim()
+      .replace(/^\/+/, '');
 
-  if (cleaned.startsWith('assets/miners/')) {
+  if (
+    cleaned.startsWith(
+      'assets/miners/'
+    )
+  ) {
     return `/${cleaned}`;
   }
 
-  if (cleaned.startsWith('miners/')) {
+  if (
+    cleaned.startsWith(
+      'miners/'
+    )
+  ) {
     return `/assets/${cleaned}`;
   }
 
-  return `/assets/miners/${cleaned}`;
+  if (
+    cleaned.endsWith('.webp')
+  ) {
+    return `/assets/miners/${cleaned}`;
+  }
+
+  return fallback;
 }
 
 export default function MinersPage() {
@@ -109,74 +134,91 @@ export default function MinersPage() {
 
   const loadData = useCallback(
     async () => {
-      const supabase = createClient();
+      const supabase =
+        createClient();
 
-      setError('');
       setLoading(true);
+      setError('');
 
       try {
         /*
-         * ----------------------------------------------------
-         * 1. GET CURRENT USER
-         * ----------------------------------------------------
-         *
-         * Authentication is NOT required to display
-         * the public miner catalog.
-         *
-         * Wallet and owned miners are user-specific,
-         * so those are loaded only when a user exists.
+         * --------------------------------------------------
+         * 1. CURRENT SESSION
+         * --------------------------------------------------
          */
         const {
-          data: { user },
-        } = await supabase.auth.getUser();
+          data: {
+            user,
+          },
+        } =
+          await supabase.auth.getUser();
 
         /*
-         * ----------------------------------------------------
-         * 2. ALWAYS LOAD PUBLIC MINER CATALOG + LEVELS
-         * ----------------------------------------------------
+         * --------------------------------------------------
+         * 2. LOAD CATALOG + LEVELS
+         * --------------------------------------------------
+         *
+         * Catalog and levels are required to build the Shop.
          */
         const [
           catalogResult,
           levelsResult,
-        ] = await Promise.all([
-          supabase
-            .from('nextgen_miner_catalog')
-            .select(
-              [
-                'id',
-                'slug',
-                'name',
-                'tier',
-                'base_hashrate',
-                'base_price_diamond',
-                'image_path',
+        ] =
+          await Promise.all([
+            supabase
+              .from(
+                'nextgen_miner_catalog'
+              )
+              .select(
+                [
+                  'id',
+                  'slug',
+                  'name',
+                  'tier',
+                  'base_hashrate',
+                  'base_price_diamond',
+                  'image_path',
+                  'enabled',
+                  'sort_order',
+                ].join(',')
+              )
+              .eq(
                 'enabled',
+                true
+              )
+              .order(
                 'sort_order',
-              ].join(',')
-            )
-            .eq('enabled', true)
-            .order('sort_order', {
-              ascending: true,
-            }),
+                {
+                  ascending: true,
+                }
+              ),
 
-          supabase
-            .from('nextgen_miner_levels')
-            .select(
-              [
+            supabase
+              .from(
+                'nextgen_miner_levels'
+              )
+              .select(
+                [
+                  'miner_id',
+                  'level',
+                  'hashrate',
+                  'upgrade_price_diamond',
+                  'cumulative_price_diamond',
+                ].join(',')
+              )
+              .order(
                 'miner_id',
+                {
+                  ascending: true,
+                }
+              )
+              .order(
                 'level',
-                'hashrate',
-                'upgrade_price_diamond',
-                'cumulative_price_diamond',
-              ].join(',')
-            )
-            .order('miner_id', {
-              ascending: true,
-            })
-            .order('level', {
-              ascending: true,
-            }),
-        ]);
+                {
+                  ascending: true,
+                }
+              ),
+          ]);
 
         if (catalogResult.error) {
           throw catalogResult.error;
@@ -187,25 +229,26 @@ export default function MinersPage() {
         }
 
         const catalog =
-          (catalogResult.data ??
-            []) as CatalogRow[];
+          asRows<CatalogRow>(
+            catalogResult.data
+          );
 
         const levels =
-          (levelsResult.data ??
-            []) as LevelRow[];
+          asRows<LevelRow>(
+            levelsResult.data
+          );
 
         /*
-         * ----------------------------------------------------
-         * 3. USER DATA
-         * ----------------------------------------------------
+         * --------------------------------------------------
+         * 3. USER-SPECIFIC DATA
+         * --------------------------------------------------
          *
-         * A logged-out visitor can still see all miners.
-         *
-         * For logged-in users we additionally load:
-         * - owned miners
-         * - wallet balance
+         * Shop catalog still works even if no user exists.
+         * Wallet/ownership are only loaded for authenticated
+         * users.
          */
-        let userMiners: UserMinerRow[] = [];
+        let userMiners: UserMinerRow[] =
+          [];
 
         let walletBalance = 0;
 
@@ -213,64 +256,93 @@ export default function MinersPage() {
           const [
             userMinersResult,
             walletResult,
-          ] = await Promise.all([
-            supabase
-              .from('nextgen_user_miners')
-              .select(
-                [
-                  'id',
-                  'miner_id',
-                  'current_level',
-                  'total_spent_diamond',
-                  'status',
-                ].join(',')
-              )
-              .eq('user_id', user.id),
+          ] =
+            await Promise.all([
+              supabase
+                .from(
+                  'nextgen_user_miners'
+                )
+                .select(
+                  [
+                    'id',
+                    'miner_id',
+                    'current_level',
+                    'total_spent_diamond',
+                    'status',
+                  ].join(',')
+                )
+                .eq(
+                  'user_id',
+                  user.id
+                ),
 
-            supabase
-              .from('nextgen_wallets')
-              .select(
-                'diamond_balance'
-              )
-              .eq('user_id', user.id)
-              .maybeSingle(),
-          ]);
+              supabase
+                .from(
+                  'nextgen_wallets'
+                )
+                .select(
+                  'diamond_balance'
+                )
+                .eq(
+                  'user_id',
+                  user.id
+                )
+                .maybeSingle(),
+            ]);
 
-          if (userMinersResult.error) {
+          if (
+            userMinersResult.error
+          ) {
             throw userMinersResult.error;
           }
 
-          if (walletResult.error) {
+          if (
+            walletResult.error
+          ) {
             throw walletResult.error;
           }
 
           userMiners =
-            (userMinersResult.data ??
-              []) as UserMinerRow[];
+            asRows<UserMinerRow>(
+              userMinersResult.data
+            );
 
-          walletBalance = Number(
-            walletResult.data
-              ?.diamond_balance ?? 0
-          );
+          walletBalance =
+            Number(
+              walletResult
+                .data
+                ?.diamond_balance ??
+                0
+            );
         }
 
-        setBalance(walletBalance);
+        setBalance(
+          walletBalance
+        );
 
         /*
-         * ----------------------------------------------------
+         * --------------------------------------------------
          * 4. GROUP LEVELS BY MINER
-         * ----------------------------------------------------
+         * --------------------------------------------------
          */
         const levelsByMiner =
-          new Map<number, LevelRow[]>();
+          new Map<
+            number,
+            LevelRow[]
+          >();
 
-        for (const level of levels) {
+        for (
+          const level of levels
+        ) {
           const minerId =
-            Number(level.miner_id);
+            Number(
+              level.miner_id
+            );
 
           const existing =
-            levelsByMiner.get(minerId) ??
-            [];
+            levelsByMiner.get(
+              minerId
+            ) ?? [];
 
           existing.push(level);
 
@@ -281,9 +353,9 @@ export default function MinersPage() {
         }
 
         /*
-         * ----------------------------------------------------
-         * 5. GROUP USER-OWNED MINERS
-         * ----------------------------------------------------
+         * --------------------------------------------------
+         * 5. GROUP OWNED MINERS
+         * --------------------------------------------------
          */
         const ownedByMiner =
           new Map<
@@ -291,175 +363,188 @@ export default function MinersPage() {
             UserMinerRow
           >();
 
-        for (const userMiner of userMiners) {
+        for (
+          const userMiner of
+            userMiners
+        ) {
           ownedByMiner.set(
-            Number(userMiner.miner_id),
+            Number(
+              userMiner.miner_id
+            ),
             userMiner
           );
         }
 
         /*
-         * ----------------------------------------------------
-         * 6. MAP SUPABASE → MINER CARD
-         * ----------------------------------------------------
+         * --------------------------------------------------
+         * 6. BUILD FINAL MINER OBJECTS
+         * --------------------------------------------------
          */
         const mapped: Miner[] =
-          catalog.map((item) => {
-            const catalogId =
-              Number(item.id);
+          catalog.map(
+            (item) => {
+              const catalogId =
+                Number(
+                  item.id
+                );
 
-            const minerLevels =
-              levelsByMiner.get(
-                catalogId
-              ) ?? [];
+              const minerLevels =
+                levelsByMiner.get(
+                  catalogId
+                ) ?? [];
 
-            const owned =
-              ownedByMiner.get(
-                catalogId
-              );
+              const owned =
+                ownedByMiner.get(
+                  catalogId
+                );
 
-            /*
-             * If the miner is not owned,
-             * Shop starts from Level 1.
-             */
-            const currentLevel =
-              owned
-                ? Number(
-                    owned.current_level
-                  )
-                : 1;
-
-            const currentLevelRow =
-              minerLevels.find(
-                (level) =>
-                  Number(level.level) ===
-                  currentLevel
-              ) ??
-              minerLevels[0];
-
-            const nextLevelRow =
-              minerLevels.find(
-                (level) =>
-                  Number(level.level) ===
-                  currentLevel + 1
-              ) ?? null;
-
-            const maxLevel =
-              minerLevels.length > 0
-                ? Math.max(
-                    ...minerLevels.map(
-                      (level) =>
-                        Number(
-                          level.level
-                        )
-                    )
-                  )
-                : 10;
-
-            const isOwned =
-              Boolean(owned);
-
-            const isActive =
-              isOwned &&
-              String(
-                owned?.status ?? ''
-              ).toLowerCase() ===
-                'active';
-
-            return {
-              catalogId,
-
-              userMinerId:
+              const currentLevel =
                 owned
-                  ? Number(owned.id)
-                  : null,
+                  ? Number(
+                      owned.current_level
+                    )
+                  : 1;
 
-              slug:
+              const currentLevelRow =
+                minerLevels.find(
+                  (level) =>
+                    Number(
+                      level.level
+                    ) ===
+                    currentLevel
+                ) ??
+                minerLevels[0];
+
+              const nextLevelRow =
+                minerLevels.find(
+                  (level) =>
+                    Number(
+                      level.level
+                    ) ===
+                    currentLevel + 1
+                ) ?? null;
+
+              const maxLevel =
+                minerLevels.length >
+                0
+                  ? Math.max(
+                      ...minerLevels.map(
+                        (level) =>
+                          Number(
+                            level.level
+                          )
+                      )
+                    )
+                  : 10;
+
+              const slug =
                 String(
                   item.slug ?? ''
-                ),
+                );
 
-              name:
-                String(
-                  item.name ?? ''
-                ),
-
-              tier:
-                String(
-                  item.tier ?? ''
-                ),
-
-              /*
-               * IMPORTANT:
-               * Miner image comes from Supabase
-               * image_path and resolves to
-               * /public/assets/miners/...
-               */
-              image:
-                normalizeMinerImagePath(
-                  item.image_path
-                ),
-
-              baseHashrate:
-                Number(
-                  item.base_hashrate ?? 0
-                ),
-
-              purchasePrice:
-                Number(
-                  item.base_price_diamond ??
-                    0
-                ),
-
-              currentLevel,
-
-              maxLevel,
-
-              currentHashrate:
-                Number(
-                  currentLevelRow
-                    ?.hashrate ??
-                    item.base_hashrate ??
-                    0
-                ),
-
-              nextHashrate:
-                nextLevelRow
-                  ? Number(
-                      nextLevelRow.hashrate
-                    )
-                  : null,
-
-              nextUpgradePrice:
-                nextLevelRow
-                  ? Number(
-                      nextLevelRow
-                        .upgrade_price_diamond
-                    )
-                  : null,
-
-              totalSpent:
-                Number(
+              const isOwned =
+                Boolean(
                   owned
-                    ?.total_spent_diamond ??
-                    0
-                ),
+                );
 
-              owned: isOwned,
+              const isActive =
+                isOwned &&
+                String(
+                  owned?.status ??
+                    ''
+                ).toLowerCase() ===
+                  'active';
 
-              active: isActive,
-            };
-          });
+              return {
+                catalogId,
 
-        /*
-         * ----------------------------------------------------
-         * 7. SAVE FINAL MINER CATALOG
-         * ----------------------------------------------------
-         */
+                userMinerId:
+                  owned
+                    ? Number(
+                        owned.id
+                      )
+                    : null,
+
+                slug,
+
+                name:
+                  String(
+                    item.name ?? ''
+                  ),
+
+                tier:
+                  String(
+                    item.tier ?? ''
+                  ),
+
+                image:
+                  normalizeMinerImagePath(
+                    item.image_path,
+                    slug
+                  ),
+
+                baseHashrate:
+                  Number(
+                    item.base_hashrate ??
+                      0
+                  ),
+
+                purchasePrice:
+                  Number(
+                    item.base_price_diamond ??
+                      0
+                  ),
+
+                currentLevel,
+
+                maxLevel,
+
+                currentHashrate:
+                  Number(
+                    currentLevelRow
+                      ?.hashrate ??
+                      item.base_hashrate ??
+                      0
+                  ),
+
+                nextHashrate:
+                  nextLevelRow
+                    ? Number(
+                        nextLevelRow
+                          .hashrate
+                      )
+                    : null,
+
+                nextUpgradePrice:
+                  nextLevelRow
+                    ? Number(
+                        nextLevelRow
+                          .upgrade_price_diamond
+                      )
+                    : null,
+
+                totalSpent:
+                  Number(
+                    owned
+                      ?.total_spent_diamond ??
+                      0
+                  ),
+
+                owned:
+                  isOwned,
+
+                active:
+                  isActive,
+              };
+            }
+          );
+
         setMiners(mapped);
-      } catch (err) {
+      } catch (
+        err
+      ) {
         console.error(
-          '[MinersPage] Failed to load miner data:',
+          '[MinersPage] load failed:',
           err
         );
 
@@ -489,18 +574,25 @@ export default function MinersPage() {
    * FILTER
    * ------------------------------------------------------
    */
-  const filtered = useMemo(() => {
-    if (filter === 'All') {
-      return miners;
-    }
+  const filtered =
+    useMemo(() => {
+      if (
+        filter === 'All'
+      ) {
+        return miners;
+      }
 
-    return miners.filter(
-      (miner) =>
-        String(miner.tier)
-          .toLowerCase() ===
-        filter.toLowerCase()
-    );
-  }, [miners, filter]);
+      return miners.filter(
+        (miner) =>
+          String(
+            miner.tier
+          ).toLowerCase() ===
+          filter.toLowerCase()
+      );
+    }, [
+      miners,
+      filter,
+    ]);
 
   /*
    * ------------------------------------------------------
@@ -521,7 +613,10 @@ export default function MinersPage() {
    */
   const totalHashrate =
     miners.reduce(
-      (total, miner) => {
+      (
+        total,
+        miner
+      ) => {
         if (
           miner.owned &&
           miner.active
@@ -529,7 +624,8 @@ export default function MinersPage() {
           return (
             total +
             Number(
-              miner.currentHashrate ?? 0
+              miner.currentHashrate ??
+                0
             )
           );
         }
@@ -645,22 +741,24 @@ export default function MinersPage() {
           margin: '14px 0',
         }}
       >
-        {FILTERS.map((item) => (
-          <button
-            key={item}
-            type="button"
-            className={`filter ${
-              filter === item
-                ? 'active'
-                : ''
-            }`}
-            onClick={() =>
-              setFilter(item)
-            }
-          >
-            {item}
-          </button>
-        ))}
+        {FILTERS.map(
+          (item) => (
+            <button
+              key={item}
+              type="button"
+              className={`filter ${
+                filter === item
+                  ? 'active'
+                  : ''
+              }`}
+              onClick={() =>
+                setFilter(item)
+              }
+            >
+              {item}
+            </button>
+          )
+        )}
       </div>
 
       {loading ? (
@@ -702,7 +800,8 @@ export default function MinersPage() {
             Retry
           </button>
         </div>
-      ) : miners.length === 0 ? (
+      ) : miners.length ===
+        0 ? (
         <div className="glass section">
           <div className="eyebrow">
             MINER CATALOG
@@ -718,7 +817,8 @@ export default function MinersPage() {
             Supabase.
           </p>
         </div>
-      ) : filtered.length === 0 ? (
+      ) : filtered.length ===
+        0 ? (
         <div className="glass section">
           <div className="eyebrow">
             NO RESULTS
@@ -729,19 +829,25 @@ export default function MinersPage() {
           </h2>
 
           <p className="muted">
-            Select another tier to view
-            available miners.
+            Select another tier to
+            view available miners.
           </p>
         </div>
       ) : (
         <div className="shop-grid">
-          {filtered.map((miner) => (
-            <MinerCard
-              key={miner.catalogId}
-              miner={miner}
-              onChanged={loadData}
-            />
-          ))}
+          {filtered.map(
+            (miner) => (
+              <MinerCard
+                key={
+                  miner.catalogId
+                }
+                miner={miner}
+                onChanged={
+                  loadData
+                }
+              />
+            )
+          )}
         </div>
       )}
     </AppShell>
