@@ -1,9 +1,6 @@
 import './globals.css';
-import '../styles/blueprint-dashboard.css';
 import '../styles/nav-drawer.css';
-import '../styles/live-hologram.css';
 import '../styles/mobile-hotfix.css';
-import '../styles/dashboard-simple.css';
 
 export const metadata = {
   title: 'NextGen Miner',
