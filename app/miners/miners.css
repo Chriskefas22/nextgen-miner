@@ -1,0 +1,29 @@
+.miners-page {
+  min-height: 100dvh;
+  padding: 28px clamp(16px, 2.3vw, 36px) 48px;
+  color: #f5f8ff;
+  background:
+    radial-gradient(circle at 20% -10%, rgba(20,120,255,.10), transparent 35%),
+    radial-gradient(circle at 90% 20%, rgba(157,53,255,.08), transparent 32%),
+    #03070d;
+}
+
+.miners-header { display:flex; justify-content:space-between; gap:24px; align-items:end; margin-bottom:24px; }
+.eyebrow { color:#47c7ff; font-size:11px; letter-spacing:.14em; font-weight:900; }
+.miners-header h1 { margin:8px 0 7px; font-size:clamp(30px,4vw,48px); line-height:1; }
+.miners-header p { max-width:760px; margin:0; color:#8ea3bb; line-height:1.55; }
+.store-kpi { min-width:150px; padding:12px 14px; border:1px solid rgba(75,157,230,.24); border-radius:14px; background:rgba(5,14,24,.7); text-align:right; }
+.store-kpi span,.store-kpi small { display:block; color:#5fcfff; font-size:10px; letter-spacing:.08em; font-weight:800; }
+.store-kpi strong { display:block; margin:2px 0; font-size:28px; }
+.store-kpi small { color:#748da5; }
+
+.miner-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),1fr)); gap:14px; }
+
+.miner-query-error { margin:0 0 18px; padding:15px; border:1px solid rgba(255,130,99,.3); border-radius:14px; background:rgba(67,17,14,.35); display:grid; gap:4px; color:#ffd9cf; }
+.miner-query-error span { color:#ffc0ad; font-size:13px; overflow-wrap:anywhere; }
+.miner-query-error small { color:#bf9488; }
+
+@media (max-width: 760px) {
+  .miners-header { align-items:start; flex-direction:column; }
+  .store-kpi { width:100%; text-align:left; }
+}
