@@ -1,5 +1,6 @@
 import './globals.css';
 import '../styles/nav-drawer.css';
+import '../styles/dashboard-simple.css';
 
 export const metadata = {
   title: 'NextGen Miner',
