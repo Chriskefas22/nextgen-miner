@@ -1,15 +1,27 @@
-# NextGen Miner — Full Rebuild 4.0
+# NextGen Miner — Miner Store Visual Upgrade
 
-This package is a clean UI/application rebuild of NextGen Miner.
+This drop replaces the current miner shop presentation while preserving the project's Supabase + RPC architecture.
 
-## Canonical user-facing currency
-The only reward currency displayed to users is **💎**. The currency name is intentionally omitted from public UI copy.
+## GitHub paths
 
-## Miner progression
-There are 12 shop miners. Every miner has **Level 1 through Level 10**. Upgrade cost rises between levels and hashrate increases by 15% per level. Starter Keyboard is free at activation; its first paid upgrade begins the progression.
+- `app/miners/page.tsx`
+- `components/miner/MinerCard.tsx`
+- `components/miner/miner-card.css`
+- `public/assets/miners/miner-sprite.webp`
+- `public/assets/miners/*.svg`
 
-## Visual direction
-Dark glassmorphism, neon cyan/blue/purple/magenta, holographic interfaces, futuristic city hardware, responsive mobile-first layouts. The generated master visual is kept in `public/assets/nextgen-master-ui.png`, with optimized miner image assets in `public/assets/miners/`.
+## Catalog
 
-## Security
-Cloudflare Turnstile remains in the auth/protected-action architecture. Supabase operations must remain server/database controlled for balances, purchases, upgrades, rewards and withdrawal eligibility.
+Core: Basic CPU, Entry GPU, Gaming PC, Mini Rig, Performance Rig, Hydro Rig, Titan Rig, Nebula Station, Nuclear Reactor, Orion Core, Quantum Rig.
+
+Premium: Dark Matter Engine, Solaris Array, Chrono Nexus, Galactic Core, Infinity Nexus.
+
+Starter Keyboard is removed from the UI and is not included in the visual map.
+
+## Data source
+
+Miner economics remain database-driven from `nextgen_miner_catalog`, `nextgen_miner_levels`, `nextgen_user_miners`, and `nextgen_wallets`.
+
+Purchase/upgrade remains through the existing RPCs `nextgen_purchase_miner(p_miner_id)` and `nextgen_upgrade_miner(p_user_miner_id)`.
+
+No `lib/miners.ts` file is introduced.
