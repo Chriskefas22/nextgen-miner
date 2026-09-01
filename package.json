@@ -9,22 +9,18 @@
     "lint": "tsc --noEmit"
   },
   "dependencies": {
-    "@react-three/drei": "^9.105.0",
-    "@react-three/fiber": "^8.16.0",
     "@supabase/ssr": "latest",
     "@supabase/supabase-js": "latest",
     "lucide-react": "latest",
     "next": "latest",
     "react": "latest",
     "react-dom": "latest",
-    "three": "^0.164.0",
     "zod": "latest"
   },
   "devDependencies": {
     "@types/node": "latest",
     "@types/react": "latest",
     "@types/react-dom": "latest",
-    "@types/three": "^0.164.0",
     "typescript": "latest"
   }
 }
