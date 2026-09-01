@@ -49,14 +49,14 @@ grant select on public.nextgen_admins,
 revoke execute on function public.nextgen_is_admin()
   from anon, authenticated;
 
-revoke execute on function public.nextgen_is_owner(uuid)
+revoke execute on function public.nextgen_is_owner()
   from anon, authenticated;
 
 -- Administrative review RPCs are server-side only.
-revoke execute on function public.nextgen_admin_review_deposit(uuid, boolean, text)
+revoke execute on function public.nextgen_admin_review_deposit(bigint, boolean, text)
   from anon, authenticated;
 
-revoke execute on function public.nextgen_admin_review_withdrawal(uuid, boolean, text)
+revoke execute on function public.nextgen_admin_review_withdrawal(bigint, boolean, text)
   from anon, authenticated;
 
 commit;
