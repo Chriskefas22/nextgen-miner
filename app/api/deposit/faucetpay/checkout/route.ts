@@ -50,6 +50,21 @@ export async function POST(request: Request) {
       );
     }
 
+    /*
+     * Validate all FaucetPay/server configuration BEFORE creating
+     * the pending Supabase deposit.
+     *
+     * This prevents an orphan pending deposit if the Vercel
+     * environment is misconfigured.
+     */
+    const merchantUsername =
+      getFaucetPayMerchantUsername();
+
+    const checkoutUrl =
+      getFaucetPayCheckoutUrl();
+
+    const baseUrl = getPublicBaseUrl();
+
     let body: CheckoutRequest;
 
     try {
@@ -97,23 +112,27 @@ export async function POST(request: Request) {
      * This is stored by the Supabase RPC and later returned by
      * FaucetPay as the "custom" callback value.
      */
-    const referenceCode = generateFaucetPayDepositReference();
+    const referenceCode =
+      generateFaucetPayDepositReference();
 
     /*
-     * Create the pending deposit first.
+     * Create the pending deposit only AFTER all server-side
+     * FaucetPay configuration has been validated.
      *
      * IMPORTANT:
      * This RPC creates the deposit with diamond_amount = 0.
      * No Diamond is credited at checkout creation.
      */
-    const { data: depositData, error: depositError } =
-      await supabase.rpc(
-        "nextgen_create_faucetpay_deposit",
-        {
-          p_usd_amount: normalizedAmount,
-          p_reference_code: referenceCode,
-        },
-      );
+    const {
+      data: depositData,
+      error: depositError,
+    } = await supabase.rpc(
+      "nextgen_create_faucetpay_deposit",
+      {
+        p_usd_amount: normalizedAmount,
+        p_reference_code: referenceCode,
+      },
+    );
 
     if (depositError) {
       console.error(
@@ -137,14 +156,6 @@ export async function POST(request: Request) {
         { status: 500 },
       );
     }
-
-    const merchantUsername =
-      getFaucetPayMerchantUsername();
-
-    const checkoutUrl =
-      getFaucetPayCheckoutUrl();
-
-    const baseUrl = getPublicBaseUrl();
 
     /*
      * FaucetPay Merchant Checkout:
