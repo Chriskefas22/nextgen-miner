@@ -23,9 +23,6 @@ function isFiniteNonNegative(value: unknown): boolean {
 
 export async function POST(request: Request) {
   try {
-    /*
-     * FaucetPay sends the callback as application/x-www-form-urlencoded.
-     */
     const formData = await request.formData();
 
     const token = clean(formData.get("token"));
@@ -37,9 +34,8 @@ export async function POST(request: Request) {
     }
 
     /*
-     * NEVER trust the callback fields.
-     *
-     * The token is verified directly against FaucetPay.
+     * NEVER trust the callback fields directly.
+     * Verify the single-use token with FaucetPay first.
      */
     const verification = await verifyFaucetPayPaymentToken(token);
 
@@ -52,10 +48,13 @@ export async function POST(request: Request) {
       });
     }
 
-    const verified =
-      (verification as { valid?: unknown }).valid === true;
+    const payment = verification as Record<string, unknown>;
 
-    if (!verified) {
+    /*
+     * Payment is accepted ONLY when FaucetPay explicitly
+     * reports valid === true.
+     */
+    if (payment.valid !== true) {
       return new NextResponse(
         "FaucetPay payment is not valid",
         {
@@ -64,14 +63,9 @@ export async function POST(request: Request) {
       );
     }
 
-    const payment =
-      verification as Record<string, unknown>;
-
     /*
-     * IMPORTANT:
-     *
-     * From this point onward, payment identity and payment
-     * values come ONLY from FaucetPay's verified response.
+     * All important payment values now come from the
+     * verified FaucetPay response.
      */
     const transactionId = clean(
       payment.transaction_id,
@@ -85,24 +79,31 @@ export async function POST(request: Request) {
       payment.payer_username,
     );
 
-    const amount1Raw = payment.amount1;
+    const custom = clean(payment.custom);
 
     const currency1 = clean(
       payment.currency1,
     );
 
-    const amount2Raw = payment.amount2;
-
     const currency2 = clean(
       payment.currency2,
     );
 
-    const custom = clean(
-      payment.custom,
-    );
+    const amount1 = Number(payment.amount1);
 
-    const exchangeRateRaw =
-      payment.exchange_rate;
+    const amount2 =
+      payment.amount2 === undefined ||
+      payment.amount2 === null ||
+      payment.amount2 === ""
+        ? 0
+        : Number(payment.amount2);
+
+    const exchangeRate =
+      payment.exchange_rate === undefined ||
+      payment.exchange_rate === null ||
+      payment.exchange_rate === ""
+        ? 0
+        : Number(payment.exchange_rate);
 
     if (!transactionId) {
       return new NextResponse(
@@ -125,7 +126,7 @@ export async function POST(request: Request) {
       );
     }
 
-    if (!isFinitePositive(amount1Raw)) {
+    if (!isFinitePositive(amount1)) {
       return new NextResponse(
         "Invalid verified payment amount",
         { status: 400 },
@@ -139,15 +140,6 @@ export async function POST(request: Request) {
       );
     }
 
-    const amount1 = Number(amount1Raw);
-
-    const amount2 =
-      amount2Raw === undefined ||
-      amount2Raw === null ||
-      amount2Raw === ""
-        ? 0
-        : Number(amount2Raw);
-
     if (!isFiniteNonNegative(amount2)) {
       return new NextResponse(
         "Invalid verified secondary amount",
@@ -155,19 +147,14 @@ export async function POST(request: Request) {
       );
     }
 
-    const exchangeRate =
-      exchangeRateRaw === undefined ||
-      exchangeRateRaw === null ||
-      exchangeRateRaw === ""
-        ? 0
-        : Number(exchangeRateRaw);
-
     if (
-      exchangeRateRaw !== undefined &&
-      exchangeRateRaw !== null &&
-      exchangeRateRaw !== "" &&
-      (!Number.isFinite(exchangeRate) ||
-        exchangeRate <= 0)
+      payment.exchange_rate !== undefined &&
+      payment.exchange_rate !== null &&
+      payment.exchange_rate !== "" &&
+      (
+        !Number.isFinite(exchangeRate) ||
+        exchangeRate <= 0
+      )
     ) {
       return new NextResponse(
         "Invalid verified exchange rate",
@@ -176,8 +163,7 @@ export async function POST(request: Request) {
     }
 
     /*
-     * Merchant identity must match the merchant configured
-     * on the server.
+     * Verify merchant identity against the server configuration.
      */
     const configuredMerchant =
       getFaucetPayMerchantUsername();
@@ -200,53 +186,198 @@ export async function POST(request: Request) {
     }
 
     /*
-     * Use the server-role Supabase client.
-     *
-     * This credential MUST exist only in Vercel environment
-     * variables and MUST NEVER be exposed to the browser.
+     * Everything below this point runs server-side.
      */
     const supabase = createServiceClient();
 
     /*
+     * Resolve the internal deposit ID using the verified
+     * FaucetPay custom/reference value.
+     *
+     * We deliberately require BOTH provider and reference.
+     */
+    const { data: deposit, error: depositError } =
+      await supabase
+        .from("nextgen_deposits")
+        .select(
+          [
+            "id",
+            "user_id",
+            "provider",
+            "provider_order_id",
+            "reference_code",
+            "usd_amount",
+            "amount",
+            "asset",
+            "status",
+            "verification_status",
+          ].join(","),
+        )
+        .eq("provider", "faucetpay")
+        .eq("reference_code", custom)
+        .maybeSingle();
+
+    if (depositError) {
+      console.error(
+        "FaucetPay deposit lookup failed:",
+        depositError,
+      );
+
+      return new NextResponse(
+        "Deposit lookup failed",
+        { status: 500 },
+      );
+    }
+
+    if (!deposit) {
+      return new NextResponse(
+        "Deposit not found",
+        { status: 404 },
+      );
+    }
+
+    /*
+     * The internal reference must match exactly.
+     */
+    if (
+      deposit.reference_code !== custom ||
+      deposit.provider_order_id !== custom
+    ) {
+      console.error(
+        "FaucetPay deposit reference mismatch",
+        {
+          depositId: deposit.id,
+          expected: deposit.reference_code,
+          providerOrderId: deposit.provider_order_id,
+          received: custom,
+        },
+      );
+
+      return new NextResponse(
+        "Deposit reference mismatch",
+        { status: 400 },
+      );
+    }
+
+    /*
+     * Only the currency used for pricing is relevant to the
+     * NextGen accounting value.
+     *
+     * Our checkout uses USDT as currency1.
+     */
+    if (currency1.toUpperCase() !== "USDT") {
+      return new NextResponse(
+        "Unsupported pricing currency",
+        { status: 400 },
+      );
+    }
+
+    /*
+     * The user may choose any supported FaucetPay payment coin.
+     *
+     * currency2 may therefore be empty or populated.
+     * We do NOT reject it.
+     */
+
+    /*
+     * Match the verified FaucetPay amount against the amount
+     * originally stored for this deposit.
+     *
+     * Use a fixed two-decimal comparison because the checkout
+     * amount is generated to two decimal places.
+     */
+    const storedUsdAmount = Number(
+      deposit.usd_amount ?? deposit.amount,
+    );
+
+    if (
+      !Number.isFinite(storedUsdAmount) ||
+      storedUsdAmount <= 0
+    ) {
+      console.error(
+        "Invalid stored deposit amount",
+        {
+          depositId: deposit.id,
+          usdAmount: deposit.usd_amount,
+          amount: deposit.amount,
+        },
+      );
+
+      return new NextResponse(
+        "Invalid stored deposit amount",
+        { status: 500 },
+      );
+    }
+
+    const expectedAmount =
+      Number(storedUsdAmount.toFixed(2));
+
+    const verifiedAmount =
+      Number(amount1.toFixed(2));
+
+    if (
+      expectedAmount !== verifiedAmount
+    ) {
+      console.error(
+        "FaucetPay amount mismatch",
+        {
+          depositId: deposit.id,
+          expectedAmount,
+          verifiedAmount,
+        },
+      );
+
+      return new NextResponse(
+        "Payment amount mismatch",
+        { status: 400 },
+      );
+    }
+
+    /*
      * Call the hardened settlement RPC.
      *
-     * The RPC performs:
-     * - provider validation
-     * - pending/unverified validation
-     * - reference matching
-     * - amount matching
-     * - currency matching
+     * The RPC is responsible for the final atomic operation:
+     * - pending/unverified check
      * - duplicate transaction protection
      * - wallet locking
      * - Diamond calculation
-     * - ledger insertion
-     * - idempotent settlement
+     * - wallet credit
+     * - ledger
+     * - deposit update
+     * - idempotency
      */
-    const { data, error } = await supabase.rpc(
-      "nextgen_settle_faucetpay_deposit",
-      {
-        p_deposit_id: null,
-        p_token: token,
-        p_transaction_id: transactionId,
-        p_merchant_username: merchantUsername,
-        p_payer_username: payerUsername,
-        p_amount1: amount1,
-        p_currency1: currency1,
-        p_amount2: amount2,
-        p_currency2: currency2,
-        p_custom: custom,
-        p_exchange_rate: exchangeRate,
-      },
-    );
+    const { data: settlement, error: settlementError } =
+      await supabase.rpc(
+        "nextgen_settle_faucetpay_deposit",
+        {
+          p_deposit_id: deposit.id,
+          p_token: token,
+          p_transaction_id: transactionId,
+          p_merchant_username: merchantUsername,
+          p_payer_username: payerUsername,
+          p_amount1: amount1,
+          p_currency1: currency1,
+          p_amount2: amount2,
+          p_currency2: currency2,
+          p_custom: custom,
+          p_exchange_rate: exchangeRate,
+        },
+      );
 
-    if (error) {
+    if (settlementError) {
       console.error(
-        "FaucetPay settlement RPC failed:",
-        error,
+        "FaucetPay settlement failed:",
+        {
+          depositId: deposit.id,
+          transactionId,
+          error: settlementError,
+        },
       );
 
       /*
-       * Non-200 tells FaucetPay to retry the callback.
+       * Do NOT acknowledge a failed settlement.
+       *
+       * Returning non-200 allows FaucetPay to retry.
        */
       return new NextResponse(
         "Settlement failed",
@@ -255,20 +386,17 @@ export async function POST(request: Request) {
     }
 
     /*
-     * The current RPC requires p_deposit_id.
-     *
-     * Therefore this route deliberately does not silently
-     * invent or guess a deposit ID.
-     *
-     * The next small correction will resolve the deposit ID
-     * from the verified custom/reference before calling the RPC.
+     * Successful settlement OR an idempotent already-settled
+     * response is acknowledged with HTTP 200.
      */
-    if (!data) {
-      return new NextResponse(
-        "Settlement returned no result",
-        { status: 500 },
-      );
-    }
+    console.info(
+      "FaucetPay deposit settled",
+      {
+        depositId: deposit.id,
+        transactionId,
+        result: settlement,
+      },
+    );
 
     return new NextResponse("OK", {
       status: 200,
@@ -280,8 +408,8 @@ export async function POST(request: Request) {
     );
 
     /*
-     * FaucetPay retries callbacks when it does not receive
-     * HTTP 200.
+     * Any unexpected server failure must remain non-200 so
+     * FaucetPay can retry the callback.
      */
     return new NextResponse(
       "Callback processing failed",
