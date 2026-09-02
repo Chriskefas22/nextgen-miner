@@ -20,11 +20,22 @@ function isFinitePositiveNumber(value: unknown): value is number {
   );
 }
 
+function getPublicBaseUrl(): string {
+  const url =
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    process.env.VERCEL_PROJECT_PRODUCTION_URL ||
+    "https://nextgen-miner.vercel.app";
+
+  return url.startsWith("http") ? url : `https://${url}`;
+}
+
 export async function POST(request: Request) {
   try {
     const supabase = await createClient();
 
-    // Require an authenticated NextGen Miner user.
+    /*
+     * Deposit checkout requires a logged-in NextGen Miner user.
+     */
     const {
       data: { user },
       error: userError,
@@ -63,7 +74,12 @@ export async function POST(request: Request) {
       );
     }
 
-    // Keep monetary precision controlled.
+    /*
+     * Normalize fiat pricing to two decimal places.
+     *
+     * The authoritative minimum-deposit validation is still
+     * performed by nextgen_create_faucetpay_deposit().
+     */
     const normalizedAmount = Number(amount.toFixed(2));
 
     if (!isFinitePositiveNumber(normalizedAmount)) {
@@ -75,24 +91,29 @@ export async function POST(request: Request) {
       );
     }
 
+    /*
+     * Generate a unique internal order/reference.
+     *
+     * This is stored by the Supabase RPC and later returned by
+     * FaucetPay as the "custom" callback value.
+     */
     const referenceCode = generateFaucetPayDepositReference();
 
     /*
-     * The database RPC is responsible for:
-     * - authentication
-     * - minimum deposit validation
-     * - creating the pending deposit
-     * - keeping Diamond at 0
+     * Create the pending deposit first.
      *
-     * No Diamond is credited by this route.
+     * IMPORTANT:
+     * This RPC creates the deposit with diamond_amount = 0.
+     * No Diamond is credited at checkout creation.
      */
-    const { data: depositData, error: depositError } = await supabase.rpc(
-      "nextgen_create_faucetpay_deposit",
-      {
-        p_usd_amount: normalizedAmount,
-        p_reference_code: referenceCode,
-      },
-    );
+    const { data: depositData, error: depositError } =
+      await supabase.rpc(
+        "nextgen_create_faucetpay_deposit",
+        {
+          p_usd_amount: normalizedAmount,
+          p_reference_code: referenceCode,
+        },
+      );
 
     if (depositError) {
       console.error(
@@ -117,27 +138,73 @@ export async function POST(request: Request) {
       );
     }
 
-    const merchantUsername = getFaucetPayMerchantUsername();
-    const checkoutUrl = getFaucetPayCheckoutUrl();
+    const merchantUsername =
+      getFaucetPayMerchantUsername();
+
+    const checkoutUrl =
+      getFaucetPayCheckoutUrl();
+
+    const baseUrl = getPublicBaseUrl();
 
     /*
-     * FaucetPay Merchant Checkout expects a standard POST form.
+     * FaucetPay Merchant Checkout:
      *
-     * We return the form fields to the client.
-     * The merchant credential itself is not exposed.
+     * currency1 = USDT
+     * currency2 = blank
+     *
+     * This means NextGen prices the deposit in USDT-equivalent
+     * value while allowing the customer to choose any supported
+     * FaucetPay payment coin.
+     *
+     * Example:
+     *
+     * $5 deposit
+     * -> 5 USDT pricing value
+     * -> customer may choose BTC / ETH / USDT / LTC / DOGE etc.
+     *
+     * The actual payment coin and conversion are handled by
+     * FaucetPay.
+     */
+    const checkout = {
+      action: checkoutUrl,
+      method: "POST",
+      fields: {
+        merchant_username: merchantUsername,
+        item_description:
+          `NextGen Miner Deposit ${referenceCode}`,
+        amount1: normalizedAmount.toFixed(2),
+        currency1: "USDT",
+        currency2: "",
+        custom: referenceCode,
+        callback_url:
+          `${baseUrl}/api/deposit/faucetpay/callback`,
+        success_url:
+          `${baseUrl}/wallet/deposit?payment=success&reference=${encodeURIComponent(
+            referenceCode,
+          )}`,
+        cancel_url:
+          `${baseUrl}/wallet/deposit?payment=cancelled&reference=${encodeURIComponent(
+            referenceCode,
+          )}`,
+      },
+    };
+
+    /*
+     * Return only checkout information.
+     *
+     * No FaucetPay API secret is returned.
+     * No Diamond calculation is performed here.
      */
     return NextResponse.json({
       success: true,
-      checkout_url: checkoutUrl,
-      merchant_username: merchantUsername,
-      item_description: `NextGen Miner Deposit ${referenceCode}`,
-      amount1: normalizedAmount.toFixed(2),
-      currency1: "USD",
-      custom: referenceCode,
       deposit: depositData,
+      checkout,
     });
   } catch (error) {
-    console.error("FaucetPay checkout route error:", error);
+    console.error(
+      "FaucetPay checkout route error:",
+      error,
+    );
 
     return NextResponse.json(
       {
