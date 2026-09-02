@@ -129,4 +129,154 @@ export function MinerCard({ miner, onChanged }: MinerCardProps) {
               /*
                * Jangan fallback ke SVG lama.
                * Jika WebP tidak tersedia, sembunyikan image
-              
+               * supaya masalah asset terlihat dan tidak tertukar
+               * dengan artwork lama.
+               */
+              setImageFailed(true);
+            }}
+          />
+        ) : (
+          <div
+            className="miner-image-missing"
+            role="img"
+            aria-label={`${miner.name} image unavailable`}
+          >
+            <span>IMAGE UNAVAILABLE</span>
+          </div>
+        )}
+
+        <span className="rarity-badge">
+          {miner.tier}
+        </span>
+
+        <span className="lvl">
+          LV {miner.currentLevel}/{miner.maxLevel}
+        </span>
+
+        {miner.owned ? (
+          <span
+            className={`ownership ${
+              miner.active ? 'active' : ''
+            }`}
+          >
+            {miner.active ? 'ACTIVE' : 'OWNED'}
+          </span>
+        ) : null}
+      </div>
+
+      <div className="miner-copy">
+        <div className="miner-title-row">
+          <div>
+            <h3>{miner.name}</h3>
+
+            <p>
+              Precision virtual miner with scalable mining power progression.
+            </p>
+          </div>
+
+          {(
+            tierClass(miner.tier) === 'premium' ||
+            tierClass(miner.tier) === 'omega-'
+          ) && (
+            <span className="premium-tag">
+              PREMIUM
+            </span>
+          )}
+        </div>
+
+        <div className="level-head">
+          <span>
+            LEVEL {miner.currentLevel}/{miner.maxLevel}
+          </span>
+
+          <b>{progress}%</b>
+        </div>
+
+        <div className="progress">
+          <span
+            style={{
+              width: `${progress}%`,
+            }}
+          />
+        </div>
+
+        <div className="miner-grid">
+          <div>
+            <small>HASHRATE</small>
+            <b>{hash(miner.currentHashrate)}</b>
+          </div>
+
+          <div>
+            <small>NEXT LEVEL</small>
+            <b>
+              {miner.nextHashrate === null
+                ? 'MAX'
+                : hash(miner.nextHashrate)}
+            </b>
+          </div>
+
+          <div>
+            <small>
+              {miner.owned ? 'UPGRADE' : 'PRICE'}
+            </small>
+
+            <b>
+              {miner.owned
+                ? miner.nextUpgradePrice === null
+                  ? '—'
+                  : diamond(miner.nextUpgradePrice)
+                : diamond(miner.purchasePrice)}
+            </b>
+          </div>
+
+          <div>
+            <small>SPENT</small>
+            <b>{diamond(miner.totalSpent)}</b>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          className={`btn ${
+            atMax ? 'btn-ghost' : 'btn-primary'
+          }`}
+          disabled={busy || atMax}
+          onClick={handleAction}
+        >
+          {busy ? (
+            'SYNCING…'
+          ) : atMax ? (
+            'MAX LEVEL'
+          ) : miner.owned ? (
+            <>
+              <ArrowUpRight size={16} />
+              {actionLabel}
+            </>
+          ) : miner.purchasePrice === 0 ? (
+            <>
+              <Check size={16} />
+              {actionLabel}
+            </>
+          ) : (
+            <>
+              <ShoppingCart size={16} />
+              {actionLabel}
+            </>
+          )}
+        </button>
+
+        {message ? (
+          <div
+            className={`miner-action-message ${
+              message.includes('✓')
+                ? 'success'
+                : 'error'
+            }`}
+          >
+            {message}
+          </div>
+        ) : null}
+      </div>
+    </article>
+  );
+}
