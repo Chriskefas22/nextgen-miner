@@ -1,15 +1,571 @@
-.miner-card{position:relative;overflow:hidden;border-radius:18px!important;background:linear-gradient(145deg,rgba(7,17,29,.96),rgba(2,8,15,.98))!important;transition:transform .24s ease,box-shadow .24s ease,border-color .24s ease;}
-.miner-card:hover{transform:translateY(-4px);box-shadow:0 18px 46px rgba(0,0,0,.34),0 0 28px color-mix(in srgb,var(--miner-accent) 13%,transparent)!important;}
-.miner-visual{position:relative!important;aspect-ratio:16/10;overflow:hidden;padding:0!important;background:#030811!important;}
-.miner-visual::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 62%,rgba(1,7,14,.74) 100%);pointer-events:none;z-index:1;}
-.miner-visual img{display:block!important;width:100%!important;height:100%!important;object-fit:cover!important;object-position:center!important;filter:saturate(1.12) contrast(1.03);transform:scale(1.002);transition:transform .35s ease,filter .35s ease;}
-.miner-card:hover .miner-visual img{transform:scale(1.045);filter:saturate(1.18) contrast(1.05);}
-.miner-scan{position:absolute;z-index:2;inset:auto 10% 7%;height:18%;border-radius:50%;border:1px solid color-mix(in srgb,var(--miner-accent) 60%,transparent);box-shadow:0 0 24px color-mix(in srgb,var(--miner-accent) 23%,transparent);animation:miner-scan 6s linear infinite;pointer-events:none;}
-@keyframes miner-scan{0%{transform:scaleX(1) rotate(0)}50%{transform:scaleX(.92) rotate(180deg)}100%{transform:scaleX(1) rotate(360deg)}}
-.miner-card{--miner-accent:#24e8ff}.rarity-uncommon{--miner-accent:#35f3b4}.rarity-rare{--miner-accent:#9a55ff}.rarity-epic{--miner-accent:#ff9f2f}.rarity-legendary{--miner-accent:#ffbf30}.rarity-mythic{--miner-accent:#ee3cff}.rarity-premium{--miner-accent:#4edaff}.rarity-omega{--miner-accent:#ff5c6b}.rarity-starter{--miner-accent:#35f3b4}
-.rarity-badge,.lvl,.ownership{position:absolute;z-index:3;border:1px solid color-mix(in srgb,var(--miner-accent) 50%,transparent);background:rgba(2,8,16,.72);backdrop-filter:blur(8px);border-radius:8px;padding:5px 8px;font-size:9px;font-weight:900;letter-spacing:.1em;}
-.rarity-badge{left:10px;top:10px;color:var(--miner-accent)}.lvl{right:10px;top:10px;color:#fff}.ownership{right:10px;bottom:10px;color:#a9bfd1}.ownership.active{color:#35f3b4;border-color:rgba(53,243,180,.4)}
-.miner-copy{padding:13px!important}.miner-title-row{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}.miner-card h3{margin:0!important;font-family:Orbitron!important;font-size:14px!important;color:#f4f8ff!important}.miner-card p{margin:5px 0 0!important;color:#8ea6ba!important;font-size:10px!important;line-height:1.4!important}.premium-tag{padding:4px 7px;border-radius:999px;border:1px solid color-mix(in srgb,var(--miner-accent) 45%,transparent);color:var(--miner-accent);font-size:8px;font-weight:900;letter-spacing:.1em;white-space:nowrap}
-.level-head{display:flex;justify-content:space-between;margin-top:11px;margin-bottom:5px;color:#7897ad;font-size:8px;font-weight:900;letter-spacing:.08em}.level-head b{color:#d9ebff}.progress{height:6px!important}.miner-grid{display:grid;grid-template-columns:1fr 1fr!important;gap:7px!important;margin:10px 0!important}.miner-grid>div{padding:8px!important;border-radius:10px!important;background:rgba(6,17,29,.76)!important;border:1px solid rgba(45,110,149,.19)!important}.miner-grid small{font-size:7px!important;letter-spacing:.1em;color:#67869e!important}.miner-grid b{font-size:10px!important;margin-top:3px;display:block}.miner-card .btn{width:100%!important;font-size:10px!important;min-height:40px}.miner-action-message{margin-top:8px;padding:7px 9px;border-radius:9px;font-size:9px;font-weight:800}.miner-action-message.success{color:#8affe0;background:rgba(53,243,180,.07);border:1px solid rgba(53,243,180,.2)}.miner-action-message.error{color:#ffb0bf;background:rgba(255,85,122,.07);border:1px solid rgba(255,85,122,.2)}
-@media (max-width:1100px){.shop-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}@media (max-width:760px){.shop-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.miner-copy{padding:10px!important}.miner-grid{gap:5px!important}.miner-grid>div{padding:7px!important}}
-@media (max-width:520px){.shop-grid{grid-template-columns:1fr}.miner-visual{aspect-ratio:16/9}.miner-card h3{font-size:15px!important}.miner-grid{gap:7px!important}}
+/* =========================================================
+   NEXTGEN MINER — MINER CARD
+   Clean responsive card / individual miner artwork
+   ========================================================= */
+
+.miner-card {
+  --miner-accent: #24e8ff;
+
+  position: relative;
+  overflow: hidden;
+  border-radius: 18px !important;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(7, 17, 29, 0.97),
+      rgba(2, 8, 15, 0.99)
+    ) !important;
+
+  border: 1px solid
+    color-mix(
+      in srgb,
+      var(--miner-accent) 18%,
+      rgba(40, 100, 140, 0.18)
+    ) !important;
+
+  transition:
+    transform 0.24s ease,
+    box-shadow 0.24s ease,
+    border-color 0.24s ease;
+}
+
+.miner-card:hover {
+  transform: translateY(-3px);
+
+  box-shadow:
+    0 18px 46px rgba(0, 0, 0, 0.34),
+    0 0 26px
+      color-mix(
+        in srgb,
+        var(--miner-accent) 12%,
+        transparent
+      ) !important;
+
+  border-color:
+    color-mix(
+      in srgb,
+      var(--miner-accent) 30%,
+      rgba(40, 100, 140, 0.18)
+    ) !important;
+}
+
+
+/* =========================================================
+   MINER ARTWORK
+   ========================================================= */
+
+.miner-visual {
+  position: relative !important;
+
+  /*
+   * Basic CPU asset = 2048 × 1365
+   * Keep the native visual proportion.
+   */
+  aspect-ratio: 3 / 2;
+
+  width: 100%;
+  overflow: hidden;
+
+  padding: 0 !important;
+
+  background:
+    radial-gradient(
+      circle at center,
+      rgba(8, 30, 48, 0.45),
+      rgba(2, 8, 15, 1) 72%
+    ) !important;
+}
+
+
+/*
+ * Very subtle lower fade.
+ * It should blend the artwork into the information panel,
+ * not cover the miner itself.
+ */
+.miner-visual::after {
+  content: "";
+
+  position: absolute;
+  inset: 0;
+
+  background:
+    linear-gradient(
+      180deg,
+      transparent 70%,
+      rgba(1, 7, 14, 0.48) 100%
+    );
+
+  pointer-events: none;
+  z-index: 1;
+}
+
+
+/* =========================================================
+   MINER IMAGE
+   ========================================================= */
+
+.miner-visual img {
+  display: block !important;
+
+  width: 100% !important;
+  height: 100% !important;
+
+  /*
+   * Keep the individual artwork visible.
+   * Do not aggressively crop it.
+   */
+  object-fit: cover !important;
+  object-position: center center !important;
+
+  filter:
+    saturate(1.08)
+    contrast(1.02)
+    brightness(0.98);
+
+  transform: scale(1);
+
+  transition:
+    transform 0.35s ease,
+    filter 0.35s ease;
+}
+
+
+/*
+ * Very small hover enlargement.
+ * Previous 1.045 was too aggressive for the artwork.
+ */
+.miner-card:hover .miner-visual img {
+  transform: scale(1.018);
+
+  filter:
+    saturate(1.12)
+    contrast(1.03)
+    brightness(1);
+}
+
+
+/* =========================================================
+   IMPORTANT:
+   REMOVE THE OLD ROTATING GREEN RING
+   ========================================================= */
+
+.miner-scan {
+  display: none !important;
+}
+
+
+/* =========================================================
+   RARITY ACCENTS
+   ========================================================= */
+
+.rarity-uncommon {
+  --miner-accent: #35f3b4;
+}
+
+.rarity-rare {
+  --miner-accent: #9a55ff;
+}
+
+.rarity-epic {
+  --miner-accent: #ff9f2f;
+}
+
+.rarity-legendary {
+  --miner-accent: #ffbf30;
+}
+
+.rarity-mythic {
+  --miner-accent: #ee3cff;
+}
+
+.rarity-premium {
+  --miner-accent: #4edaff;
+}
+
+.rarity-omega {
+  --miner-accent: #ff5c6b;
+}
+
+.rarity-starter {
+  --miner-accent: #35f3b4;
+}
+
+
+/* =========================================================
+   BADGES
+   ========================================================= */
+
+.rarity-badge,
+.lvl,
+.ownership {
+  position: absolute;
+
+  z-index: 3;
+
+  border: 1px solid
+    color-mix(
+      in srgb,
+      var(--miner-accent) 48%,
+      transparent
+    );
+
+  background:
+    rgba(2, 8, 16, 0.76);
+
+  backdrop-filter: blur(8px);
+
+  border-radius: 8px;
+
+  padding: 5px 8px;
+
+  font-size: 9px;
+  font-weight: 900;
+
+  letter-spacing: 0.1em;
+}
+
+
+/* Rarity */
+
+.rarity-badge {
+  left: 10px;
+  top: 10px;
+
+  color: var(--miner-accent);
+}
+
+
+/* Level */
+
+.lvl {
+  right: 10px;
+  top: 10px;
+
+  color: #ffffff;
+}
+
+
+/* Ownership */
+
+.ownership {
+  right: 10px;
+  bottom: 10px;
+
+  color: #a9bfd1;
+}
+
+.ownership.active {
+  color: #35f3b4;
+
+  border-color:
+    rgba(53, 243, 180, 0.4);
+}
+
+
+/* =========================================================
+   CARD INFORMATION
+   ========================================================= */
+
+.miner-copy {
+  padding: 14px !important;
+}
+
+.miner-title-row {
+  display: flex;
+
+  justify-content: space-between;
+  align-items: flex-start;
+
+  gap: 10px;
+}
+
+.miner-card h3 {
+  margin: 0 !important;
+
+  font-family: Orbitron !important;
+
+  font-size: 15px !important;
+  line-height: 1.2 !important;
+
+  color: #f4f8ff !important;
+}
+
+.miner-card p {
+  margin: 6px 0 0 !important;
+
+  color: #8ea6ba !important;
+
+  font-size: 10px !important;
+  line-height: 1.45 !important;
+}
+
+
+/* =========================================================
+   PREMIUM LABEL
+   ========================================================= */
+
+.premium-tag {
+  flex-shrink: 0;
+
+  padding: 4px 7px;
+
+  border-radius: 999px;
+
+  border: 1px solid
+    color-mix(
+      in srgb,
+      var(--miner-accent) 45%,
+      transparent
+    );
+
+  color: var(--miner-accent);
+
+  font-size: 8px;
+
+  font-weight: 900;
+
+  letter-spacing: 0.1em;
+
+  white-space: nowrap;
+}
+
+
+/* =========================================================
+   LEVEL PROGRESS
+   ========================================================= */
+
+.level-head {
+  display: flex;
+
+  justify-content: space-between;
+
+  margin-top: 12px;
+  margin-bottom: 6px;
+
+  color: #7897ad;
+
+  font-size: 8px;
+
+  font-weight: 900;
+
+  letter-spacing: 0.08em;
+}
+
+.level-head b {
+  color: #d9ebff;
+}
+
+.progress {
+  height: 6px !important;
+
+  overflow: hidden;
+
+  border-radius: 999px;
+}
+
+
+/* =========================================================
+   STATS
+   ========================================================= */
+
+.miner-grid {
+  display: grid;
+
+  grid-template-columns: 1fr 1fr !important;
+
+  gap: 7px !important;
+
+  margin: 11px 0 !important;
+}
+
+.miner-grid > div {
+  min-width: 0;
+
+  padding: 9px !important;
+
+  border-radius: 10px !important;
+
+  background:
+    rgba(6, 17, 29, 0.78) !important;
+
+  border:
+    1px solid
+    rgba(45, 110, 149, 0.19) !important;
+}
+
+.miner-grid small {
+  display: block;
+
+  font-size: 7px !important;
+
+  letter-spacing: 0.1em;
+
+  color: #67869e !important;
+}
+
+.miner-grid b {
+  display: block;
+
+  margin-top: 3px;
+
+  font-size: 10px !important;
+
+  color: #e5f2ff;
+}
+
+
+/* =========================================================
+   ACTION BUTTON
+   ========================================================= */
+
+.miner-card .btn {
+  width: 100% !important;
+
+  min-height: 42px;
+
+  font-size: 10px !important;
+}
+
+
+/* =========================================================
+   ACTION MESSAGE
+   ========================================================= */
+
+.miner-action-message {
+  margin-top: 8px;
+
+  padding: 7px 9px;
+
+  border-radius: 9px;
+
+  font-size: 9px;
+
+  font-weight: 800;
+}
+
+.miner-action-message.success {
+  color: #8affe0;
+
+  background:
+    rgba(53, 243, 180, 0.07);
+
+  border:
+    1px solid
+    rgba(53, 243, 180, 0.2);
+}
+
+.miner-action-message.error {
+  color: #ffb0bf;
+
+  background:
+    rgba(255, 85, 122, 0.07);
+
+  border:
+    1px solid
+    rgba(255, 85, 122, 0.2);
+}
+
+
+/* =========================================================
+   TABLET
+   ========================================================= */
+
+@media (max-width: 1100px) {
+  .shop-grid {
+    grid-template-columns:
+      repeat(3, minmax(0, 1fr));
+  }
+}
+
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 760px) {
+  .shop-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+
+    gap: 10px;
+
+    padding-bottom: 96px;
+  }
+
+  .miner-copy {
+    padding: 11px !important;
+  }
+
+  .miner-grid {
+    gap: 6px !important;
+  }
+
+  .miner-grid > div {
+    padding: 8px !important;
+  }
+}
+
+
+/* =========================================================
+   SMALL MOBILE
+   ========================================================= */
+
+@media (max-width: 520px) {
+  .shop-grid {
+    grid-template-columns: 1fr;
+
+    gap: 12px;
+
+    padding-bottom: 110px;
+  }
+
+  /*
+   * Keep exactly the same proportion as the artwork.
+   */
+  .miner-visual {
+    aspect-ratio: 3 / 2;
+  }
+
+  .miner-card h3 {
+    font-size: 16px !important;
+  }
+
+  .miner-card p {
+    font-size: 10px !important;
+  }
+
+  .miner-grid {
+    gap: 7px !important;
+  }
+
+  .miner-grid > div {
+    padding: 9px !important;
+  }
+
+  .miner-card .btn {
+    min-height: 44px;
+  }
+}
+
+
+/* =========================================================
+   VERY SMALL DEVICES
+   ========================================================= */
+
+@media (max-width: 380px) {
+  .miner-copy {
+    padding: 10px !important;
+  }
+
+  .miner-grid > div {
+    padding: 8px !important;
+  }
+
+  .rarity-badge,
+  .lvl,
+  .ownership {
+    font-size: 8px;
+    padding: 5px 7px;
+  }
+}
