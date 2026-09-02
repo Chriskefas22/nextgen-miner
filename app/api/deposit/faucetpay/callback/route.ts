@@ -7,6 +7,19 @@ import {
 
 export const runtime = "nodejs";
 
+type FaucetPayDepositRow = {
+  id: number;
+  user_id: string;
+  provider: string;
+  provider_order_id: string | null;
+  reference_code: string | null;
+  usd_amount: number | string | null;
+  amount: number | string | null;
+  asset: string | null;
+  status: string;
+  verification_status: string;
+};
+
 function clean(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
 }
@@ -39,10 +52,7 @@ export async function POST(request: Request) {
      */
     const verification = await verifyFaucetPayPaymentToken(token);
 
-    if (
-      !verification ||
-      typeof verification !== "object"
-    ) {
+    if (!verification || typeof verification !== "object") {
       return new NextResponse("Invalid FaucetPay response", {
         status: 400,
       });
@@ -55,39 +65,21 @@ export async function POST(request: Request) {
      * reports valid === true.
      */
     if (payment.valid !== true) {
-      return new NextResponse(
-        "FaucetPay payment is not valid",
-        {
-          status: 400,
-        },
-      );
+      return new NextResponse("FaucetPay payment is not valid", {
+        status: 400,
+      });
     }
 
     /*
      * All important payment values now come from the
      * verified FaucetPay response.
      */
-    const transactionId = clean(
-      payment.transaction_id,
-    );
-
-    const merchantUsername = clean(
-      payment.merchant_username,
-    );
-
-    const payerUsername = clean(
-      payment.payer_username,
-    );
-
+    const transactionId = clean(payment.transaction_id);
+    const merchantUsername = clean(payment.merchant_username);
+    const payerUsername = clean(payment.payer_username);
     const custom = clean(payment.custom);
-
-    const currency1 = clean(
-      payment.currency1,
-    );
-
-    const currency2 = clean(
-      payment.currency2,
-    );
+    const currency1 = clean(payment.currency1);
+    const currency2 = clean(payment.currency2);
 
     const amount1 = Number(payment.amount1);
 
@@ -106,83 +98,66 @@ export async function POST(request: Request) {
         : Number(payment.exchange_rate);
 
     if (!transactionId) {
-      return new NextResponse(
-        "Missing verified transaction ID",
-        { status: 400 },
-      );
+      return new NextResponse("Missing verified transaction ID", {
+        status: 400,
+      });
     }
 
     if (!merchantUsername) {
-      return new NextResponse(
-        "Missing verified merchant username",
-        { status: 400 },
-      );
+      return new NextResponse("Missing verified merchant username", {
+        status: 400,
+      });
     }
 
     if (!custom) {
-      return new NextResponse(
-        "Missing verified deposit reference",
-        { status: 400 },
-      );
+      return new NextResponse("Missing verified deposit reference", {
+        status: 400,
+      });
     }
 
     if (!isFinitePositive(amount1)) {
-      return new NextResponse(
-        "Invalid verified payment amount",
-        { status: 400 },
-      );
+      return new NextResponse("Invalid verified payment amount", {
+        status: 400,
+      });
     }
 
     if (!currency1) {
-      return new NextResponse(
-        "Missing verified payment currency",
-        { status: 400 },
-      );
+      return new NextResponse("Missing verified payment currency", {
+        status: 400,
+      });
     }
 
     if (!isFiniteNonNegative(amount2)) {
-      return new NextResponse(
-        "Invalid verified secondary amount",
-        { status: 400 },
-      );
+      return new NextResponse("Invalid verified secondary amount", {
+        status: 400,
+      });
     }
 
     if (
       payment.exchange_rate !== undefined &&
       payment.exchange_rate !== null &&
       payment.exchange_rate !== "" &&
-      (
-        !Number.isFinite(exchangeRate) ||
-        exchangeRate <= 0
-      )
+      (!Number.isFinite(exchangeRate) || exchangeRate <= 0)
     ) {
-      return new NextResponse(
-        "Invalid verified exchange rate",
-        { status: 400 },
-      );
+      return new NextResponse("Invalid verified exchange rate", {
+        status: 400,
+      });
     }
 
     /*
      * Verify merchant identity against the server configuration.
      */
-    const configuredMerchant =
-      getFaucetPayMerchantUsername();
+    const configuredMerchant = getFaucetPayMerchantUsername();
 
-    if (
-      merchantUsername !== configuredMerchant
-    ) {
-      console.error(
-        "FaucetPay merchant mismatch",
-        {
-          expected: configuredMerchant,
-          received: merchantUsername,
-        },
-      );
+    if (merchantUsername !== configuredMerchant) {
+      console.error("FaucetPay merchant mismatch", {
+        expected: configuredMerchant,
+        received: merchantUsername,
+      });
 
-      return new NextResponse(
-        "Merchant mismatch",
-        { status: 400 },
-      );
+      return new NextResponse("Merchant mismatch", {
+        status: 400,
+      });
     }
 
     /*
@@ -193,29 +168,29 @@ export async function POST(request: Request) {
     /*
      * Resolve the internal deposit ID using the verified
      * FaucetPay custom/reference value.
-     *
-     * We deliberately require BOTH provider and reference.
      */
-    const { data: deposit, error: depositError } =
-      await supabase
-        .from("nextgen_deposits")
-        .select(
-          [
-            "id",
-            "user_id",
-            "provider",
-            "provider_order_id",
-            "reference_code",
-            "usd_amount",
-            "amount",
-            "asset",
-            "status",
-            "verification_status",
-          ].join(","),
-        )
-        .eq("provider", "faucetpay")
-        .eq("reference_code", custom)
-        .maybeSingle();
+    const {
+      data: rawDeposit,
+      error: depositError,
+    } = await supabase
+      .from("nextgen_deposits")
+      .select(
+        [
+          "id",
+          "user_id",
+          "provider",
+          "provider_order_id",
+          "reference_code",
+          "usd_amount",
+          "amount",
+          "asset",
+          "status",
+          "verification_status",
+        ].join(","),
+      )
+      .eq("provider", "faucetpay")
+      .eq("reference_code", custom)
+      .maybeSingle();
 
     if (depositError) {
       console.error(
@@ -223,17 +198,22 @@ export async function POST(request: Request) {
         depositError,
       );
 
-      return new NextResponse(
-        "Deposit lookup failed",
-        { status: 500 },
-      );
+      return new NextResponse("Deposit lookup failed", {
+        status: 500,
+      });
     }
 
+    /*
+     * Supabase generated types are not currently available for
+     * this table in this server client, so normalize the query
+     * result into the exact shape required by this route.
+     */
+    const deposit = rawDeposit as FaucetPayDepositRow | null;
+
     if (!deposit) {
-      return new NextResponse(
-        "Deposit not found",
-        { status: 404 },
-      );
+      return new NextResponse("Deposit not found", {
+        status: 404,
+      });
     }
 
     /*
@@ -253,38 +233,28 @@ export async function POST(request: Request) {
         },
       );
 
-      return new NextResponse(
-        "Deposit reference mismatch",
-        { status: 400 },
-      );
+      return new NextResponse("Deposit reference mismatch", {
+        status: 400,
+      });
     }
 
     /*
-     * Only the currency used for pricing is relevant to the
-     * NextGen accounting value.
-     *
      * Our checkout uses USDT as currency1.
      */
     if (currency1.toUpperCase() !== "USDT") {
-      return new NextResponse(
-        "Unsupported pricing currency",
-        { status: 400 },
-      );
+      return new NextResponse("Unsupported pricing currency", {
+        status: 400,
+      });
     }
 
     /*
-     * The user may choose any supported FaucetPay payment coin.
-     *
-     * currency2 may therefore be empty or populated.
+     * currency2 may be empty or populated.
      * We do NOT reject it.
      */
 
     /*
      * Match the verified FaucetPay amount against the amount
      * originally stored for this deposit.
-     *
-     * Use a fixed two-decimal comparison because the checkout
-     * amount is generated to two decimal places.
      */
     const storedUsdAmount = Number(
       deposit.usd_amount ?? deposit.amount,
@@ -294,43 +264,35 @@ export async function POST(request: Request) {
       !Number.isFinite(storedUsdAmount) ||
       storedUsdAmount <= 0
     ) {
-      console.error(
-        "Invalid stored deposit amount",
-        {
-          depositId: deposit.id,
-          usdAmount: deposit.usd_amount,
-          amount: deposit.amount,
-        },
-      );
+      console.error("Invalid stored deposit amount", {
+        depositId: deposit.id,
+        usdAmount: deposit.usd_amount,
+        amount: deposit.amount,
+      });
 
-      return new NextResponse(
-        "Invalid stored deposit amount",
-        { status: 500 },
-      );
+      return new NextResponse("Invalid stored deposit amount", {
+        status: 500,
+      });
     }
 
-    const expectedAmount =
-      Number(storedUsdAmount.toFixed(2));
+    const expectedAmount = Number(
+      storedUsdAmount.toFixed(2),
+    );
 
-    const verifiedAmount =
-      Number(amount1.toFixed(2));
+    const verifiedAmount = Number(
+      amount1.toFixed(2),
+    );
 
-    if (
-      expectedAmount !== verifiedAmount
-    ) {
-      console.error(
-        "FaucetPay amount mismatch",
-        {
-          depositId: deposit.id,
-          expectedAmount,
-          verifiedAmount,
-        },
-      );
+    if (expectedAmount !== verifiedAmount) {
+      console.error("FaucetPay amount mismatch", {
+        depositId: deposit.id,
+        expectedAmount,
+        verifiedAmount,
+      });
 
-      return new NextResponse(
-        "Payment amount mismatch",
-        { status: 400 },
-      );
+      return new NextResponse("Payment amount mismatch", {
+        status: 400,
+      });
     }
 
     /*
@@ -346,23 +308,25 @@ export async function POST(request: Request) {
      * - deposit update
      * - idempotency
      */
-    const { data: settlement, error: settlementError } =
-      await supabase.rpc(
-        "nextgen_settle_faucetpay_deposit",
-        {
-          p_deposit_id: deposit.id,
-          p_token: token,
-          p_transaction_id: transactionId,
-          p_merchant_username: merchantUsername,
-          p_payer_username: payerUsername,
-          p_amount1: amount1,
-          p_currency1: currency1,
-          p_amount2: amount2,
-          p_currency2: currency2,
-          p_custom: custom,
-          p_exchange_rate: exchangeRate,
-        },
-      );
+    const {
+      data: settlement,
+      error: settlementError,
+    } = await supabase.rpc(
+      "nextgen_settle_faucetpay_deposit",
+      {
+        p_deposit_id: deposit.id,
+        p_token: token,
+        p_transaction_id: transactionId,
+        p_merchant_username: merchantUsername,
+        p_payer_username: payerUsername,
+        p_amount1: amount1,
+        p_currency1: currency1,
+        p_amount2: amount2,
+        p_currency2: currency2,
+        p_custom: custom,
+        p_exchange_rate: exchangeRate,
+      },
+    );
 
     if (settlementError) {
       console.error(
@@ -376,27 +340,22 @@ export async function POST(request: Request) {
 
       /*
        * Do NOT acknowledge a failed settlement.
-       *
        * Returning non-200 allows FaucetPay to retry.
        */
-      return new NextResponse(
-        "Settlement failed",
-        { status: 500 },
-      );
+      return new NextResponse("Settlement failed", {
+        status: 500,
+      });
     }
 
     /*
-     * Successful settlement OR an idempotent already-settled
-     * response is acknowledged with HTTP 200.
+     * Successful settlement OR an idempotent
+     * already-settled response is acknowledged with HTTP 200.
      */
-    console.info(
-      "FaucetPay deposit settled",
-      {
-        depositId: deposit.id,
-        transactionId,
-        result: settlement,
-      },
-    );
+    console.info("FaucetPay deposit settled", {
+      depositId: deposit.id,
+      transactionId,
+      result: settlement,
+    });
 
     return new NextResponse("OK", {
       status: 200,
