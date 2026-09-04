@@ -169,6 +169,23 @@ export default function Login() {
               placeholder="••••••••"
               required
             />
+
+            <div
+              style={{
+                marginTop: 8,
+                textAlign: 'right',
+              }}
+            >
+              <Link
+                href="/auth/forgot-password"
+                style={{
+                  color: 'var(--cyan)',
+                  fontSize: 14,
+                }}
+              >
+                Forgot password?
+              </Link>
+            </div>
           </div>
 
           <TurnstileField
