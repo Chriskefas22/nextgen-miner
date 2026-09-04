@@ -158,7 +158,7 @@ export default function OwnerControlCenter() {
           <div className="owner-identity">
             <span>Owner Account</span>
             <strong>
-              minernextgen@gmail.com
+              angellhinoc@gmail.com
             </strong>
           </div>
         </header>
