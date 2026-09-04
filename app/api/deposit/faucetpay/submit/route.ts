@@ -1,100 +1,183 @@
-import { NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
-import { createServiceClient } from '@/lib/supabase/service';
+import { NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase/server";
 
-const DIAMONDS_PER_USD = 10_000;
-const MIN_USD = 0.01;
-const MAX_USD = 1_000_000;
-const QUOTE_MAX_AGE_MS = 60_000;
+export const runtime = "nodejs";
 
-const ASSET_NETWORKS: Record<string, string[]> = {
-  BTC: ['Bitcoin Chain'],
-  ETH: ['Ethereum Chain'],
-  BCH: ['Bitcoin Cash Chain'],
-  ADA: ['Cardano Chain'],
-  DASH: ['Dash Chain'],
-  DGB: ['DigiByte Chain'],
-  DOGE: ['Dogecoin Chain'],
-  LTC: ['Litecoin Chain'],
-  XMR: ['Monero Chain'],
-  POL: ['Polygon PoS'],
-  SOL: ['Solana Chain'],
-  TON: ['TON Chain'],
-  TRX: ['TRON / TRC20'],
-  USDT: ['TRC20 / TRON', 'Polygon PoS', 'ERC20 / Ethereum', 'BEP20 / BNB Chain'],
-  BNB: ['BNB Chain'],
+const ALLOWED_NETWORKS: Record<string, string[]> = {
+  BTC: ["Bitcoin Chain"],
+  ETH: ["Ethereum Chain"],
+  BCH: ["Bitcoin Cash Chain"],
+  ADA: ["Cardano Chain"],
+  DASH: ["Dash Chain"],
+  DGB: ["DigiByte Chain"],
+  DOGE: ["Dogecoin Chain"],
+  LTC: ["Litecoin Chain"],
+  XMR: ["Monero Chain"],
+  POL: ["Polygon PoS"],
+  SOL: ["Solana Chain"],
+  TON: ["TON Chain"],
+  TRX: ["TRON / TRC20"],
+  USDT: [
+    "TRC20 / TRON",
+    "Polygon PoS",
+    "ERC20 / Ethereum",
+    "BEP20 / BNB Chain",
+  ],
+  BNB: ["BNB Chain"],
 };
 
-function bad(error: string, status = 400) {
-  return NextResponse.json({ ok: false, error }, { status });
+type SubmitBody = {
+  asset?: unknown;
+  network?: unknown;
+  amount?: unknown;
+  usdAmount?: unknown;
+  txHash?: unknown;
+  destinationId?: unknown;
+};
+
+function text(value: unknown): string {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function positiveNumber(value: unknown): value is number {
+  return (
+    typeof value === "number" &&
+    Number.isFinite(value) &&
+    value > 0
+  );
 }
 
 export async function POST(request: Request) {
   try {
-    const authClient = await createClient();
-    const { data: { user }, error: authError } = await authClient.auth.getUser();
-    if (authError || !user) return bad('AUTH_REQUIRED', 401);
+    const supabase = await createClient();
 
-    const body = await request.json().catch(() => null) as Record<string, unknown> | null;
-    if (!body) return bad('INVALID_JSON');
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
 
-    const asset = String(body.asset ?? '').trim().toUpperCase();
-    const network = String(body.network ?? '').trim();
-    const txHash = String(body.txHash ?? '').trim();
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: "Authentication required" },
+        { status: 401 },
+      );
+    }
+
+    let body: SubmitBody;
+
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json(
+        { error: "Invalid JSON request" },
+        { status: 400 },
+      );
+    }
+
+    const asset = text(body.asset).toUpperCase();
+    const network = text(body.network);
+    const txHash = text(body.txHash);
     const amount = Number(body.amount);
     const usdAmount = Number(body.usdAmount);
-    const quotePrice = Number(body.quotePrice);
-    const quoteTimestamp = Number(body.quoteTimestamp);
+    const destinationId =
+      body.destinationId == null
+        ? null
+        : Number(body.destinationId);
 
-    if (!ASSET_NETWORKS[asset]) return bad('UNSUPPORTED_ASSET');
-    if (!ASSET_NETWORKS[asset].includes(network)) return bad('ASSET_NETWORK_MISMATCH');
-    if (!Number.isFinite(amount) || amount <= 0) return bad('INVALID_CRYPTO_AMOUNT');
-    if (!Number.isFinite(usdAmount) || usdAmount < MIN_USD || usdAmount > MAX_USD) return bad('INVALID_USD_AMOUNT');
-    if (!Number.isFinite(quotePrice) || quotePrice <= 0) return bad('INVALID_QUOTE');
-    if (!Number.isFinite(quoteTimestamp) || Math.abs(Date.now() - quoteTimestamp) > QUOTE_MAX_AGE_MS) return bad('QUOTE_EXPIRED');
-    if (txHash.length < 8 || txHash.length > 256) return bad('INVALID_TX_HASH');
+    if (!asset || !ALLOWED_NETWORKS[asset]) {
+      return NextResponse.json(
+        { error: "Unsupported deposit asset" },
+        { status: 400 },
+      );
+    }
 
-    const expectedAmount = usdAmount / quotePrice;
-    const relativeDifference = Math.abs(amount - expectedAmount) / expectedAmount;
-    if (!Number.isFinite(relativeDifference) || relativeDifference > 0.01) return bad('QUOTE_AMOUNT_MISMATCH');
+    if (!ALLOWED_NETWORKS[asset].includes(network)) {
+      return NextResponse.json(
+        { error: "Invalid network for selected asset" },
+        { status: 400 },
+      );
+    }
 
-    const diamonds = Number((usdAmount * DIAMONDS_PER_USD).toFixed(8));
-    if (!Number.isFinite(diamonds) || diamonds <= 0) return bad('INVALID_DIAMOND_AMOUNT');
+    if (!positiveNumber(amount)) {
+      return NextResponse.json(
+        { error: "Invalid crypto amount" },
+        { status: 400 },
+      );
+    }
 
-    const service = createServiceClient();
-    const { data: duplicate, error: duplicateError } = await service
-      .from('nextgen_deposits')
-      .select('id,user_id,status')
-      .eq('tx_hash', txHash)
-      .limit(1)
-      .maybeSingle();
-    if (duplicateError) return bad('DUPLICATE_CHECK_FAILED', 500);
-    if (duplicate) return bad('TX_HASH_ALREADY_SUBMITTED', 409);
+    if (
+      !Number.isFinite(usdAmount) ||
+      usdAmount < 0.01 ||
+      usdAmount > 100000
+    ) {
+      return NextResponse.json(
+        { error: "Deposit amount is outside the allowed range" },
+        { status: 400 },
+      );
+    }
 
-    const { data: deposit, error: insertError } = await service
-      .from('nextgen_deposits')
-      .insert({
-        user_id: user.id,
-        asset,
-        network,
-        amount,
-        usd_amount: usdAmount,
-        diamond_amount: diamonds,
-        tx_hash: txHash,
-        status: 'pending',
-      })
-      .select('id,status,created_at')
-      .single();
+    if (txHash.length < 8 || txHash.length > 256) {
+      return NextResponse.json(
+        { error: "Invalid transaction hash" },
+        { status: 400 },
+      );
+    }
 
-    if (insertError) return bad('DEPOSIT_CREATE_FAILED', 500);
+    if (
+      destinationId !== null &&
+      (!Number.isInteger(destinationId) ||
+        destinationId <= 0)
+    ) {
+      return NextResponse.json(
+        { error: "Invalid destination" },
+        { status: 400 },
+      );
+    }
+
+    /*
+     * The browser never receives permission to credit the wallet.
+     *
+     * nextgen_submit_deposit:
+     * - requires authenticated user
+     * - validates destination
+     * - calculates Diamond server-side
+     * - creates PENDING deposit
+     * - does NOT credit wallet
+     */
+    const { data, error } = await supabase.rpc(
+      "nextgen_submit_deposit",
+      {
+        p_asset: asset,
+        p_network: network,
+        p_amount: amount,
+        p_usd_amount: usdAmount,
+        p_tx_hash: txHash,
+        p_destination_id: destinationId,
+      },
+    );
+
+    if (error) {
+      console.error("Deposit submission failed:", error);
+
+      return NextResponse.json(
+        { error: "Unable to submit deposit" },
+        { status: 400 },
+      );
+    }
 
     return NextResponse.json({
-      ok: true,
-      deposit_id: deposit.id,
-      status: deposit.status,
-      created_at: deposit.created_at,
-    }, { status: 201 });
-  } catch {
-    return bad('INTERNAL_SERVER_ERROR', 500);
+      success: true,
+      status: "pending",
+      depositId: data,
+      message:
+        "Deposit submitted successfully and is pending manual verification.",
+    });
+  } catch (error) {
+    console.error("Deposit API error:", error);
+
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 },
+    );
   }
 }
