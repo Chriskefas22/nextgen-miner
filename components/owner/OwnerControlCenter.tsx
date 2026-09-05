@@ -1,16 +1,55 @@
 'use client';
 
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 type MessageState = {
   type: 'success' | 'error' | '';
   text: string;
 };
 
+type PendingDeposit = {
+  id: number;
+  user_id: string;
+  asset: string;
+  network: string;
+  amount: number | string;
+  usd_amount: number | string;
+  diamond_amount: number | string;
+  status: string;
+  created_at: string;
+  tx_hash?: string | null;
+  reference_code?: string | null;
+};
+
+function formatNumber(
+  value: number | string | null | undefined
+) {
+  const numeric = Number(value);
+
+  if (!Number.isFinite(numeric)) {
+    return String(value ?? '-');
+  }
+
+  return numeric.toLocaleString(undefined, {
+    maximumFractionDigits: 8,
+  });
+}
+
+function formatDate(value: string) {
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return date.toLocaleString();
+}
+
 export default function OwnerControlCenter() {
   const [targetUserId, setTargetUserId] = useState('');
   const [amount, setAmount] = useState('');
   const [note, setNote] = useState('');
+
   const [busy, setBusy] = useState(false);
 
   const [message, setMessage] =
@@ -18,6 +57,15 @@ export default function OwnerControlCenter() {
       type: '',
       text: '',
     });
+
+  const [deposits, setDeposits] =
+    useState<PendingDeposit[]>([]);
+
+  const [depositsLoading, setDepositsLoading] =
+    useState(false);
+
+  const [depositsError, setDepositsError] =
+    useState('');
 
   async function adjustDiamond(
     direction: 'add' | 'remove'
@@ -36,14 +84,19 @@ export default function OwnerControlCenter() {
         type: 'error',
         text: 'Target User ID wajib diisi.',
       });
+
       return;
     }
 
-    if (!numericAmount || numericAmount <= 0) {
+    if (
+      !numericAmount ||
+      numericAmount <= 0
+    ) {
       setMessage({
         type: 'error',
         text: 'Jumlah 💎 harus lebih besar dari 0.',
       });
+
       return;
     }
 
@@ -52,6 +105,7 @@ export default function OwnerControlCenter() {
         type: 'error',
         text: 'Jumlah 💎 tidak valid.',
       });
+
       return;
     }
 
@@ -60,6 +114,7 @@ export default function OwnerControlCenter() {
         type: 'error',
         text: 'Alasan perubahan wajib diisi.',
       });
+
       return;
     }
 
@@ -68,6 +123,7 @@ export default function OwnerControlCenter() {
         type: 'error',
         text: 'Alasan minimal 3 karakter.',
       });
+
       return;
     }
 
@@ -76,6 +132,7 @@ export default function OwnerControlCenter() {
         type: 'error',
         text: 'Alasan maksimal 500 karakter.',
       });
+
       return;
     }
 
@@ -136,10 +193,59 @@ export default function OwnerControlCenter() {
     }
   }
 
+  const loadPendingDeposits =
+    useCallback(async () => {
+      setDepositsLoading(true);
+      setDepositsError('');
+
+      try {
+        const response = await fetch(
+          '/api/owner/deposits/pending?limit=100',
+          {
+            cache: 'no-store',
+          }
+        );
+
+        const data = await response
+          .json()
+          .catch(() => ({}));
+
+        if (!response.ok) {
+          throw new Error(
+            data?.error ||
+              'Gagal mengambil deposit PENDING.'
+          );
+        }
+
+        setDeposits(
+          Array.isArray(data?.deposits)
+            ? data.deposits
+            : []
+        );
+      } catch (error) {
+        setDeposits([]);
+
+        setDepositsError(
+          error instanceof Error
+            ? error.message
+            : 'Gagal mengambil deposit PENDING.'
+        );
+      } finally {
+        setDepositsLoading(false);
+      }
+    }, []);
+
+  useEffect(() => {
+    void loadPendingDeposits();
+  }, [loadPendingDeposits]);
+
   return (
     <main className="owner-control-page">
       <div className="owner-control-container">
-        {/* HEADER */}
+
+        {/* =====================================================
+            HEADER
+        ====================================================== */}
 
         <header className="owner-header">
           <div>
@@ -147,7 +253,9 @@ export default function OwnerControlCenter() {
               OWNER ONLY
             </span>
 
-            <h1>Owner Control Center</h1>
+            <h1>
+              Owner Control Center
+            </h1>
 
             <p>
               Central control untuk operasional
@@ -156,33 +264,38 @@ export default function OwnerControlCenter() {
           </div>
 
           <div className="owner-identity">
-            <span>Owner Account</span>
+            <span>
+              Owner Account
+            </span>
+
             <strong>
               angellhinoc@gmail.com
             </strong>
           </div>
         </header>
 
-        {/* DIAMOND CONTROL */}
+        {/* =====================================================
+            DIAMOND CONTROL
+        ====================================================== */}
 
         <section className="owner-card diamond-card">
           <div className="card-heading">
-            <div>
-              <span className="section-label">
-                FINANCE CONTROL
-              </span>
+            <span className="section-label">
+              FINANCE CONTROL
+            </span>
 
-              <h2>💎 Diamond Control</h2>
+            <h2>
+              💎 Diamond Control
+            </h2>
 
-              <p>
-                Tambahkan atau kurangi Diamond
-                pengguna melalui protected Owner
-                RPC.
-              </p>
-            </div>
+            <p>
+              Tambahkan atau kurangi Diamond
+              pengguna melalui protected Owner RPC.
+            </p>
           </div>
 
           <div className="form-grid">
+
             <div className="field">
               <label htmlFor="targetUserId">
                 Target User ID
@@ -222,6 +335,7 @@ export default function OwnerControlCenter() {
                 disabled={busy}
               />
             </div>
+
           </div>
 
           <div className="field">
@@ -246,6 +360,7 @@ export default function OwnerControlCenter() {
           </div>
 
           <div className="action-row">
+
             <button
               type="button"
               className="action-button add-button"
@@ -271,6 +386,7 @@ export default function OwnerControlCenter() {
                 ? 'Memproses...'
                 : '➖ Kurangi 💎'}
             </button>
+
           </div>
 
           {message.text && (
@@ -283,104 +399,300 @@ export default function OwnerControlCenter() {
           )}
 
           <div className="security-note">
-            <strong>Protected operation</strong>
+            <strong>
+              Protected operation
+            </strong>
 
             <span>
-              Browser tidak mengubah saldo secara
-              langsung. Semua perubahan melewati
-              Owner RPC dan dicatat ke transaction
-              ledger serta Owner audit.
+              Browser tidak mengubah saldo
+              secara langsung. Semua perubahan
+              melewati Owner RPC dan dicatat ke
+              transaction ledger serta Owner audit.
             </span>
           </div>
         </section>
 
-        {/* FINANCE */}
+        {/* =====================================================
+            DEPOSIT REVIEW
+        ====================================================== */}
 
         <section className="owner-card">
-          <div className="card-heading">
+
+          <div className="card-heading finance-heading">
+
             <div>
               <span className="section-label">
                 FINANCE
               </span>
 
-              <h2>📥 Deposit & 📤 Withdrawal</h2>
+              <h2>
+                📥 Deposit Review
+              </h2>
 
               <p>
-                Area review transaksi pengguna.
+                Read-only tahap verifikasi:
+                menampilkan deposit PENDING dari
+                Owner-protected endpoint.
               </p>
             </div>
+
+            <button
+              type="button"
+              className="refresh-button"
+              onClick={() =>
+                void loadPendingDeposits()
+              }
+              disabled={depositsLoading}
+            >
+              {depositsLoading
+                ? 'Memuat...'
+                : '↻ Refresh'}
+            </button>
+
           </div>
 
-          <div className="module-grid">
-            <div className="module-item">
-              <span className="module-icon">
-                📥
-              </span>
+          <div className="review-safety">
 
-              <div>
+            <strong>
+              🔒 APPROVE / REJECT belum aktif
+            </strong>
+
+            <span>
+              Tahap ini hanya membaca data
+              PENDING. Tidak ada perubahan wallet
+              atau saldo yang dilakukan.
+            </span>
+
+          </div>
+
+          {depositsLoading &&
+            deposits.length === 0 && (
+              <div className="empty-state">
+                Memuat deposit PENDING...
+              </div>
+            )}
+
+          {depositsError && (
+            <div className="owner-message error">
+              {depositsError}
+            </div>
+          )}
+
+          {!depositsLoading &&
+            !depositsError &&
+            deposits.length === 0 && (
+              <div className="empty-state">
+                Tidak ada deposit PENDING saat ini.
+              </div>
+            )}
+
+          {deposits.length > 0 && (
+            <div className="deposit-list">
+
+              <div className="deposit-summary">
                 <strong>
-                  Deposit Review
+                  {deposits.length}
                 </strong>
 
-                <p>
-                  Melihat deposit PENDING dan
-                  melakukan APPROVE atau REJECT.
-                </p>
+                <span>
+                  deposit PENDING ditampilkan
+                  (maks. 100 pada tampilan ini).
+                </span>
               </div>
 
-              <span className="module-status">
-                OWNER
-              </span>
+              {deposits.map((deposit) => (
+                <article
+                  className="deposit-item"
+                  key={deposit.id}
+                >
+
+                  <div className="deposit-topline">
+
+                    <strong>
+                      Deposit #{deposit.id}
+                    </strong>
+
+                    <span className="pending-badge">
+                      {String(
+                        deposit.status
+                      ).toUpperCase()}
+                    </span>
+
+                  </div>
+
+                  <div className="deposit-grid">
+
+                    <div>
+                      <span>
+                        User ID
+                      </span>
+
+                      <strong className="mono">
+                        {deposit.user_id}
+                      </strong>
+                    </div>
+
+                    <div>
+                      <span>
+                        Asset
+                      </span>
+
+                      <strong>
+                        {deposit.asset}
+                      </strong>
+                    </div>
+
+                    <div>
+                      <span>
+                        Network
+                      </span>
+
+                      <strong>
+                        {deposit.network}
+                      </strong>
+                    </div>
+
+                    <div>
+                      <span>
+                        Crypto Amount
+                      </span>
+
+                      <strong>
+                        {formatNumber(
+                          deposit.amount
+                        )}
+                      </strong>
+                    </div>
+
+                    <div>
+                      <span>
+                        USD
+                      </span>
+
+                      <strong>
+                        $
+                        {formatNumber(
+                          deposit.usd_amount
+                        )}
+                      </strong>
+                    </div>
+
+                    <div>
+                      <span>
+                        💎 Diamond
+                      </span>
+
+                      <strong>
+                        {formatNumber(
+                          deposit.diamond_amount
+                        )}
+                      </strong>
+                    </div>
+
+                    <div>
+                      <span>
+                        Created
+                      </span>
+
+                      <strong>
+                        {formatDate(
+                          deposit.created_at
+                        )}
+                      </strong>
+                    </div>
+
+                    <div>
+                      <span>
+                        Reference
+                      </span>
+
+                      <strong className="mono">
+                        {deposit.reference_code ||
+                          '-'}
+                      </strong>
+                    </div>
+
+                  </div>
+
+                  <div className="deposit-hash">
+
+                    <span>
+                      TX Hash
+                    </span>
+
+                    <strong className="mono">
+                      {deposit.tx_hash ||
+                        'Belum diisi'}
+                    </strong>
+
+                  </div>
+
+                </article>
+              ))}
+
             </div>
+          )}
 
-            <div className="module-item">
-              <span className="module-icon">
-                📤
-              </span>
+        </section>
 
-              <div>
-                <strong>
-                  Withdrawal Review
-                </strong>
+        {/* =====================================================
+            WITHDRAWAL REVIEW
+        ====================================================== */}
 
-                <p>
-                  Melihat withdrawal PENDING dan
-                  melakukan APPROVE atau REJECT.
-                </p>
-              </div>
+        <section className="owner-card">
 
-              <span className="module-status">
-                OWNER
-              </span>
-            </div>
+          <div className="card-heading">
+
+            <span className="section-label">
+              FINANCE
+            </span>
+
+            <h2>
+              📤 Withdrawal Review
+            </h2>
+
+            <p>
+              Owner-only pending withdrawal
+              read path sudah disiapkan, tetapi UI
+              approval belum diaktifkan.
+            </p>
+
           </div>
 
           <div className="coming-note">
-            Finance review UI akan dihubungkan
-            setelah endpoint Owner review selesai
-            dipasang.
+            🔒 Tahap berikutnya: audit read-path
+            withdrawal sebelum APPROVE / REJECT
+            diaktifkan.
           </div>
+
         </section>
 
-        {/* ANNOUNCEMENT */}
+        {/* =====================================================
+            ANNOUNCEMENT
+        ====================================================== */}
 
         <section className="owner-card">
+
           <div className="card-heading">
-            <div>
-              <span className="section-label">
-                COMMUNICATION
-              </span>
 
-              <h2>📢 Announcement</h2>
+            <span className="section-label">
+              COMMUNICATION
+            </span>
 
-              <p>
-                Komunikasi resmi Owner kepada member.
-              </p>
-            </div>
+            <h2>
+              📢 Announcement
+            </h2>
+
+            <p>
+              Komunikasi resmi Owner kepada member.
+            </p>
+
           </div>
 
           <div className="module-grid">
+
             <div className="module-item">
+
               <span className="module-icon">
                 👤
               </span>
@@ -399,9 +711,11 @@ export default function OwnerControlCenter() {
               <span className="module-status">
                 OWNER
               </span>
+
             </div>
 
             <div className="module-item">
+
               <span className="module-icon">
                 🌐
               </span>
@@ -420,39 +734,50 @@ export default function OwnerControlCenter() {
               <span className="module-status">
                 OWNER
               </span>
+
             </div>
+
           </div>
 
           <div className="coming-note">
             Announcement UI akan dihubungkan ke
             protected Owner RPC.
           </div>
+
         </section>
 
-        {/* DISABLED FEATURES */}
+        {/* =====================================================
+            OWNER POLICY
+        ====================================================== */}
 
         <section className="owner-card simplified-card">
+
           <div className="card-heading">
-            <div>
-              <span className="section-label">
-                OWNER POLICY
-              </span>
 
-              <h2>Control Scope</h2>
+            <span className="section-label">
+              OWNER POLICY
+            </span>
 
-              <p>
-                Owner Control Center sengaja
-                disederhanakan.
-              </p>
-            </div>
+            <h2>
+              Control Scope
+            </h2>
+
+            <p>
+              Owner Control Center sengaja
+              disederhanakan.
+            </p>
+
           </div>
 
           <div className="policy-list">
+
             <div className="policy-row">
               <span>💎</span>
+
               <strong>
                 Diamond Add / Remove
               </strong>
+
               <span className="enabled">
                 ENABLED
               </span>
@@ -460,9 +785,11 @@ export default function OwnerControlCenter() {
 
             <div className="policy-row">
               <span>📢</span>
+
               <strong>
                 Personal / Global Announcement
               </strong>
+
               <span className="enabled">
                 ENABLED
               </span>
@@ -470,38 +797,60 @@ export default function OwnerControlCenter() {
 
             <div className="policy-row disabled-row">
               <span>🚫</span>
+
               <strong>
                 Gift Hashrate
               </strong>
-              <span>REMOVED</span>
+
+              <span>
+                REMOVED
+              </span>
             </div>
 
             <div className="policy-row disabled-row">
               <span>🚫</span>
+
               <strong>
                 Block / Unblock User
               </strong>
-              <span>REMOVED</span>
+
+              <span>
+                REMOVED
+              </span>
             </div>
 
             <div className="policy-row disabled-row">
               <span>🚫</span>
+
               <strong>
                 Gift Miner
               </strong>
-              <span>REMOVED</span>
+
+              <span>
+                REMOVED
+              </span>
             </div>
 
             <div className="policy-row disabled-row">
               <span>🚫</span>
-              <strong>Admin Role</strong>
-              <span>REMOVED</span>
+
+              <strong>
+                Admin Role
+              </strong>
+
+              <span>
+                REMOVED
+              </span>
             </div>
+
           </div>
+
         </section>
+
       </div>
 
       <style jsx>{`
+
         .owner-control-page {
           min-height: 100vh;
           padding: 32px 20px 60px;
@@ -596,6 +945,13 @@ export default function OwnerControlCenter() {
           margin-bottom: 22px;
         }
 
+        .finance-heading {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          gap: 16px;
+        }
+
         .section-label {
           display: block;
           margin-bottom: 7px;
@@ -639,20 +995,14 @@ export default function OwnerControlCenter() {
           border: 1px solid
             rgba(255, 255, 255, 0.12);
           border-radius: 12px;
-          background: rgba(0, 0, 0, 0.28);
+          background: rgba(0, 0, 0, 0.22);
           color: #ffffff;
+          padding: 12px 13px;
           outline: none;
-          font: inherit;
-        }
-
-        input {
-          height: 48px;
-          padding: 0 14px;
         }
 
         textarea {
           min-height: 100px;
-          padding: 13px 14px;
           resize: vertical;
         }
 
@@ -664,12 +1014,12 @@ export default function OwnerControlCenter() {
 
         input:disabled,
         textarea:disabled {
-          opacity: 0.55;
+          opacity: 0.6;
         }
 
         .character-count {
+          margin-top: 5px;
           text-align: right;
-          margin-top: -8px;
           font-size: 11px;
           color: rgba(255, 255, 255, 0.35);
         }
@@ -680,193 +1030,297 @@ export default function OwnerControlCenter() {
           flex-wrap: wrap;
         }
 
-        .action-button {
-          min-height: 46px;
-          padding: 0 18px;
+        .action-button,
+        .refresh-button {
           border: 1px solid
-            rgba(255, 255, 255, 0.12);
+            rgba(255, 255, 255, 0.14);
           border-radius: 12px;
+          padding: 11px 15px;
           color: #ffffff;
-          font-weight: 800;
+          background: rgba(255, 255, 255, 0.06);
           cursor: pointer;
-          background: rgba(255, 255, 255, 0.07);
+          font-weight: 700;
         }
 
-        .action-button:hover:not(:disabled) {
-          background: rgba(255, 255, 255, 0.12);
-        }
-
-        .action-button:disabled {
-          opacity: 0.45;
+        .action-button:disabled,
+        .refresh-button:disabled {
+          opacity: 0.5;
           cursor: not-allowed;
         }
 
         .add-button {
           border-color:
-            rgba(80, 220, 150, 0.28);
+            rgba(100, 220, 150, 0.3);
         }
 
         .remove-button {
           border-color:
-            rgba(255, 100, 100, 0.28);
+            rgba(255, 110, 110, 0.3);
+        }
+
+        .refresh-button {
+          white-space: nowrap;
         }
 
         .owner-message {
-          margin-top: 15px;
+          margin-top: 14px;
           padding: 12px 14px;
-          border-radius: 11px;
-          font-size: 13px;
-        }
-
-        .owner-message.success {
-          background: rgba(70, 200, 130, 0.1);
-          border: 1px solid
-            rgba(70, 200, 130, 0.2);
-        }
-
-        .owner-message.error {
-          background: rgba(255, 80, 80, 0.1);
-          border: 1px solid
-            rgba(255, 80, 80, 0.2);
-        }
-
-        .security-note {
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
-          margin-top: 18px;
-          padding: 13px 14px;
           border-radius: 12px;
-          background: rgba(255, 255, 255, 0.025);
-          color: rgba(255, 255, 255, 0.48);
-          font-size: 12px;
+          font-size: 13px;
           line-height: 1.5;
         }
 
-        .security-note strong {
-          color: rgba(255, 255, 255, 0.78);
+        .owner-message.success {
+          border: 1px solid
+            rgba(100, 220, 150, 0.25);
+          background:
+            rgba(100, 220, 150, 0.07);
+        }
+
+        .owner-message.error {
+          border: 1px solid
+            rgba(255, 110, 110, 0.25);
+          background:
+            rgba(255, 110, 110, 0.07);
+        }
+
+        .security-note,
+        .review-safety {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          margin-top: 16px;
+          padding: 13px 14px;
+          border-radius: 12px;
+          border: 1px solid
+            rgba(255, 255, 255, 0.08);
+          background:
+            rgba(255, 255, 255, 0.025);
+        }
+
+        .security-note span,
+        .review-safety span {
+          color: rgba(255, 255, 255, 0.5);
+          font-size: 12px;
+          line-height: 1.55;
+        }
+
+        .review-safety {
+          margin-top: 0;
+          margin-bottom: 16px;
+          border-color:
+            rgba(255, 190, 90, 0.2);
+        }
+
+        .review-safety strong {
+          font-size: 13px;
+        }
+
+        .deposit-summary {
+          display: flex;
+          gap: 6px;
+          align-items: baseline;
+          margin-bottom: 12px;
+          color: rgba(255, 255, 255, 0.58);
+          font-size: 12px;
+        }
+
+        .deposit-summary strong {
+          color: #ffffff;
+          font-size: 18px;
+        }
+
+        .deposit-item {
+          margin-top: 12px;
+          padding: 16px;
+          border-radius: 16px;
+          border: 1px solid
+            rgba(255, 255, 255, 0.09);
+          background: rgba(0, 0, 0, 0.16);
+        }
+
+        .deposit-topline {
+          display: flex;
+          justify-content: space-between;
+          gap: 12px;
+          align-items: center;
+          margin-bottom: 14px;
+        }
+
+        .pending-badge {
+          padding: 4px 8px;
+          border-radius: 999px;
+          border: 1px solid
+            rgba(255, 190, 90, 0.24);
+          font-size: 10px;
+          font-weight: 800;
+          letter-spacing: 0.08em;
+        }
+
+        .deposit-grid {
+          display: grid;
+          grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+          gap: 12px;
+        }
+
+        .deposit-grid div,
+        .deposit-hash {
+          min-width: 0;
+        }
+
+        .deposit-grid span,
+        .deposit-hash span {
+          display: block;
+          margin-bottom: 4px;
+          color: rgba(255, 255, 255, 0.38);
+          font-size: 10px;
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
+        }
+
+        .deposit-grid strong,
+        .deposit-hash strong {
+          display: block;
+          font-size: 12px;
+          line-height: 1.5;
+          word-break: break-word;
+        }
+
+        .deposit-hash {
+          margin-top: 12px;
+          padding-top: 12px;
+          border-top: 1px solid
+            rgba(255, 255, 255, 0.07);
+        }
+
+        .mono {
+          font-family:
+            ui-monospace,
+            SFMono-Regular,
+            Menlo,
+            Monaco,
+            Consolas,
+            monospace;
+        }
+
+        .empty-state,
+        .coming-note {
+          padding: 14px;
+          border-radius: 12px;
+          border: 1px solid
+            rgba(255, 255, 255, 0.08);
+          background:
+            rgba(255, 255, 255, 0.025);
+          color: rgba(255, 255, 255, 0.52);
+          font-size: 13px;
+          line-height: 1.5;
         }
 
         .module-grid {
           display: grid;
           grid-template-columns:
-            minmax(0, 1fr)
-            minmax(0, 1fr);
+            repeat(2, minmax(0, 1fr));
           gap: 12px;
         }
 
         .module-item {
           display: grid;
           grid-template-columns:
-            auto minmax(0, 1fr) auto;
-          align-items: center;
+            auto 1fr auto;
           gap: 12px;
+          align-items: center;
           padding: 15px;
           border: 1px solid
             rgba(255, 255, 255, 0.08);
           border-radius: 14px;
-          background: rgba(255, 255, 255, 0.025);
+          background:
+            rgba(255, 255, 255, 0.025);
         }
 
         .module-icon {
-          font-size: 24px;
+          font-size: 22px;
         }
 
         .module-item strong {
-          display: block;
-          margin-bottom: 4px;
+          font-size: 13px;
         }
 
         .module-item p {
-          margin: 0;
-          color: rgba(255, 255, 255, 0.45);
+          margin: 4px 0 0;
+          color: rgba(255, 255, 255, 0.48);
           font-size: 12px;
-          line-height: 1.5;
+          line-height: 1.45;
         }
 
         .module-status {
-          font-size: 9px;
+          font-size: 10px;
           font-weight: 800;
-          letter-spacing: 0.08em;
-          color: rgba(255, 255, 255, 0.38);
+          color: rgba(255, 255, 255, 0.42);
         }
 
         .coming-note {
           margin-top: 14px;
-          padding: 12px 14px;
-          border-radius: 10px;
-          background: rgba(255, 255, 255, 0.025);
-          color: rgba(255, 255, 255, 0.4);
-          font-size: 12px;
         }
 
         .policy-list {
-          display: flex;
-          flex-direction: column;
+          display: grid;
+          gap: 8px;
         }
 
         .policy-row {
           display: grid;
           grid-template-columns:
-            28px minmax(0, 1fr) auto;
-          align-items: center;
+            auto 1fr auto;
           gap: 10px;
-          min-height: 48px;
-          border-bottom: 1px solid
-            rgba(255, 255, 255, 0.06);
-          font-size: 13px;
+          align-items: center;
+          padding: 12px 13px;
+          border-radius: 12px;
+          background:
+            rgba(255, 255, 255, 0.025);
         }
 
-        .policy-row:last-child {
-          border-bottom: 0;
+        .policy-row strong {
+          font-size: 12px;
         }
 
-        .policy-row > span:first-child {
-          text-align: center;
-        }
-
-        .policy-row > span:last-child {
-          font-size: 9px;
+        .policy-row span:last-child {
+          font-size: 10px;
           font-weight: 800;
-          letter-spacing: 0.08em;
-          color: rgba(255, 255, 255, 0.32);
+          color: rgba(255, 255, 255, 0.4);
         }
 
         .policy-row .enabled {
-          color: rgba(90, 220, 150, 0.8);
+          color: rgba(120, 220, 160, 0.9);
         }
 
         .disabled-row {
-          opacity: 0.4;
+          opacity: 0.5;
         }
 
         @media (max-width: 760px) {
-          .owner-header {
+          .owner-header,
+          .finance-heading {
             flex-direction: column;
           }
 
           .owner-identity {
             width: 100%;
             box-sizing: border-box;
+            min-width: 0;
           }
 
           .form-grid,
-          .module-grid {
+          .module-grid,
+          .deposit-grid {
             grid-template-columns: 1fr;
           }
 
           .owner-card {
             padding: 18px;
           }
-
-          .action-row {
-            flex-direction: column;
-          }
-
-          .action-button {
-            width: 100%;
-          }
         }
+
       `}</style>
     </main>
   );
