@@ -73,45 +73,81 @@ export default function Wallet() {
         {tab === 'deposit' && <DepositFlow />}
 
         {tab === 'withdraw' && (
-          <div className="grid grid-2">
-            <div className="form">
-              <div className="field">
-                <label>ASSET</label>
-                <select className="input">
-                  <option>USDT · TRON</option>
-                  <option>BTC</option>
-                  <option>ETH</option>
-                  <option>BNB</option>
-                </select>
-              </div>
-              <div className="field">
-                <label>DESTINATION</label>
-                <input className="input" placeholder="Wallet address" />
-              </div>
-              <div className="field">
-                <label>AMOUNT (USD)</label>
-                <input className="input" placeholder="1.00" />
-              </div>
-              <button className="btn btn-primary">Request Withdrawal</button>
-            </div>
+        {tab === 'withdraw' && (
+  <div
+    className="form"
+    style={{
+      maxWidth: 720,
+      margin: '0 auto',
+    }}
+  >
+    <div className="field">
+      <label>ASSET</label>
 
-            <div className="glass section">
-              <div className="eyebrow">ELIGIBILITY</div>
-              <div className="list-row">
-                <span className="muted">Minimum withdrawal</span>
-                <b>$1.00</b>
-              </div>
-              <div className="list-row">
-                <span className="muted">Qualifying top-up</span>
-                <b>$1.00 cumulative</b>
-              </div>
-              <div className="list-row">
-                <span className="muted">Review</span>
-                <span className="badge gold">OWNER</span>
-              </div>
-            </div>
-          </div>
-        )}
+      <select
+        className="input"
+        defaultValue="USDT · TRON"
+      >
+        <option>USDT · TRON</option>
+        <option>BTC</option>
+        <option>ETH</option>
+        <option>BNB</option>
+      </select>
+    </div>
+
+    <div className="field">
+      <label>DESTINATION</label>
+
+      <input
+        className="input"
+        placeholder="Wallet address"
+        autoComplete="off"
+      />
+    </div>
+
+    <div className="field">
+      <label>AMOUNT (USD)</label>
+
+      <input
+        className="input"
+        inputMode="decimal"
+        placeholder="1.00"
+      />
+    </div>
+
+    <button
+      className="btn btn-primary"
+      type="button"
+    >
+      Request Withdrawal
+    </button>
+
+    <div
+      className="glass section"
+      style={{ marginTop: 24 }}
+    >
+      <div className="eyebrow">
+        ELIGIBILITY
+      </div>
+
+      <div className="list-row">
+        <span className="muted">
+          Minimum withdrawal
+        </span>
+
+        <b>$1.00</b>
+      </div>
+
+      <div className="list-row">
+        <span className="muted">
+          Qualifying top-up
+        </span>
+
+        <b>$1.00 cumulative</b>
+      </div>
+    </div>
+  </div>
+)}
 
         {tab === 'exchange' && (
           <div className="grid grid-2">
