@@ -72,7 +72,7 @@ export default function Wallet() {
 
         {tab === 'deposit' && <DepositFlow />}
 
-        {tab === 'withdraw' && (
+        
         {tab === 'withdraw' && (
   <div
     className="form"
