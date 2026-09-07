@@ -1,183 +1,21 @@
 'use client';
-
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { AppShell } from '@/components/layout/AppShell';
 import { DepositFlow } from '@/components/wallet/DepositFlow';
 import { createClient } from '@/lib/supabase/client';
 
-export default function Wallet() {
-  const [tab, setTab] = useState('deposit');
-  const [balance, setBalance] = useState<number | null>(null);
-
-  useEffect(() => {
-    const supabase = createClient();
-    let mounted = true;
-
-    async function loadWallet() {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (!user || !mounted) return;
-
-      const { data } = await supabase
-        .from('nextgen_wallets')
-        .select('diamond_balance')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (mounted) {
-        setBalance(data?.diamond_balance == null ? 0 : Number(data.diamond_balance));
-      }
-    }
-
-    loadWallet();
-
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
-  const formattedBalance =
-    balance === null
-      ? '—'
-      : new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(balance);
-
-  return (
-    <AppShell>
-      <div className="page-head">
-        <div>
-          <div className="eyebrow">WALLET CORE</div>
-          <h1 className="page-title">Wallet</h1>
-          <div className="muted">Crypto deposit and withdrawal controls.</div>
-        </div>
-        <div className="diamond-pill">
-          <span>💎</span>
-          <b>{formattedBalance}</b>
-        </div>
-      </div>
-
-      <section className="glass section">
-        <div className="tabs">
-          {['deposit', 'withdraw', 'exchange'].map((t) => (
-            <button
-              key={t}
-              onClick={() => setTab(t)}
-              className={`tab ${tab === t ? 'active' : ''}`}
-            >
-              {t[0].toUpperCase() + t.slice(1)}
-            </button>
-          ))}
-        </div>
-
-        {tab === 'deposit' && <DepositFlow />}
-
-        
-        {tab === 'withdraw' && (
-  <div
-    className="form"
-    style={{
-      maxWidth: 720,
-      margin: '0 auto',
-    }}
-  >
-    <div className="field">
-      <label>ASSET</label>
-
-      <select
-        className="input"
-        defaultValue="USDT · TRON"
-      >
-        <option>USDT · TRON</option>
-        <option>BTC</option>
-        <option>ETH</option>
-        <option>BNB</option>
-      </select>
-    </div>
-
-    <div className="field">
-      <label>DESTINATION</label>
-
-      <input
-        className="input"
-        placeholder="Wallet address"
-        autoComplete="off"
-      />
-    </div>
-
-    <div className="field">
-      <label>AMOUNT (USD)</label>
-
-      <input
-        className="input"
-        inputMode="decimal"
-        placeholder="1.00"
-      />
-    </div>
-
-    <button
-      className="btn btn-primary"
-      type="button"
-    >
-      Request Withdrawal
-    </button>
-
-    <div
-      className="glass section"
-      style={{ marginTop: 24 }}
-    >
-      <div className="eyebrow">
-        ELIGIBILITY
-      </div>
-
-      <div className="list-row">
-        <span className="muted">
-          Minimum withdrawal
-        </span>
-
-        <b>$1.00</b>
-      </div>
-
-      <div className="list-row">
-        <span className="muted">
-          Qualifying top-up
-        </span>
-
-        <b>$1.00 cumulative</b>
-      </div>
-    </div>
-  </div>
-)}
-
-        {tab === 'exchange' && (
-          <div className="grid grid-2">
-            <div className="form">
-              <div className="field">
-                <label>FROM</label>
-                <input className="input" placeholder="💎 amount" />
-              </div>
-              <div className="field">
-                <label>TO CRYPTO</label>
-                <select className="input">
-                  <option>USDT</option>
-                  <option>BTC</option>
-                  <option>ETH</option>
-                  <option>BNB</option>
-                </select>
-              </div>
-              <button className="btn btn-primary">Preview Exchange</button>
-            </div>
-
-            <div className="glass section">
-              <div className="eyebrow">LIVE RATE</div>
-              <h2 style={{ fontFamily: 'Orbitron', fontSize: 19 }}>$0.0002 / 💎</h2>
-              <p className="muted">
-                Rate source and fee are controlled server-side and recorded in the exchange ledger.
-              </p>
-            </div>
-          </div>
-        )}
-      </section>
-    </AppShell>
-  );
+type Balance={asset:string;balance:number;reserved_balance:number};
+const NETWORKS:Record<string,string[]>={USDT:['TRC20 (Tron)','ERC20 (Ethereum)','BEP20 (BSC)'],BTC:['Bitcoin'],ETH:['Ethereum'],BNB:['BNB Smart Chain'],DOGE:['Dogecoin'],LTC:['Litecoin'],TRX:['TRC20 (Tron)'],SOL:['Solana'],BCH:['Bitcoin Cash'],DASH:['Dash'],DGB:['DigiByte'],XRP:['XRP Ledger']};
+const FALLBACK=['USDT','BTC','ETH','BNB','DOGE','LTC','TRX','SOL','BCH','DASH','DGB','XRP'];
+const fmt=(n:number,d=8)=>new Intl.NumberFormat('en-US',{maximumFractionDigits:d}).format(n);
+function withdrawalError(s:string){if(s.includes('WITHDRAWAL_MINIMUM_1_USD')||s.includes('WITHDRAWAL_AMOUNT_OUT_OF_RANGE'))return 'Saldo anda tidak mencukupi, minimal penarikan adalah $1.00';if(s.includes('INSUFFICIENT_CRYPTO'))return 'Saldo tidak mencukupi. Crypto tersedia tidak cukup untuk withdrawal ini.';if(s.includes('ASSET_RATE_STALE'))return 'Kurs crypto sedang diperbarui. Silakan coba lagi setelah kurs terbaru tersedia.';if(s.includes('ASSET_RATE_MISSING'))return 'Kurs crypto untuk aset ini belum tersedia.';if(s.includes('INVALID_DESTINATION'))return 'Alamat penerima tidak valid.';return s||'Withdrawal tidak dapat diproses.';}
+function exchangeError(s:string){if(s.includes('ASSET_RATE_STALE'))return 'Kurs crypto sedang diperbarui. Silakan coba lagi setelah kurs terbaru tersedia.';if(s.includes('ASSET_RATE_MISSING'))return 'Kurs crypto untuk aset ini belum tersedia.';if(s.includes('INSUFFICIENT_CRYPTO'))return 'Saldo crypto tidak mencukupi untuk exchange ini.';return s||'Exchange tidak dapat diproses.';}
+export default function Wallet(){
+ const [tab,setTab]=useState<'deposit'|'withdraw'|'exchange'>('deposit');const [diamond,setDiamond]=useState<number|null>(null);const [balances,setBalances]=useState<Balance[]>([]);const [assets,setAssets]=useState<string[]>(FALLBACK);const [asset,setAsset]=useState('USDT');const [network,setNetwork]=useState('TRC20 (Tron)');const [destination,setDestination]=useState('');const [amount,setAmount]=useState('');const [msg,setMsg]=useState('');const [ok,setOk]=useState('');const [busy,setBusy]=useState(false);const [exAsset,setExAsset]=useState('USDT');const [exAmount,setExAmount]=useState('');const [exMsg,setExMsg]=useState('');const [exOk,setExOk]=useState('');const [exBusy,setExBusy]=useState(false);
+ useEffect(()=>{const sb=createClient();let live=true;(async()=>{const {data:a}=await sb.auth.getUser();if(!a.user)return;const [w,c,s]=await Promise.all([sb.from('nextgen_wallets').select('diamond_balance').eq('user_id',a.user.id).maybeSingle(),sb.from('nextgen_crypto_balances').select('asset,balance,reserved_balance').eq('user_id',a.user.id).order('asset'),sb.from('nextgen_supported_crypto_assets').select('asset').eq('withdrawal_enabled',true).order('asset')]);if(!live)return;setDiamond(Number(w.data?.diamond_balance??0));setBalances((c.data??[]).map(x=>({asset:String(x.asset),balance:Number(x.balance??0),reserved_balance:Number(x.reserved_balance??0)})));if(s.data?.length)setAssets(s.data.map(x=>String(x.asset)));})();return()=>{live=false}},[]);
+ useEffect(()=>{const ns=NETWORKS[asset]??[asset];if(!ns.includes(network))setNetwork(ns[0])},[asset,network]);
+ const bal=(a:string)=>balances.find(x=>x.asset.toUpperCase()===a.toUpperCase());const available=(a:string)=>{const b=bal(a);return b?Math.max(0,b.balance-b.reserved_balance):0};
+ async function withdraw(){setMsg('');setOk('');const n=Number(amount);if(!Number.isFinite(n)||n<=0)return setMsg('Masukkan jumlah crypto yang valid.');if(!destination.trim())return setMsg('Masukkan alamat penerima.');setBusy(true);try{const r=await fetch('/api/wallet/withdraw',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({asset,network,cryptoAmount:n,destination:destination.trim()})});const d=await r.json().catch(()=>({}));if(!r.ok)throw Error(String(d.error??'Withdrawal gagal.'));setOk(`Withdrawal #${d.withdrawalId??d.id??'baru'} berhasil diajukan dan menunggu proses Owner.`);setAmount('');setDestination('')}catch(e){setMsg(withdrawalError(e instanceof Error?e.message:''))}finally{setBusy(false)}}
+ async function exchange(){setExMsg('');setExOk('');const n=Number(exAmount);if(!Number.isFinite(n)||n<=0)return setExMsg('Masukkan jumlah crypto yang valid.');setExBusy(true);try{const r=await fetch('/api/wallet/exchange',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({asset:exAsset,cryptoAmount:n})});const d=await r.json().catch(()=>({}));if(!r.ok)throw Error(String(d.error??'Exchange gagal.'));setExOk(`Exchange berhasil menjadi ${fmt(Number(d.diamondAmount??0),2)} 💎.`);setExAmount('');window.location.reload()}catch(e){setExMsg(exchangeError(e instanceof Error?e.message:''))}finally{setExBusy(false)}}
+ return <AppShell><div className="page-head"><div><div className="eyebrow">WALLET CORE</div><h1 className="page-title">Wallet</h1><div className="muted">Crypto balance, deposit, withdrawal and one-way exchange.</div></div><div className="diamond-pill"><span>💎</span><b>{diamond===null?'—':fmt(diamond,2)}</b></div></div><section className="glass section wallet-section"><div className="wallet-balance-strip"><div><span className="eyebrow">CRYPTO BALANCES</span><strong>Real crypto balance</strong></div><div className="wallet-balance-list">{balances.length?balances.map(b=><div className="wallet-asset-mini" key={b.asset}><b>{b.asset}</b><span>{fmt(available(b.asset))}</span></div>):<span className="muted">No crypto balance yet</span>}</div></div><div className="tabs"><button className={`tab ${tab==='deposit'?'active':''}`} onClick={()=>setTab('deposit')}>Deposit</button><button className={`tab ${tab==='withdraw'?'active':''}`} onClick={()=>setTab('withdraw')}>Penarikan</button><button className={`tab ${tab==='exchange'?'active':''}`} onClick={()=>setTab('exchange')}>Crypto → 💎</button></div>{tab==='deposit'&&<DepositFlow/>}{tab==='withdraw'&&<div className="withdraw-flow"><div className="withdraw-card"><div className="eyebrow">CRYPTO WITHDRAWAL</div><h2>Withdraw Crypto</h2><p className="muted">Penarikan menggunakan saldo crypto. 💎 Diamond tidak digunakan sebagai dana withdrawal.</p><div className="withdraw-coin-grid">{assets.map(a=><button key={a} type="button" className={`withdraw-coin ${asset===a?'active':''}`} onClick={()=>setAsset(a)}><span className="withdraw-coin-symbol">{a.slice(0,4)}</span><span><b>{a}</b><small>Crypto asset</small></span></button>)}</div><div className="grid grid-2 withdraw-fields"><div className="field"><label>NETWORK</label><select className="input" value={network} onChange={e=>setNetwork(e.target.value)}>{(NETWORKS[asset]??[asset]).map(n=><option key={n}>{n}</option>)}</select></div><div className="field"><label>AVAILABLE {asset}</label><div className="withdraw-available">{fmt(available(asset))} {asset}</div></div></div><div className="field"><label>RECIPIENT ADDRESS</label><input className="input" value={destination} onChange={e=>setDestination(e.target.value)} placeholder="Wallet address penerima" autoComplete="off"/></div><div className="field"><label>AMOUNT ({asset})</label><input className="input" value={amount} onChange={e=>setAmount(e.target.value)} inputMode="decimal" placeholder="0.00000000"/></div>{msg&&<div className="wallet-message error">{msg}</div>}{ok&&<div className="wallet-message success">{ok}</div>}<button className="btn btn-primary withdraw-submit" type="button" disabled={busy} onClick={withdraw}>{busy?'Processing…':'Request Withdrawal'}</button></div></div>}{tab==='exchange'&&<div className="exchange-flow"><div className="exchange-card"><div className="eyebrow">ONE-WAY EXCHANGE</div><h2>Crypto → 💎</h2><p className="muted">Crypto dapat ditukar menjadi Diamond untuk membeli dan meng-upgrade miner/hashrate. Tidak tersedia arah sebaliknya.</p><div className="field"><label>CRYPTO ASSET</label><select className="input" value={exAsset} onChange={e=>setExAsset(e.target.value)}>{assets.map(a=><option key={a}>{a}</option>)}</select></div><div className="field"><label>AVAILABLE</label><div className="withdraw-available">{fmt(available(exAsset))} {exAsset}</div></div><div className="field"><label>AMOUNT ({exAsset})</label><input className="input" value={exAmount} onChange={e=>setExAmount(e.target.value)} inputMode="decimal" placeholder="0.00000000"/></div>{exMsg&&<div className="wallet-message error">{exMsg}</div>}{exOk&&<div className="wallet-message success">{exOk}</div>}<button className="btn btn-primary" type="button" disabled={exBusy} onClick={exchange}>{exBusy?'Processing…':'Exchange Crypto → 💎'}</button></div><div className="exchange-info glass"><div className="eyebrow">ECONOMY RULE</div><h3>Diamond is not withdrawable</h3><p className="muted">💎 hanya untuk membeli dan upgrade miner/hashrate. Reward hashrate menjadi crypto hanya dari mining pool yang didanai revenue monetisasi nyata.</p></div></div>}</section></AppShell>;
 }
