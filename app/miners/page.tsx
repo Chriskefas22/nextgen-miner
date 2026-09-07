@@ -5,6 +5,7 @@ import { AppShell } from '@/components/layout/AppShell';
 import { MinerCard, Miner } from '@/components/miner/MinerCard';
 import { createClient } from '@/lib/supabase/client';
 import { diamond } from '@/lib/format';
+import { accrueMining } from '@/lib/mining/accrue';
 
 type CatalogRow={id:number;slug:string;name:string;tier:string;base_hashrate:number;base_price_diamond:number;image_path:string;enabled:boolean;sort_order:number};
 type LevelRow={miner_id:number;level:number;hashrate:number;upgrade_price_diamond:number;cumulative_price_diamond:number};
@@ -39,7 +40,29 @@ export default function MinersPage(){
    const mapped:Miner[]=catalog.map((item)=>{const catalogId=Number(item.id);const slug=String(item.slug??'');const lower=`${slug} ${item.name}`.toLowerCase();if(slug==='starter-keyboard'||lower.includes('starter keyboard'))return null as never;const minerLevels=levelsByMiner.get(catalogId)??[];const owned=ownedByMiner.get(catalogId);const currentLevel=owned?Number(owned.current_level):1;const currentLevelRow=minerLevels.find(l=>Number(l.level)===currentLevel)??minerLevels[0];const nextLevelRow=minerLevels.find(l=>Number(l.level)===currentLevel+1)??null;const maxLevel=minerLevels.length?Math.max(...minerLevels.map(l=>Number(l.level))):10;return {catalogId,userMinerId:owned?Number(owned.id):null,slug,name:String(item.name??''),tier:String(item.tier??''),image:normalizeMinerImagePath(item.image_path,slug),baseHashrate:Number(item.base_hashrate??0),purchasePrice:Number(item.base_price_diamond??0),currentLevel,maxLevel,currentHashrate:Number(currentLevelRow?.hashrate??item.base_hashrate??0),nextHashrate:nextLevelRow?Number(nextLevelRow.hashrate):null,nextUpgradePrice:nextLevelRow?Number(nextLevelRow.upgrade_price_diamond):null,totalSpent:Number(owned?.total_spent_diamond??0),owned:Boolean(owned),active:Boolean(owned&&String(owned.status).toLowerCase()==='active')} }).filter(Boolean) as Miner[];
    setMiners(mapped.sort((a,b)=>{const order=['COMMON','UNCOMMON','RARE','EPIC','LEGENDARY','MYTHIC','PREMIUM','OMEGA+'];return order.indexOf(a.tier.toUpperCase())-order.indexOf(b.tier.toUpperCase())||a.catalogId-b.catalogId}));
  }catch(err){console.error('[MinersPage]',err);setError(err instanceof Error?err.message:'Unable to load miner data')}finally{setLoading(false)}},[]);
- useEffect(()=>{void loadData()},[loadData]);
+ useEffect(() => {
+  let cancelled = false;
+
+  const syncMining = async () => {
+    try {
+      await accrueMining('USDT');
+    } catch (error) {
+      // Mining accrual is non-fatal for the UI.
+      // A zero-funded pool must not prevent the miner shop from loading.
+      console.error('[MinersMiningAccrual]', error);
+    }
+
+    if (!cancelled) {
+      await loadData();
+    }
+  };
+
+  void syncMining();
+
+  return () => {
+    cancelled = true;
+  };
+}, [loadData]);
  const filtered=useMemo(()=>filter==='All'?miners:miners.filter(m=>m.tier.toLowerCase()===filter.toLowerCase()),[miners,filter]);
  const activeMiners=miners.filter(m=>m.owned&&m.active).length;const totalHashrate=miners.reduce((t,m)=>t+(m.owned&&m.active?Number(m.currentHashrate):0),0);
  const expired=!rechargeExpires||new Date(rechargeExpires).getTime()<=Date.now();
