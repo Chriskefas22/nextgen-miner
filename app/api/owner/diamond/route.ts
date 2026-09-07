@@ -21,28 +21,34 @@ export async function POST(request: Request) {
     }
 
     // Single source of truth for Owner authorization.
-    const { data: isOwner, error: ownerError } = await supabase.rpc(
-      'nextgen_is_owner'
-    );
+    const { data: isOwner, error: ownerError } =
+      await supabase.rpc('nextgen_is_owner');
 
     if (ownerError) {
       console.error('Owner check error:', ownerError);
+
       return NextResponse.json(
-        { success: false, error: 'OWNER_CHECK_FAILED' },
+        {
+          success: false,
+          error: 'OWNER_CHECK_FAILED',
+        },
         { status: 500 }
       );
     }
 
     if (isOwner !== true) {
       return NextResponse.json(
-        { success: false, error: 'OWNER_ONLY' },
+        {
+          success: false,
+          error: 'OWNER_ONLY',
+        },
         { status: 403 }
       );
     }
 
     const body = await request.json();
 
-    const targetUserId =
+    const targetIdentifier =
       typeof body.targetUserId === 'string'
         ? body.targetUserId.trim()
         : '';
@@ -54,67 +60,140 @@ export async function POST(request: Request) {
 
     const delta = Number(body.delta);
 
-    if (!targetUserId) {
+    if (!targetIdentifier) {
       return NextResponse.json(
-        { success: false, error: 'TARGET_USER_REQUIRED' },
-        { status: 400 }
-      );
-    }
-
-    const uuidPattern =
-      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-
-    if (!uuidPattern.test(targetUserId)) {
-      return NextResponse.json(
-        { success: false, error: 'INVALID_TARGET_USER_ID' },
+        {
+          success: false,
+          error: 'TARGET_USER_REQUIRED',
+        },
         { status: 400 }
       );
     }
 
     if (!Number.isFinite(delta) || delta === 0) {
       return NextResponse.json(
-        { success: false, error: 'INVALID_DIAMOND_AMOUNT' },
+        {
+          success: false,
+          error: 'INVALID_DIAMOND_AMOUNT',
+        },
         { status: 400 }
       );
     }
 
     if (Math.abs(delta) > 1000000000000) {
       return NextResponse.json(
-        { success: false, error: 'DIAMOND_AMOUNT_TOO_LARGE' },
+        {
+          success: false,
+          error: 'DIAMOND_AMOUNT_TOO_LARGE',
+        },
         { status: 400 }
       );
     }
 
     if (note.length < 3) {
       return NextResponse.json(
-        { success: false, error: 'NOTE_REQUIRED' },
+        {
+          success: false,
+          error: 'NOTE_REQUIRED',
+        },
         { status: 400 }
       );
     }
 
     if (note.length > 500) {
       return NextResponse.json(
-        { success: false, error: 'NOTE_TOO_LONG' },
+        {
+          success: false,
+          error: 'NOTE_TOO_LONG',
+        },
         { status: 400 }
       );
     }
 
-    const { data, error } = await supabase.rpc(
+    /*
+     * Resolve username -> Auth UUID inside protected
+     * SECURITY DEFINER RPC.
+     *
+     * UUID is also accepted for backward compatibility.
+     */
+    const {
+      data: resolvedUserId,
+      error: resolveError,
+    } = await supabase.rpc(
+      'nextgen_owner_resolve_user',
+      {
+        p_identifier: targetIdentifier,
+      }
+    );
+
+    if (resolveError || !resolvedUserId) {
+      console.error(
+        'Owner target resolution error:',
+        resolveError
+      );
+
+      const resolverMessage =
+        resolveError?.message || '';
+
+      let errorCode = 'TARGET_USER_NOT_FOUND';
+
+      if (
+        resolverMessage.includes(
+          'AMBIGUOUS_TARGET_USERNAME'
+        )
+      ) {
+        errorCode = 'AMBIGUOUS_TARGET_USERNAME';
+      } else if (
+        resolverMessage.includes(
+          'OWNER_ONLY'
+        )
+      ) {
+        errorCode = 'OWNER_ONLY';
+      } else if (
+        resolverMessage.includes(
+          'AUTH_REQUIRED'
+        )
+      ) {
+        errorCode = 'AUTH_REQUIRED';
+      }
+
+      return NextResponse.json(
+        {
+          success: false,
+          error: errorCode,
+        },
+        { status: 400 }
+      );
+    }
+
+    /*
+     * Existing protected Owner RPC remains the only
+     * operation allowed to change the Diamond balance.
+     */
+    const {
+      data,
+      error,
+    } = await supabase.rpc(
       'nextgen_owner_adjust_diamond',
       {
-        p_target_user_id: targetUserId,
+        p_target_user_id: resolvedUserId,
         p_delta: delta,
         p_note: note,
       }
     );
 
     if (error) {
-      console.error('Owner Diamond RPC error:', error);
+      console.error(
+        'Owner Diamond RPC error:',
+        error
+      );
 
       return NextResponse.json(
         {
           success: false,
-          error: error.message || 'OWNER_RPC_FAILED',
+          error:
+            error.message ||
+            'OWNER_RPC_FAILED',
         },
         { status: 400 }
       );
@@ -126,10 +205,16 @@ export async function POST(request: Request) {
       diamondDelta: delta,
     });
   } catch (error) {
-    console.error('Owner Diamond API error:', error);
+    console.error(
+      'Owner Diamond API error:',
+      error
+    );
 
     return NextResponse.json(
-      { success: false, error: 'INTERNAL_SERVER_ERROR' },
+      {
+        success: false,
+        error: 'INTERNAL_SERVER_ERROR',
+      },
       { status: 500 }
     );
   }
