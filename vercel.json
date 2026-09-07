@@ -1,1 +1,9 @@
-{"framework":"nextjs","crons":[{"path":"/api/cron/update-crypto-rates","schedule":"0 * * * *"}]}
+{
+  "framework": "nextjs",
+  "crons": [
+    {
+      "path": "/api/cron/update-crypto-rates",
+      "schedule": "0 0 * * *"
+    }
+  ]
+}
