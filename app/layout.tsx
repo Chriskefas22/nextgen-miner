@@ -4,18 +4,22 @@ import '../styles/nav-drawer.css';
 import '../styles/dashboard-simple.css';
 
 export const metadata = {
-  title: 'NextGen Miner',
-  description: 'NextGen Miner — futuristic virtual mining platform',
+  metadataBase: new URL('https://nextgen-miner.vercel.app'),
+  title: { default: 'NextGen Miner — Virtual Mining Platform', template: '%s | NextGen Miner' },
+  description: 'NextGen Miner is a virtual mining and reward platform with live miner data, server-side reward controls and transparent platform rules.',
+  alternates: { canonical: 'https://nextgen-miner.vercel.app' },
+  robots: { index: true, follow: true },
+  openGraph: {
+    title: 'NextGen Miner — Virtual Mining Platform',
+    description: 'Build your rig, grow hashrate, upgrade miners and manage rewards through a virtual mining platform.',
+    url: 'https://nextgen-miner.vercel.app', siteName: 'NextGen Miner', type: 'website',
+  },
+  twitter: {
+    card: 'summary', title: 'NextGen Miner — Virtual Mining Platform',
+    description: 'Build your rig, grow hashrate and manage rewards through a virtual mining platform.',
+  },
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return (
-    <html lang="en">
-      <body>{children}</body>
-    </html>
-  );
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return <html lang="en"><body>{children}</body></html>;
 }
