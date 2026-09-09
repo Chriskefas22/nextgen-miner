@@ -19,77 +19,367 @@ export default async function LandingPage() {
   const supabase = await createClient();
   const { data } = await supabase.rpc('nextgen_get_registration_bonus_status');
   const bonus = (data ?? null) as BonusStatus | null;
-  const fmt = (value: unknown) => typeof value === 'number' ? value.toLocaleString('en-US') : '—';
+
+  const fmt = (value: unknown) =>
+    typeof value === 'number' ? value.toLocaleString('en-US') : '—';
 
   return (
     <main className="ng-fp">
-      <style>{`
-        .ng-fp{--cyan:#27eaff;--blue:#3d71ff;--violet:#9747ff;--pink:#e954ff;--green:#48f6be;--text:#f4fbff;--muted:#91a9ba;min-height:100vh;background:#020711;color:var(--text);overflow:hidden;font-family:Rajdhani,system-ui,sans-serif}
-        .ng-fp *{box-sizing:border-box}.ng-fp a{text-decoration:none;color:inherit}
-        .ng-fp .nav{height:66px;position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:0 clamp(14px,4vw,58px);background:rgba(2,7,17,.78);border-bottom:1px solid rgba(39,234,255,.14);backdrop-filter:blur(18px)}
-        .ng-fp .brand{display:flex;align-items:center;gap:10px;font:700 14px Orbitron;letter-spacing:.06em}.ng-fp .brand span{color:var(--cyan)}
-        .ng-fp .logo{width:40px;height:40px;display:grid;place-items:center;border-radius:11px;color:var(--cyan);border:1px solid rgba(39,234,255,.7);box-shadow:0 0 25px rgba(39,234,255,.18),inset 0 0 18px rgba(39,234,255,.05)}
-        .ng-fp .navlinks{display:flex;align-items:center;gap:23px;color:#a4b8c6;font-size:13px;font-weight:800}.ng-fp .navlinks a:hover{color:#fff}
-        .ng-fp .navactions{display:flex;gap:8px}.ng-fp .navbtn{padding:9px 13px;border-radius:10px;border:1px solid rgba(68,142,193,.3);background:rgba(6,16,29,.72);font-size:12px;font-weight:900}.ng-fp .navbtn.primary{background:linear-gradient(135deg,#2c6aff,#9145ff);box-shadow:0 0 25px rgba(85,79,255,.23)}
-        .ng-fp .hero{position:relative;min-height:690px;isolation:isolate;overflow:hidden;background:#020711}.ng-fp .hero-bg{position:absolute;inset:0;background-image:linear-gradient(90deg,rgba(2,7,17,.97) 0%,rgba(2,7,17,.76) 29%,rgba(2,7,17,.18) 60%,rgba(2,7,17,.20) 100%),url('/assets/landing/nextgen-miner-hero.png');background-size:cover;background-position:center 44%;filter:saturate(1.08);transform:scale(1.015)}
-        .ng-fp .hero-bg:after{content:'';position:absolute;inset:0;background:radial-gradient(circle at 55% 35%,rgba(39,234,255,.12),transparent 28%),linear-gradient(180deg,transparent 68%,#020711 100%)}
-        .ng-fp .hero-content{position:relative;z-index:5;width:min(1180px,92vw);margin:auto;min-height:690px;display:flex;align-items:center;padding:70px 0 50px}.ng-fp .hero-copy{max-width:590px;margin-top:16px}
-        .ng-fp .eyebrow{display:inline-flex;align-items:center;gap:8px;color:var(--cyan);font-size:10px;font-weight:900;letter-spacing:.23em}.ng-fp .eyebrow:before{content:'';width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 12px rgba(72,246,190,.8)}
-        .ng-fp h1{margin:13px 0 16px;font:700 clamp(43px,6.1vw,78px)/1.01 Orbitron;letter-spacing:-.05em}.ng-fp h1 strong{display:block;background:linear-gradient(95deg,#fff 8%,#41efff 46%,#a96dff 85%);-webkit-background-clip:text;background-clip:text;color:transparent}
-        .ng-fp .hero-desc{max-width:560px;color:#b2c4cf;line-height:1.58;font-size:18px}.ng-fp .hero-actions{display:flex;gap:10px;margin-top:24px;flex-wrap:wrap}.ng-fp .cta{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:13px 17px;border-radius:12px;border:1px solid rgba(39,234,255,.24);font-size:13px;font-weight:900}.ng-fp .cta.primary{background:linear-gradient(135deg,#1fceff,#7d3cff);box-shadow:0 0 28px rgba(55,140,255,.27)}.ng-fp .cta.ghost{background:rgba(5,16,29,.72)}
-        .ng-fp .hero-telemetry{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;width:min(610px,100%);margin-top:28px}.ng-fp .telemetry{padding:11px 12px;border:1px solid rgba(39,234,255,.16);background:rgba(3,12,24,.66);border-radius:12px;backdrop-filter:blur(8px)}.ng-fp .telemetry b{display:block;font:700 11px Orbitron;color:#fff}.ng-fp .telemetry small{display:block;color:#7fa0b1;margin-top:4px;font-size:10px}.ng-fp .live-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 10px rgba(72,246,190,.8);margin-right:5px}
-        .ng-fp .hash-panel{position:absolute;right:6%;bottom:68px;z-index:8;width:260px;padding:15px 16px;border:1px solid rgba(39,234,255,.28);border-radius:15px;background:rgba(3,13,25,.82);backdrop-filter:blur(14px);box-shadow:0 16px 40px rgba(0,0,0,.32)}.ng-fp .hash-panel label{display:block;color:#78a0b6;letter-spacing:.14em;font-size:9px}.ng-fp .hash-value{font:700 28px Orbitron;color:var(--cyan);margin-top:3px;text-shadow:0 0 18px rgba(39,234,255,.45)}.ng-fp .hash-line{height:5px;border-radius:99px;background:#081526;margin:9px 0;overflow:hidden}.ng-fp .hash-line i{display:block;width:82%;height:100%;background:linear-gradient(90deg,var(--cyan),var(--violet),var(--pink));box-shadow:0 0 15px rgba(39,234,255,.45);animation:hashPulse 2.2s ease-in-out infinite}.ng-fp .hash-meta{display:flex;justify-content:space-between;color:#81a1b2;font-size:10px}
-        .ng-fp .trust{position:relative;z-index:15;margin-top:-1px;background:#03101b;border-top:1px solid rgba(39,234,255,.12);border-bottom:1px solid rgba(39,234,255,.12)}.ng-fp .trust-grid{width:min(1180px,92vw);margin:auto;display:grid;grid-template-columns:repeat(4,1fr)}.ng-fp .trust-item{padding:21px 17px;border-right:1px solid rgba(39,234,255,.09)}.ng-fp .trust-item:last-child{border-right:0}.ng-fp .trust-item b{display:block;font:700 12px Orbitron}.ng-fp .trust-item small{display:block;color:#7994a6;margin-top:5px;line-height:1.35}
-        .ng-fp .section{width:min(1180px,92vw);margin:auto;padding:72px 0}.ng-fp .section-head{max-width:690px;margin-bottom:26px}.ng-fp .section-head h2{margin:7px 0 8px;font:700 29px Orbitron;letter-spacing:-.03em}.ng-fp .section-head p{margin:0;color:#849ead;line-height:1.58}
-        .ng-fp .steps{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;align-items:stretch}.ng-fp .step{position:relative;min-height:170px;padding:19px 16px;border-radius:17px;border:1px solid rgba(45,133,185,.22);background:linear-gradient(150deg,rgba(7,22,38,.87),rgba(3,12,23,.93));box-shadow:inset 0 0 25px rgba(39,234,255,.025)}.ng-fp .step:after{content:'›';position:absolute;right:-11px;top:50%;transform:translateY(-50%);font-size:28px;color:var(--cyan);text-shadow:0 0 15px rgba(39,234,255,.7);z-index:5}.ng-fp .step:last-child:after{display:none}.ng-fp .step .n{width:37px;height:37px;display:grid;place-items:center;border-radius:11px;color:var(--cyan);border:1px solid rgba(39,234,255,.24);background:rgba(39,234,255,.05);font-weight:900}.ng-fp .step h3{font:700 13px Orbitron;margin:12px 0 5px}.ng-fp .step p{color:#7f99aa;font-size:11px;line-height:1.45;margin:0}
-        .ng-fp .miners{display:grid;grid-template-columns:240px repeat(5,minmax(0,1fr));gap:10px;align-items:stretch}.ng-fp .miner-intro{padding:8px 14px 8px 0}.ng-fp .miner-intro .cta{margin-top:17px}.ng-fp .miner-card{border:1px solid rgba(48,126,173,.23);border-radius:16px;overflow:hidden;background:linear-gradient(180deg,rgba(7,22,37,.9),rgba(3,11,21,.98));transition:transform .25s ease,border-color .25s ease}.ng-fp .miner-card:hover{transform:translateY(-5px);border-color:rgba(39,234,255,.42)}.ng-fp .miner-img{height:145px;padding:8px;background:radial-gradient(circle at 50% 72%,rgba(39,234,255,.2),transparent 55%)}.ng-fp .miner-img img{width:100%;height:100%;object-fit:contain;display:block;filter:saturate(1.12) contrast(1.03)}.ng-fp .miner-info{padding:12px}.ng-fp .miner-info h3{font:700 12px Orbitron;margin:0 0 4px}.ng-fp .miner-info b{display:block;color:var(--cyan);font-size:12px}.ng-fp .miner-info small{display:block;color:#728ea0;margin-top:5px;font-size:9px}
-        .ng-fp .campaign{position:relative;overflow:hidden;display:grid;grid-template-columns:1fr 1.2fr;gap:20px;align-items:center;margin:0 auto 70px;padding:25px;border-radius:20px;border:1px solid rgba(44,173,230,.32);background:linear-gradient(110deg,rgba(6,20,37,.96),rgba(16,8,37,.88));box-shadow:0 22px 60px rgba(0,0,0,.26)}.ng-fp .campaign:after{content:'';position:absolute;right:-12%;top:-40%;width:58%;height:180%;background:radial-gradient(circle,rgba(39,234,255,.16),transparent 62%);pointer-events:none}.ng-fp .campaign h2{margin:6px 0 8px;font:700 20px Orbitron}.ng-fp .campaign p{margin:0;color:#8aa4b4;line-height:1.5}.ng-fp .campaign .meter{position:relative;z-index:2;min-height:150px;border-radius:16px;overflow:hidden;border:1px solid rgba(39,234,255,.23);background:linear-gradient(135deg,rgba(4,17,30,.82),rgba(6,12,28,.65));display:flex;align-items:center;justify-content:center}.ng-fp .campaign .meter:before{content:'';position:absolute;inset:0;background-image:url('/assets/miners/entry-gpu.webp');background-size:42%;background-repeat:no-repeat;background-position:right center;opacity:.9;filter:drop-shadow(0 0 16px rgba(39,234,255,.25))}.ng-fp .campaign .meter-copy{position:relative;z-index:3;margin-left:10px;margin-right:auto;padding:15px 18px}.ng-fp .campaign .meter-copy strong{display:block;font:700 32px Orbitron;color:var(--cyan)}.ng-fp .campaign .meter-copy small{color:#7896a7}.ng-fp .campaign .bar{height:6px;margin-top:10px;border-radius:99px;background:#071527;overflow:hidden}.ng-fp .campaign .bar i{display:block;width:0.3%;height:100%;background:linear-gradient(90deg,var(--cyan),var(--violet));box-shadow:0 0 12px rgba(39,234,255,.5)}
-        .ng-fp .feature-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:11px}.ng-fp .feature{padding:17px;border:1px solid rgba(44,124,169,.2);border-radius:15px;background:rgba(4,15,27,.76)}.ng-fp .feature .icon{width:37px;height:37px;display:grid;place-items:center;border-radius:11px;border:1px solid rgba(39,234,255,.18);color:var(--cyan);margin-bottom:12px}.ng-fp .feature h3{font:700 12px Orbitron;margin:0 0 5px}.ng-fp .feature p{margin:0;color:#7894a7;font-size:11px;line-height:1.45}
-        .ng-fp .faq-list{display:grid;grid-template-columns:1fr 1fr;gap:9px}.ng-fp .faq{border:1px solid rgba(44,124,169,.2);border-radius:13px;background:rgba(4,15,27,.7);padding:14px 16px}.ng-fp .faq summary{cursor:pointer;font-weight:900}.ng-fp .faq p{color:#7f99aa;line-height:1.5;margin:8px 0 0;font-size:11px}
-        .ng-fp .final{padding:25px;border-radius:18px;border:1px solid rgba(80,108,255,.25);background:linear-gradient(110deg,rgba(9,27,44,.9),rgba(27,9,48,.9));display:flex;align-items:center;justify-content:space-between;gap:20px;margin-bottom:58px}.ng-fp .final h2{font:700 22px Orbitron;margin:6px 0}.ng-fp .final p{margin:0;color:#829eaf}
-        .ng-fp .footer{border-top:1px solid rgba(39,234,255,.12);padding:26px 0 34px;color:#627d90;font-size:10px}.ng-fp .footerin{width:min(1180px,92vw);margin:auto;display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}.ng-fp .footerlinks{display:flex;gap:15px;flex-wrap:wrap}.ng-fp .footer a:hover{color:#fff}
-        @keyframes hashPulse{0%,100%{width:72%}50%{width:88%}}
-        @media(max-width:1000px){.ng-fp .navlinks{display:none}.ng-fp .hero{min-height:750px}.ng-fp .hero-content{min-height:750px}.ng-fp .hash-panel{right:4%;bottom:42px}.ng-fp .miners{grid-template-columns:repeat(3,1fr)}.ng-fp .miner-intro{grid-column:1/-1;padding:0 0 8px}.ng-fp .steps{grid-template-columns:repeat(3,1fr)}.ng-fp .step:nth-child(3):after,.ng-fp .step:nth-child(5):after{display:none}.ng-fp .feature-grid{grid-template-columns:repeat(2,1fr)}}
-        @media(max-width:650px){.ng-fp .nav{height:60px;padding:0 11px}.ng-fp .brand{font-size:11px}.ng-fp .logo{width:36px;height:36px}.ng-fp .navactions .navbtn:first-child{display:none}.ng-fp .hero{min-height:755px}.ng-fp .hero-bg{background-position:58% 38%}.ng-fp .hero-content{min-height:755px;align-items:flex-end;padding:0 0 38px}.ng-fp .hero-copy{max-width:100%;background:linear-gradient(180deg,transparent,rgba(2,7,17,.75) 18%,rgba(2,7,17,.94));padding-top:52px}.ng-fp h1{font-size:40px}.ng-fp .hero-desc{font-size:16px}.ng-fp .hero-telemetry{grid-template-columns:1fr 1fr 1fr;margin-top:17px}.ng-fp .telemetry{padding:9px}.ng-fp .telemetry b{font-size:9px}.ng-fp .telemetry small{font-size:8px}.ng-fp .hash-panel{position:relative;right:auto;bottom:auto;width:100%;margin-top:12px}.ng-fp .trust-grid{grid-template-columns:1fr 1fr}.ng-fp .trust-item{padding:14px 11px}.ng-fp .trust-item:nth-child(2){border-right:0}.ng-fp .trust-item:nth-child(-n+2){border-bottom:1px solid rgba(39,234,255,.09)}.ng-fp .trust-item b{font-size:10px}.ng-fp .trust-item small{font-size:9px}.ng-fp .section{width:94vw;padding:54px 0}.ng-fp .section-head h2{font-size:24px}.ng-fp .steps{grid-template-columns:1fr 1fr}.ng-fp .step{min-height:155px}.ng-fp .step:after{display:none}.ng-fp .miners{grid-template-columns:1fr 1fr}.ng-fp .miner-img{height:120px}.ng-fp .campaign{grid-template-columns:1fr;margin-bottom:52px;padding:18px}.ng-fp .campaign .meter{min-height:138px}.ng-fp .campaign .meter:before{background-size:48%}.ng-fp .feature-grid{grid-template-columns:1fr 1fr}.ng-fp .faq-list{grid-template-columns:1fr}.ng-fp .final{display:grid;grid-template-columns:1fr;padding:20px}.ng-fp .final .cta{width:100%}}
-        @media(max-width:390px){.ng-fp h1{font-size:36px}.ng-fp .hero{min-height:770px}.ng-fp .hero-content{min-height:770px}.ng-fp .hero-telemetry{gap:5px}.ng-fp .telemetry small{display:none}.ng-fp .miners{grid-template-columns:1fr}.ng-fp .feature-grid{grid-template-columns:1fr}.ng-fp .brand{letter-spacing:.04em}}
-        @media(prefers-reduced-motion:reduce){.ng-fp .hash-line i{animation:none}}
-      `}</style>
-
       <header className="nav">
-        <Link className="brand" href="/"><div className="logo">N</div><div>NEXTGEN <span>MINER</span></div></Link>
-        <nav className="navlinks"><a href="#how-it-works">How It Works</a><a href="#miners">Miners</a><a href="#transparency">Features</a><a href="#faq">FAQ</a></nav>
-        <div className="navactions"><Link className="navbtn" href="/auth/login">Login</Link><Link className="navbtn primary" href="/auth/register">Register</Link></div>
+        <Link className="brand" href="/">
+          <div className="logo" aria-hidden="true">
+            N
+          </div>
+          <div>
+            NEXTGEN <span>MINER</span>
+          </div>
+        </Link>
+
+        <nav className="navlinks" aria-label="Primary navigation">
+          <a href="#how-it-works">How It Works</a>
+          <a href="#miners">Miners</a>
+          <a href="#transparency">Features</a>
+          <a href="#faq">FAQ</a>
+        </nav>
+
+        <div className="navactions">
+          <Link className="navbtn" href="/auth/login">
+            Login
+          </Link>
+          <Link className="navbtn primary" href="/auth/register">
+            Register
+          </Link>
+        </div>
       </header>
 
-      <section className="hero">
+      <section className="hero" aria-labelledby="hero-title">
         <div className="hero-bg" aria-hidden="true" />
+        <div className="hero-grid" aria-hidden="true" />
+        <div className="hero-scan" aria-hidden="true" />
+
+        <div className="hero-corner hero-corner-tl" aria-hidden="true" />
+        <div className="hero-corner hero-corner-tr" aria-hidden="true" />
+        <div className="hero-corner hero-corner-bl" aria-hidden="true" />
+        <div className="hero-corner hero-corner-br" aria-hidden="true" />
+
         <div className="hero-content">
           <div className="hero-copy">
-            <div className="eyebrow">THE NEXT GENERATION MINING PLATFORM</div>
-            <h1>Build your rig.<strong>Earn. Upgrade.<br />Withdraw.</strong></h1>
-            <p className="hero-desc">Power the future with your miners. Build your rig, grow your hashrate and manage rewards through a virtual crypto-mining network designed around live platform data.</p>
-            <div className="hero-actions"><Link href="/auth/register" className="cta primary">Create Free Account →</Link><Link href="/auth/login" className="cta ghost">Login</Link></div>
-            <div className="hero-telemetry"><div className="telemetry"><b><span className="live-dot" />Mining Active</b><small>Network online</small></div><div className="telemetry"><b>Network Connected</b><small>Data synchronized</small></div><div className="telemetry"><b>Reward Engine</b><small>Platform rules active</small></div></div>
-            <div className="hash-panel"><label>NETWORK HASHRATE</label><div className="hash-value">60.00 H/s</div><div className="hash-line"><i /></div><div className="hash-meta"><span>● Live</span><span>Real-time network demo</span></div></div>
+            <div className="eyebrow">
+              <span className="status-pulse" aria-hidden="true" />
+              NEXTGEN MINER NETWORK
+            </div>
+
+            <h1 id="hero-title">
+              Build your rig.
+              <strong>
+                Earn. Upgrade.
+                <br />
+                Withdraw.
+              </strong>
+            </h1>
+
+            <p className="hero-desc">
+              Power the future with your miners. Build your rig, grow your
+              hashrate and manage rewards through a virtual crypto-mining
+              network designed around live platform data.
+            </p>
+
+            <div className="hero-actions">
+              <Link href="/auth/register" className="cta primary">
+                Create Free Account <span aria-hidden="true">→</span>
+              </Link>
+              <Link href="/auth/login" className="cta ghost">
+                Login
+              </Link>
+            </div>
+
+            <div className="hero-telemetry" aria-label="Platform status">
+              <div className="telemetry">
+                <b>
+                  <span className="live-dot" aria-hidden="true" />
+                  Core Online
+                </b>
+                <small>Network ready</small>
+              </div>
+              <div className="telemetry">
+                <b>Data Connected</b>
+                <small>Platform synchronized</small>
+              </div>
+              <div className="telemetry">
+                <b>Rules Active</b>
+                <small>Server-side controls</small>
+              </div>
+            </div>
+          </div>
+
+          <aside className="hash-panel" aria-label="Network status">
+            <div className="panel-top">
+              <span>NETWORK CORE</span>
+              <span className="panel-live">
+                <i aria-hidden="true" />
+                ONLINE
+              </span>
+            </div>
+            <div className="core-visual" aria-hidden="true">
+              <div className="core-ring ring-a" />
+              <div className="core-ring ring-b" />
+              <div className="core-ring ring-c" />
+              <div className="core-orb" />
+              <span className="core-ray ray-a" />
+              <span className="core-ray ray-b" />
+              <span className="core-ray ray-c" />
+              <span className="core-ray ray-d" />
+            </div>
+            <div className="hash-copy">
+              <label>PLATFORM STATUS</label>
+              <strong>OPERATIONAL</strong>
+              <div className="hash-line" aria-hidden="true">
+                <i />
+              </div>
+              <div className="hash-meta">
+                <span>LIVE SYSTEM</span>
+                <span>SYNCED</span>
+              </div>
+            </div>
+          </aside>
+        </div>
+
+        <div className="hero-statusbar" aria-label="Network telemetry">
+          <span><i aria-hidden="true" /> NETWORK ONLINE</span>
+          <span>MINER ENGINE READY</span>
+          <span>WALLET CONTROLS PROTECTED</span>
+          <span>SERVER-SIDE VALIDATION</span>
+        </div>
+      </section>
+
+      <section className="trust">
+        <div className="trust-grid">
+          <div className="trust-item">
+            <b>Secure &amp; Trusted</b>
+            <small>HTTPS and authenticated account controls.</small>
+          </div>
+          <div className="trust-item">
+            <b>Transparent Platform</b>
+            <small>Clear rules and server-side reward controls.</small>
+          </div>
+          <div className="trust-item">
+            <b>Fair &amp; Sustainable</b>
+            <small>Reward values depend on platform economics.</small>
+          </div>
+          <div className="trust-item">
+            <b>No Guaranteed Returns</b>
+            <small>Mining rewards are not guaranteed income.</small>
           </div>
         </div>
       </section>
 
-      <section className="trust"><div className="trust-grid"><div className="trust-item"><b>Secure & Trusted</b><small>HTTPS and authenticated account controls.</small></div><div className="trust-item"><b>Transparent Platform</b><small>Clear rules and server-side reward controls.</small></div><div className="trust-item"><b>Fair & Sustainable</b><small>Reward values depend on platform economics.</small></div><div className="trust-item"><b>No Guaranteed Returns</b><small>Mining rewards are not guaranteed income.</small></div></div></section>
+      <section className="section" id="how-it-works">
+        <div className="section-head">
+          <div className="eyebrow">HOW IT WORKS</div>
+          <h2>Start Your Mining Journey</h2>
+          <p>
+            A five-step path from account creation to an upgraded mining
+            network and wallet management.
+          </p>
+        </div>
 
-      <section className="section" id="how-it-works"><div className="section-head"><div className="eyebrow">HOW IT WORKS</div><h2>Start Your Mining Journey</h2><p>A five-step path from account creation to an upgraded mining network and wallet management.</p></div><div className="steps"><article className="step"><div className="n">01</div><h3>REGISTER</h3><p>Create your account in minutes.</p></article><article className="step"><div className="n">02</div><h3>VERIFY</h3><p>Confirm your email and security checks.</p></article><article className="step"><div className="n">03</div><h3>MINE</h3><p>Your miner contributes hashrate to the platform.</p></article><article className="step"><div className="n">04</div><h3>UPGRADE</h3><p>Increase hashrate with stronger miner levels.</p></article><article className="step"><div className="n">05</div><h3>WITHDRAW</h3><p>Manage eligible rewards through your wallet.</p></article></div></section>
+        <div className="steps">
+          <article className="step">
+            <div className="n">01</div>
+            <h3>REGISTER</h3>
+            <p>Create your account in minutes.</p>
+          </article>
+          <article className="step">
+            <div className="n">02</div>
+            <h3>VERIFY</h3>
+            <p>Confirm your email and security checks.</p>
+          </article>
+          <article className="step">
+            <div className="n">03</div>
+            <h3>MINE</h3>
+            <p>Your miner contributes hashrate to the platform.</p>
+          </article>
+          <article className="step">
+            <div className="n">04</div>
+            <h3>UPGRADE</h3>
+            <p>Increase hashrate with stronger miner levels.</p>
+          </article>
+          <article className="step">
+            <div className="n">05</div>
+            <h3>WITHDRAW</h3>
+            <p>Manage eligible rewards through your wallet.</p>
+          </article>
+        </div>
+      </section>
 
-      <section className="section" id="miners"><div className="miners"><div className="miner-intro"><div className="eyebrow">OUR MINERS</div><h2 style={{fontFamily:'Orbitron',fontSize:28,margin:'7px 0'}}>Choose Your Miner</h2><p style={{color:'#849ead',lineHeight:1.55,margin:0,fontSize:13}}>Different miner tiers provide different hashrate and progression paths.</p><Link href="/miners" className="cta primary">View All Miners →</Link></div>{miners.map((miner)=><article className="miner-card" key={miner.name}><div className="miner-img"><img src={miner.image} alt="" /></div><div className="miner-info"><h3>{miner.name}</h3><b>{miner.rate}</b><small>{miner.price} 💎 · {miner.level}</small></div></article>)}</div></section>
+      <section className="section" id="miners">
+        <div className="miners">
+          <div className="miner-intro">
+            <div className="eyebrow">OUR MINERS</div>
+            <h2>Choose Your Miner</h2>
+            <p>
+              Different miner tiers provide different hashrate and progression
+              paths.
+            </p>
+            <Link href="/miners" className="cta primary">
+              View All Miners <span aria-hidden="true">→</span>
+            </Link>
+          </div>
 
-      <section className="campaign"><div><div className="eyebrow">LAUNCH CAMPAIGN</div><h2>First 1,000 verified registrations receive an Entry GPU</h2><p>Allocation is decided by the database after email verification. Refreshing the page cannot consume a campaign slot.</p><Link href="/auth/register" className="cta primary" style={{marginTop:16}}>Join Now →</Link></div><div className="meter"><div className="meter-copy"><strong>{fmt(bonus?.remaining_slots)} <span style={{fontSize:15}}>left</span></strong><small>{fmt(bonus?.claimed_slots)} claimed / {fmt(bonus?.total_slots)} total</small><div className="bar"><i /></div></div></div></section>
+          {miners.map((miner) => (
+            <article className="miner-card" key={miner.name}>
+              <div className="miner-img">
+                <img src={miner.image} alt="" loading="lazy" />
+              </div>
+              <div className="miner-info">
+                <h3>{miner.name}</h3>
+                <b>{miner.rate}</b>
+                <small>
+                  {miner.price} 💎 · {miner.level}
+                </small>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
 
-      <section className="section" id="transparency"><div className="section-head"><div className="eyebrow">SECURE · TRANSPARENT · TRUSTED</div><h2>Built for a Safer Mining Experience</h2><p>Important information is visible before registration. Sensitive actions remain subject to server-side validation.</p></div><div className="feature-grid"><article className="feature"><div className="icon">◈</div><h3>SSL ENCRYPTED</h3><p>Production access uses HTTPS.</p></article><article className="feature"><div className="icon">◇</div><h3>SERVER-SIDE RULES</h3><p>Wallet and reward actions are validated by backend rules.</p></article><article className="feature"><div className="icon">◎</div><h3>GLOBAL NETWORK</h3><p>Built to support a scalable virtual mining environment.</p></article><article className="feature"><div className="icon">◆</div><h3>PUBLIC POLICIES</h3><p>About, Contact, Privacy and Terms are available.</p></article></div></section>
+      <section className="campaign">
+        <div className="campaign-copy">
+          <div className="eyebrow">LAUNCH CAMPAIGN</div>
+          <h2>First 1,000 verified registrations receive an Entry GPU</h2>
+          <p>
+            Allocation is decided by the database after email verification.
+            Refreshing the page cannot consume a campaign slot.
+          </p>
+          <Link href="/auth/register" className="cta primary">
+            Join Now <span aria-hidden="true">→</span>
+          </Link>
+        </div>
 
-      <section className="section" id="faq"><div className="section-head"><div className="eyebrow">FREQUENTLY ASKED QUESTIONS</div><h2>Find Your Answers</h2></div><div className="faq-list"><details className="faq"><summary>Is the platform free to join?</summary><p>Account creation is free. Miner ownership and reward conditions follow the rules shown in the platform.</p></details><details className="faq"><summary>How do I get the launch bonus?</summary><p>Successful registration becomes eligible after email verification, subject to the campaign's server-side allocation rules and remaining slots.</p></details><details className="faq"><summary>How are rewards calculated?</summary><p>Reward values depend on the configured platform mining economics, available reward resources and applicable controls.</p></details><details className="faq"><summary>Can I upgrade my miner?</summary><p>Yes. Eligible owned miners can progress through their available levels subject to wallet balance and upgrade rules.</p></details></div></section>
+        <div className="meter">
+          <div className="meter-core" aria-hidden="true">
+            <div className="meter-ring" />
+            <div className="meter-orb" />
+          </div>
+          <div className="meter-copy">
+            <span className="meter-label">REMAINING ALLOCATION</span>
+            <strong>
+              {fmt(bonus?.remaining_slots)}
+              <em> left</em>
+            </strong>
+            <small>
+              {fmt(bonus?.claimed_slots)} claimed / {fmt(bonus?.total_slots)} total
+            </small>
+            <div className="bar" aria-hidden="true">
+              <i />
+            </div>
+          </div>
+        </div>
+      </section>
 
-      <section className="section"><div className="final"><div><div className="eyebrow">ENTER THE NETWORK</div><h2>Build today. Power tomorrow.</h2><p>Read the public information, then create your account and start building your virtual mining network.</p></div><Link href="/auth/register" className="cta primary">Create Free Account →</Link></div></section>
+      <section className="section" id="transparency">
+        <div className="section-head">
+          <div className="eyebrow">SECURE · TRANSPARENT · TRUSTED</div>
+          <h2>Built for a Safer Mining Experience</h2>
+          <p>
+            Important information is visible before registration. Sensitive
+            actions remain subject to server-side validation.
+          </p>
+        </div>
 
-      <footer className="footer"><div className="footerin"><div>© {new Date().getFullYear()} NextGen Miner · Virtual mining & reward platform</div><nav className="footerlinks"><Link href="/about">About</Link><Link href="/contact">Contact</Link><Link href="/legal/privacy">Privacy Policy</Link><Link href="/legal/terms">Terms of Service</Link></nav></div></footer>
+        <div className="feature-grid">
+          <article className="feature">
+            <div className="icon">◈</div>
+            <h3>SSL ENCRYPTED</h3>
+            <p>Production access uses HTTPS.</p>
+          </article>
+          <article className="feature">
+            <div className="icon">◇</div>
+            <h3>SERVER-SIDE RULES</h3>
+            <p>Wallet and reward actions are validated by backend rules.</p>
+          </article>
+          <article className="feature">
+            <div className="icon">◎</div>
+            <h3>GLOBAL NETWORK</h3>
+            <p>Built to support a scalable virtual mining environment.</p>
+          </article>
+          <article className="feature">
+            <div className="icon">◆</div>
+            <h3>PUBLIC POLICIES</h3>
+            <p>About, Contact, Privacy and Terms are available.</p>
+          </article>
+        </div>
+      </section>
+
+      <section className="section" id="faq">
+        <div className="section-head">
+          <div className="eyebrow">FREQUENTLY ASKED QUESTIONS</div>
+          <h2>Find Your Answers</h2>
+        </div>
+
+        <div className="faq-list">
+          <details className="faq">
+            <summary>Is the platform free to join?</summary>
+            <p>
+              Account creation is free. Miner ownership and reward conditions
+              follow the rules shown in the platform.
+            </p>
+          </details>
+          <details className="faq">
+            <summary>How do I get the launch bonus?</summary>
+            <p>
+              Successful registration becomes eligible after email verification,
+              subject to the campaign&apos;s server-side allocation rules and
+              remaining slots.
+            </p>
+          </details>
+          <details className="faq">
+            <summary>How are rewards calculated?</summary>
+            <p>
+              Reward values depend on the configured platform mining economics,
+              available reward resources and applicable controls.
+            </p>
+          </details>
+          <details className="faq">
+            <summary>Can I upgrade my miner?</summary>
+            <p>
+              Yes. Eligible owned miners can progress through their available
+              levels subject to wallet balance and upgrade rules.
+            </p>
+          </details>
+        </div>
+      </section>
+
+      <section className="section">
+        <div className="final">
+          <div>
+            <div className="eyebrow">ENTER THE NETWORK</div>
+            <h2>Build today. Power tomorrow.</h2>
+            <p>
+              Read the public information, then create your account and start
+              building your virtual mining network.
+            </p>
+          </div>
+          <Link href="/auth/register" className="cta primary">
+            Create Free Account <span aria-hidden="true">→</span>
+          </Link>
+        </div>
+      </section>
+
+      <footer className="footer">
+        <div className="footerin">
+          <div>
+            © {new Date().getFullYear()} NextGen Miner · Virtual mining &amp;
+            reward platform
+          </div>
+          <nav className="footerlinks" aria-label="Footer navigation">
+            <Link href="/about">About</Link>
+            <Link href="/contact">Contact</Link>
+            <Link href="/legal/privacy">Privacy Policy</Link>
+            <Link href="/legal/terms">Terms of Service</Link>
+          </nav>
+        </div>
+      </footer>
     </main>
   );
 }
