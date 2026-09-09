@@ -2,6 +2,7 @@ import './globals.css';
 import './deposit-wallet.css';
 import '../styles/nav-drawer.css';
 import '../styles/dashboard-simple.css';
+import '../css/landing-neon-frame.css';
 
 export const metadata = {
   metadataBase: new URL('https://nextgen-miner.vercel.app'),
@@ -12,10 +13,13 @@ export const metadata = {
   openGraph: {
     title: 'NextGen Miner — Virtual Mining Platform',
     description: 'Build your rig, grow hashrate, upgrade miners and manage rewards through a virtual mining platform.',
-    url: 'https://nextgen-miner.vercel.app', siteName: 'NextGen Miner', type: 'website',
+    url: 'https://nextgen-miner.vercel.app',
+    siteName: 'NextGen Miner',
+    type: 'website',
   },
   twitter: {
-    card: 'summary', title: 'NextGen Miner — Virtual Mining Platform',
+    card: 'summary',
+    title: 'NextGen Miner — Virtual Mining Platform',
     description: 'Build your rig, grow hashrate and manage rewards through a virtual mining platform.',
   },
 };
