@@ -2,7 +2,7 @@
 
 export default function SplineHero() {
   // Menggunakan URL gambar internet langsung dengan foto PC Rig/Server bernuansa neon cyan untuk tema mining
-  const imageUrl = "https://unsplash.com";
+  const imageUrl = "landingpage.jpg";
 
   return (
     <div className="ng-hero-visual-wrapper">
