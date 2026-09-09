@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
-import SplineHero from './SplineHero';
 
 type BonusStatus = {
   total_slots?: number;
@@ -8,146 +7,89 @@ type BonusStatus = {
   remaining_slots?: number;
 };
 
+const miners = [
+  { name: 'Basic CPU', price: '500', rate: '20 H/s', level: 'Lv. 1–10', image: '/assets/miners/basic-cpu.webp' },
+  { name: 'Entry GPU', price: '1,000', rate: '60 H/s', level: 'Lv. 1–10', image: '/assets/miners/entry-gpu.webp' },
+  { name: 'Mini Rig', price: '2,500', rate: '150 H/s', level: 'Lv. 1–10', image: '/assets/miners/mini-rig.webp' },
+  { name: 'Gaming PC', price: '7,500', rate: '450 H/s', level: 'Lv. 1–10', image: '/assets/miners/gaming-pc.webp' },
+  { name: 'Performance Rig', price: '15,000', rate: '850 H/s', level: 'Lv. 1–10', image: '/assets/miners/performance-rig.webp' },
+];
+
 export default async function LandingPage() {
   const supabase = await createClient();
   const { data } = await supabase.rpc('nextgen_get_registration_bonus_status');
   const bonus = (data ?? null) as BonusStatus | null;
-  const fmt = (v: unknown) => typeof v === 'number' ? v.toLocaleString('en-US') : '—';
+  const fmt = (value: unknown) => typeof value === 'number' ? value.toLocaleString('en-US') : '—';
 
   return (
-    <main className="ng-landing">
+    <main className="ng-fp">
       <style>{`
-        .ng-landing{min-height:100vh;overflow:hidden;background:
-          radial-gradient(circle at 12% 0%,rgba(36,232,255,.12),transparent 35%),
-          radial-gradient(circle at 88% 8%,rgba(139,61,255,.16),transparent 35%),
-          linear-gradient(180deg,#020711 0%,#03101a 38%,#02060d 100%);color:#f2fbff}
-        .ng-landing *{box-sizing:border-box}.ng-landing a{text-decoration:none;color:inherit}
-        
-        /* ⚡ ANIMASI UNTUK FIRST IMPRESSION (FADE IN UP) */
-        .ng-animate-fade {
-          animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-        
-        .ng-nav{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;gap:14px;
-          padding:12px clamp(12px,4vw,44px);border-bottom:1px solid rgba(36,139,197,.18);background:rgba(2,7,16,.86);backdrop-filter:blur(18px)}
-        .ng-brand{display:flex;align-items:center;gap:10px;font:700 14px Orbitron,system-ui;letter-spacing:.09em}
-        .ng-mark{width:40px;height:40px;display:grid;place-items:center;border-radius:12px;color:#24e8ff;border:1px solid rgba(36,232,255,.7);
-          box-shadow:0 0 24px rgba(36,232,255,.15),inset 0 0 16px rgba(36,232,255,.07)} .ng-brand span{color:#24e8ff}
-        .ng-nav-links{display:flex;gap:22px;color:#8faabd;font-size:13px;font-weight:700}.ng-nav-links a:hover{color:#fff}
-        .ng-nav-actions{display:flex;gap:8px}.ng-nav-btn,.ng-cta{display:inline-flex;align-items:center;justify-content:center;border-radius:12px;font-weight:900}
-        .ng-nav-btn{padding:10px 13px;border:1px solid rgba(44,134,188,.28);background:rgba(6,17,29,.72);font-size:12px}
-        
-        /* TOMBOL NEON UTAMA DENGAN EFEK GLOW BERDENYUT */
-        .ng-primary,.ng-cta-primary{
-          background:linear-gradient(135deg,#246aff,#8c36ff);
-          border-color:rgba(145,116,255,.48);
-          box-shadow:0 0 28px rgba(74,80,255,0.4);
-          transition: all 0.3s ease;
-        }
-        .ng-cta-primary:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 0 38px rgba(36, 232, 255, 0.6);
-          filter: brightness(1.1);
-        }
-        
-        .ng-shell{width:min(1180px,92vw);margin:auto}
-        .ng-hero{display:grid;grid-template-columns:minmax(0,1.08fr) minmax(300px,.92fr);gap:clamp(28px,6vw,76px);align-items:center;padding:clamp(54px,8vw,100px) 0 60px}
-        .ng-kicker{display:inline-flex;align-items:center;gap:8px;color:#24e8ff;font-size:10px;letter-spacing:.20em;font-weight:900}
-        .ng-kicker:before{content:"";width:7px;height:7px;border-radius:50%;background:#35f3b4;box-shadow:0 0 12px rgba(53,243,180,.85)}
-        .ng-hero h1{margin:13px 0 18px;font:700 clamp(40px,6vw,65px)/1.05 Orbitron,system-ui;letter-spacing:-.03em}
-        .ng-hero h1 em{font-style:normal;background:linear-gradient(95deg,#fff,#24e8ff 43%,#b07bff);-webkit-background-clip:text;background-clip:text;color:transparent}
-        .ng-copy{max-width:670px;color:#8faabd;font-size:clamp(16px,2vw,19px);line-height:1.65}
-        
-        .ng-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:28px}.ng-cta{padding:15px 22px;border:1px solid rgba(44,134,188,.28);font-size:14px}.ng-cta-ghost{background:rgba(6,17,29,.76); border-color: rgba(36,232,255,0.2)}
-        .ng-cta-ghost:hover{border-color: rgba(36,232,255,0.6); background: rgba(36,232,255,0.05)}
-        
-        .ng-steps{display:flex;flex-wrap:wrap;gap:7px;margin-top:30px;color:#7390a5;font-size:11px;font-weight:800}.ng-steps span{padding:7px 12px;border:1px solid rgba(40,121,167,.2);background:rgba(5,16,28,.5);border-radius:99px}
-        .ng-stage{position:relative;width:100%;display:block}
-        
-        .ng-status{position:absolute;left:50%;bottom:15px;transform:translateX(-50%);padding:10px 16px;border-radius:13px;background:rgba(4,17,27,0.85);backdrop-filter:blur(8px);border:1px solid rgba(53,243,180,.30);white-space:nowrap;z-index:10;box-shadow:0 8px 20px rgba(0,0,0,0.5)}
-        .ng-status b{display:block;color:#35f3b4;font-size:11px;letter-spacing:0.05em}.ng-status small{display:block;margin-top:3px;color:#718da2}
-        
-        .ng-bonus{margin-bottom:68px;padding:23px;border-radius:20px;display:grid;grid-template-columns:1fr auto;gap:24px;align-items:center;border:1px solid rgba(139,61,255,.30);
-          background:linear-gradient(135deg,rgba(12,23,47,.94),rgba(16,7,37,.86));box-shadow:0 20px 58px rgba(0,0,0,.28)}
-        .ng-bonus h2{margin:5px 0 7px;font:700 19px Orbitron}.ng-bonus p{margin:0;color:#8faabd;line-height:1.5}.ng-counter{text-align:right}.ng-counter strong{display:block;color:#24e8ff;font:700 32px Orbitron}.ng-counter small{color:#7895a9}
-        
-        @keyframes fadeInUp {
-          from { opacity: 0; transform: translateY(20px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        
-        @media(max-width:900px){
-          .ng-nav-links{display:none}
-          .ng-hero{grid-template-columns:1fr; text-align:center; padding-top:40px; gap:40px;}
-          .ng-actions{justify-content:center;}
-          .ng-steps{justify-content:center;}
-          .ng-status{bottom:-15px;}
-        }
+        .ng-fp{--cyan:#27eaff;--blue:#3d71ff;--violet:#9747ff;--pink:#e954ff;--green:#48f6be;--text:#f4fbff;--muted:#91a9ba;min-height:100vh;background:#020711;color:var(--text);overflow:hidden;font-family:Rajdhani,system-ui,sans-serif}
+        .ng-fp *{box-sizing:border-box}.ng-fp a{text-decoration:none;color:inherit}
+        .ng-fp .nav{height:66px;position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:0 clamp(14px,4vw,58px);background:rgba(2,7,17,.78);border-bottom:1px solid rgba(39,234,255,.14);backdrop-filter:blur(18px)}
+        .ng-fp .brand{display:flex;align-items:center;gap:10px;font:700 14px Orbitron;letter-spacing:.06em}.ng-fp .brand span{color:var(--cyan)}
+        .ng-fp .logo{width:40px;height:40px;display:grid;place-items:center;border-radius:11px;color:var(--cyan);border:1px solid rgba(39,234,255,.7);box-shadow:0 0 25px rgba(39,234,255,.18),inset 0 0 18px rgba(39,234,255,.05)}
+        .ng-fp .navlinks{display:flex;align-items:center;gap:23px;color:#a4b8c6;font-size:13px;font-weight:800}.ng-fp .navlinks a:hover{color:#fff}
+        .ng-fp .navactions{display:flex;gap:8px}.ng-fp .navbtn{padding:9px 13px;border-radius:10px;border:1px solid rgba(68,142,193,.3);background:rgba(6,16,29,.72);font-size:12px;font-weight:900}.ng-fp .navbtn.primary{background:linear-gradient(135deg,#2c6aff,#9145ff);box-shadow:0 0 25px rgba(85,79,255,.23)}
+        .ng-fp .hero{position:relative;min-height:690px;isolation:isolate;overflow:hidden;background:#020711}.ng-fp .hero-bg{position:absolute;inset:0;background-image:linear-gradient(90deg,rgba(2,7,17,.97) 0%,rgba(2,7,17,.76) 29%,rgba(2,7,17,.18) 60%,rgba(2,7,17,.20) 100%),url('/assets/landing/nextgen-miner-hero.png');background-size:cover;background-position:center 44%;filter:saturate(1.08);transform:scale(1.015)}
+        .ng-fp .hero-bg:after{content:'';position:absolute;inset:0;background:radial-gradient(circle at 55% 35%,rgba(39,234,255,.12),transparent 28%),linear-gradient(180deg,transparent 68%,#020711 100%)}
+        .ng-fp .hero-content{position:relative;z-index:5;width:min(1180px,92vw);margin:auto;min-height:690px;display:flex;align-items:center;padding:70px 0 50px}.ng-fp .hero-copy{max-width:590px;margin-top:16px}
+        .ng-fp .eyebrow{display:inline-flex;align-items:center;gap:8px;color:var(--cyan);font-size:10px;font-weight:900;letter-spacing:.23em}.ng-fp .eyebrow:before{content:'';width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 12px rgba(72,246,190,.8)}
+        .ng-fp h1{margin:13px 0 16px;font:700 clamp(43px,6.1vw,78px)/1.01 Orbitron;letter-spacing:-.05em}.ng-fp h1 strong{display:block;background:linear-gradient(95deg,#fff 8%,#41efff 46%,#a96dff 85%);-webkit-background-clip:text;background-clip:text;color:transparent}
+        .ng-fp .hero-desc{max-width:560px;color:#b2c4cf;line-height:1.58;font-size:18px}.ng-fp .hero-actions{display:flex;gap:10px;margin-top:24px;flex-wrap:wrap}.ng-fp .cta{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:13px 17px;border-radius:12px;border:1px solid rgba(39,234,255,.24);font-size:13px;font-weight:900}.ng-fp .cta.primary{background:linear-gradient(135deg,#1fceff,#7d3cff);box-shadow:0 0 28px rgba(55,140,255,.27)}.ng-fp .cta.ghost{background:rgba(5,16,29,.72)}
+        .ng-fp .hero-telemetry{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;width:min(610px,100%);margin-top:28px}.ng-fp .telemetry{padding:11px 12px;border:1px solid rgba(39,234,255,.16);background:rgba(3,12,24,.66);border-radius:12px;backdrop-filter:blur(8px)}.ng-fp .telemetry b{display:block;font:700 11px Orbitron;color:#fff}.ng-fp .telemetry small{display:block;color:#7fa0b1;margin-top:4px;font-size:10px}.ng-fp .live-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 10px rgba(72,246,190,.8);margin-right:5px}
+        .ng-fp .hash-panel{position:absolute;right:6%;bottom:68px;z-index:8;width:260px;padding:15px 16px;border:1px solid rgba(39,234,255,.28);border-radius:15px;background:rgba(3,13,25,.82);backdrop-filter:blur(14px);box-shadow:0 16px 40px rgba(0,0,0,.32)}.ng-fp .hash-panel label{display:block;color:#78a0b6;letter-spacing:.14em;font-size:9px}.ng-fp .hash-value{font:700 28px Orbitron;color:var(--cyan);margin-top:3px;text-shadow:0 0 18px rgba(39,234,255,.45)}.ng-fp .hash-line{height:5px;border-radius:99px;background:#081526;margin:9px 0;overflow:hidden}.ng-fp .hash-line i{display:block;width:82%;height:100%;background:linear-gradient(90deg,var(--cyan),var(--violet),var(--pink));box-shadow:0 0 15px rgba(39,234,255,.45);animation:hashPulse 2.2s ease-in-out infinite}.ng-fp .hash-meta{display:flex;justify-content:space-between;color:#81a1b2;font-size:10px}
+        .ng-fp .trust{position:relative;z-index:15;margin-top:-1px;background:#03101b;border-top:1px solid rgba(39,234,255,.12);border-bottom:1px solid rgba(39,234,255,.12)}.ng-fp .trust-grid{width:min(1180px,92vw);margin:auto;display:grid;grid-template-columns:repeat(4,1fr)}.ng-fp .trust-item{padding:21px 17px;border-right:1px solid rgba(39,234,255,.09)}.ng-fp .trust-item:last-child{border-right:0}.ng-fp .trust-item b{display:block;font:700 12px Orbitron}.ng-fp .trust-item small{display:block;color:#7994a6;margin-top:5px;line-height:1.35}
+        .ng-fp .section{width:min(1180px,92vw);margin:auto;padding:72px 0}.ng-fp .section-head{max-width:690px;margin-bottom:26px}.ng-fp .section-head h2{margin:7px 0 8px;font:700 29px Orbitron;letter-spacing:-.03em}.ng-fp .section-head p{margin:0;color:#849ead;line-height:1.58}
+        .ng-fp .steps{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;align-items:stretch}.ng-fp .step{position:relative;min-height:170px;padding:19px 16px;border-radius:17px;border:1px solid rgba(45,133,185,.22);background:linear-gradient(150deg,rgba(7,22,38,.87),rgba(3,12,23,.93));box-shadow:inset 0 0 25px rgba(39,234,255,.025)}.ng-fp .step:after{content:'›';position:absolute;right:-11px;top:50%;transform:translateY(-50%);font-size:28px;color:var(--cyan);text-shadow:0 0 15px rgba(39,234,255,.7);z-index:5}.ng-fp .step:last-child:after{display:none}.ng-fp .step .n{width:37px;height:37px;display:grid;place-items:center;border-radius:11px;color:var(--cyan);border:1px solid rgba(39,234,255,.24);background:rgba(39,234,255,.05);font-weight:900}.ng-fp .step h3{font:700 13px Orbitron;margin:12px 0 5px}.ng-fp .step p{color:#7f99aa;font-size:11px;line-height:1.45;margin:0}
+        .ng-fp .miners{display:grid;grid-template-columns:240px repeat(5,minmax(0,1fr));gap:10px;align-items:stretch}.ng-fp .miner-intro{padding:8px 14px 8px 0}.ng-fp .miner-intro .cta{margin-top:17px}.ng-fp .miner-card{border:1px solid rgba(48,126,173,.23);border-radius:16px;overflow:hidden;background:linear-gradient(180deg,rgba(7,22,37,.9),rgba(3,11,21,.98));transition:transform .25s ease,border-color .25s ease}.ng-fp .miner-card:hover{transform:translateY(-5px);border-color:rgba(39,234,255,.42)}.ng-fp .miner-img{height:145px;padding:8px;background:radial-gradient(circle at 50% 72%,rgba(39,234,255,.2),transparent 55%)}.ng-fp .miner-img img{width:100%;height:100%;object-fit:contain;display:block;filter:saturate(1.12) contrast(1.03)}.ng-fp .miner-info{padding:12px}.ng-fp .miner-info h3{font:700 12px Orbitron;margin:0 0 4px}.ng-fp .miner-info b{display:block;color:var(--cyan);font-size:12px}.ng-fp .miner-info small{display:block;color:#728ea0;margin-top:5px;font-size:9px}
+        .ng-fp .campaign{position:relative;overflow:hidden;display:grid;grid-template-columns:1fr 1.2fr;gap:20px;align-items:center;margin:0 auto 70px;padding:25px;border-radius:20px;border:1px solid rgba(44,173,230,.32);background:linear-gradient(110deg,rgba(6,20,37,.96),rgba(16,8,37,.88));box-shadow:0 22px 60px rgba(0,0,0,.26)}.ng-fp .campaign:after{content:'';position:absolute;right:-12%;top:-40%;width:58%;height:180%;background:radial-gradient(circle,rgba(39,234,255,.16),transparent 62%);pointer-events:none}.ng-fp .campaign h2{margin:6px 0 8px;font:700 20px Orbitron}.ng-fp .campaign p{margin:0;color:#8aa4b4;line-height:1.5}.ng-fp .campaign .meter{position:relative;z-index:2;min-height:150px;border-radius:16px;overflow:hidden;border:1px solid rgba(39,234,255,.23);background:linear-gradient(135deg,rgba(4,17,30,.82),rgba(6,12,28,.65));display:flex;align-items:center;justify-content:center}.ng-fp .campaign .meter:before{content:'';position:absolute;inset:0;background-image:url('/assets/miners/entry-gpu.webp');background-size:42%;background-repeat:no-repeat;background-position:right center;opacity:.9;filter:drop-shadow(0 0 16px rgba(39,234,255,.25))}.ng-fp .campaign .meter-copy{position:relative;z-index:3;margin-left:10px;margin-right:auto;padding:15px 18px}.ng-fp .campaign .meter-copy strong{display:block;font:700 32px Orbitron;color:var(--cyan)}.ng-fp .campaign .meter-copy small{color:#7896a7}.ng-fp .campaign .bar{height:6px;margin-top:10px;border-radius:99px;background:#071527;overflow:hidden}.ng-fp .campaign .bar i{display:block;width:0.3%;height:100%;background:linear-gradient(90deg,var(--cyan),var(--violet));box-shadow:0 0 12px rgba(39,234,255,.5)}
+        .ng-fp .feature-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:11px}.ng-fp .feature{padding:17px;border:1px solid rgba(44,124,169,.2);border-radius:15px;background:rgba(4,15,27,.76)}.ng-fp .feature .icon{width:37px;height:37px;display:grid;place-items:center;border-radius:11px;border:1px solid rgba(39,234,255,.18);color:var(--cyan);margin-bottom:12px}.ng-fp .feature h3{font:700 12px Orbitron;margin:0 0 5px}.ng-fp .feature p{margin:0;color:#7894a7;font-size:11px;line-height:1.45}
+        .ng-fp .faq-list{display:grid;grid-template-columns:1fr 1fr;gap:9px}.ng-fp .faq{border:1px solid rgba(44,124,169,.2);border-radius:13px;background:rgba(4,15,27,.7);padding:14px 16px}.ng-fp .faq summary{cursor:pointer;font-weight:900}.ng-fp .faq p{color:#7f99aa;line-height:1.5;margin:8px 0 0;font-size:11px}
+        .ng-fp .final{padding:25px;border-radius:18px;border:1px solid rgba(80,108,255,.25);background:linear-gradient(110deg,rgba(9,27,44,.9),rgba(27,9,48,.9));display:flex;align-items:center;justify-content:space-between;gap:20px;margin-bottom:58px}.ng-fp .final h2{font:700 22px Orbitron;margin:6px 0}.ng-fp .final p{margin:0;color:#829eaf}
+        .ng-fp .footer{border-top:1px solid rgba(39,234,255,.12);padding:26px 0 34px;color:#627d90;font-size:10px}.ng-fp .footerin{width:min(1180px,92vw);margin:auto;display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}.ng-fp .footerlinks{display:flex;gap:15px;flex-wrap:wrap}.ng-fp .footer a:hover{color:#fff}
+        @keyframes hashPulse{0%,100%{width:72%}50%{width:88%}}
+        @media(max-width:1000px){.ng-fp .navlinks{display:none}.ng-fp .hero{min-height:750px}.ng-fp .hero-content{min-height:750px}.ng-fp .hash-panel{right:4%;bottom:42px}.ng-fp .miners{grid-template-columns:repeat(3,1fr)}.ng-fp .miner-intro{grid-column:1/-1;padding:0 0 8px}.ng-fp .steps{grid-template-columns:repeat(3,1fr)}.ng-fp .step:nth-child(3):after,.ng-fp .step:nth-child(5):after{display:none}.ng-fp .feature-grid{grid-template-columns:repeat(2,1fr)}}
+        @media(max-width:650px){.ng-fp .nav{height:60px;padding:0 11px}.ng-fp .brand{font-size:11px}.ng-fp .logo{width:36px;height:36px}.ng-fp .navactions .navbtn:first-child{display:none}.ng-fp .hero{min-height:755px}.ng-fp .hero-bg{background-position:58% 38%}.ng-fp .hero-content{min-height:755px;align-items:flex-end;padding:0 0 38px}.ng-fp .hero-copy{max-width:100%;background:linear-gradient(180deg,transparent,rgba(2,7,17,.75) 18%,rgba(2,7,17,.94));padding-top:52px}.ng-fp h1{font-size:40px}.ng-fp .hero-desc{font-size:16px}.ng-fp .hero-telemetry{grid-template-columns:1fr 1fr 1fr;margin-top:17px}.ng-fp .telemetry{padding:9px}.ng-fp .telemetry b{font-size:9px}.ng-fp .telemetry small{font-size:8px}.ng-fp .hash-panel{position:relative;right:auto;bottom:auto;width:100%;margin-top:12px}.ng-fp .trust-grid{grid-template-columns:1fr 1fr}.ng-fp .trust-item{padding:14px 11px}.ng-fp .trust-item:nth-child(2){border-right:0}.ng-fp .trust-item:nth-child(-n+2){border-bottom:1px solid rgba(39,234,255,.09)}.ng-fp .trust-item b{font-size:10px}.ng-fp .trust-item small{font-size:9px}.ng-fp .section{width:94vw;padding:54px 0}.ng-fp .section-head h2{font-size:24px}.ng-fp .steps{grid-template-columns:1fr 1fr}.ng-fp .step{min-height:155px}.ng-fp .step:after{display:none}.ng-fp .miners{grid-template-columns:1fr 1fr}.ng-fp .miner-img{height:120px}.ng-fp .campaign{grid-template-columns:1fr;margin-bottom:52px;padding:18px}.ng-fp .campaign .meter{min-height:138px}.ng-fp .campaign .meter:before{background-size:48%}.ng-fp .feature-grid{grid-template-columns:1fr 1fr}.ng-fp .faq-list{grid-template-columns:1fr}.ng-fp .final{display:grid;grid-template-columns:1fr;padding:20px}.ng-fp .final .cta{width:100%}}
+        @media(max-width:390px){.ng-fp h1{font-size:36px}.ng-fp .hero{min-height:770px}.ng-fp .hero-content{min-height:770px}.ng-fp .hero-telemetry{gap:5px}.ng-fp .telemetry small{display:none}.ng-fp .miners{grid-template-columns:1fr}.ng-fp .feature-grid{grid-template-columns:1fr}.ng-fp .brand{letter-spacing:.04em}}
+        @media(prefers-reduced-motion:reduce){.ng-fp .hash-line i{animation:none}}
       `}</style>
 
-      {/* --- BAGIAN NAVIGASI --- */}
-      <nav className="ng-nav">
-        <div className="ng-brand">
-          <div className="ng-mark">⚡</div>
-          <div>CRYPTO<span>MINING</span></div>
-        </div>
-        <div className="ng-nav-links">
-          <a href="#features">Features</a>
-          <a href="#faq">FAQ</a>
-        </div>
-        <div className="ng-nav-actions">
-          <Link href="/login" className="ng-nav-btn">Log In</Link>
-          <Link href="/register" className="ng-nav-btn ng-primary">Sign Up</Link>
-        </div>
-      </nav>
+      <header className="nav">
+        <Link className="brand" href="/"><div className="logo">N</div><div>NEXTGEN <span>MINER</span></div></Link>
+        <nav className="navlinks"><a href="#how-it-works">How It Works</a><a href="#miners">Miners</a><a href="#transparency">Features</a><a href="#faq">FAQ</a></nav>
+        <div className="navactions"><Link className="navbtn" href="/auth/login">Login</Link><Link className="navbtn primary" href="/auth/register">Register</Link></div>
+      </header>
 
-      <div className="ng-shell">
-        {/* --- HERO SECTION --- */}
-        <section className="ng-hero">
-          {/* Animasi teks masuk secara halus */}
-          <div className="ng-animate-fade">
-            <div className="ng-kicker">NEXT-GEN FAUCET SYSTEM</div>
-            <h1>Futuristic <em>Crypto Mining</em></h1>
-            <p className="ng-copy">
-              Klaim reward kripto Anda dengan sistem distribusi faucet berkecepatan tinggi. 
-              Visualisasi megacity masa depan yang super ringan, responsif, dan instan di semua jenis perangkat.
-            </p>
-            <div className="ng-actions">
-              <Link href="/register" className="ng-cta ng-cta-primary">Start Claim Faucet</Link>
-              <a href="#features" className="ng-cta ng-cta-ghost">Learn More</a>
-            </div>
-            <div className="ng-steps">
-              <span>1. Sign Up</span>
-              <span>2. Secure Wallet</span>
-              <span>3. Earn Rewards</span>
-            </div>
+      <section className="hero">
+        <div className="hero-bg" aria-hidden="true" />
+        <div className="hero-content">
+          <div className="hero-copy">
+            <div className="eyebrow">THE NEXT GENERATION MINING PLATFORM</div>
+            <h1>Build your rig.<strong>Earn. Upgrade.<br />Withdraw.</strong></h1>
+            <p className="hero-desc">Power the future with your miners. Build your rig, grow your hashrate and manage rewards through a virtual crypto-mining network designed around live platform data.</p>
+            <div className="hero-actions"><Link href="/auth/register" className="cta primary">Create Free Account →</Link><Link href="/auth/login" className="cta ghost">Login</Link></div>
+            <div className="hero-telemetry"><div className="telemetry"><b><span className="live-dot" />Mining Active</b><small>Network online</small></div><div className="telemetry"><b>Network Connected</b><small>Data synchronized</small></div><div className="telemetry"><b>Reward Engine</b><small>Platform rules active</small></div></div>
+            <div className="hash-panel"><label>NETWORK HASHRATE</label><div className="hash-value">60.00 H/s</div><div className="hash-line"><i /></div><div className="hash-meta"><span>● Live</span><span>Real-time network demo</span></div></div>
           </div>
+        </div>
+      </section>
 
-          {/* KANAN: AREA BINGKAI FOTO KOTA NEON BERANIMASI */}
-          <div className="ng-stage className='ng-animate-fade' style={{ animationDelay: '0.2s' }}">
-            <SplineHero />
-            
-            <div className="ng-status">
-              <b>MINING NETWORK ACTIVE</b>
-              <small>Latency: Stable • Load: Nominal</small>
-            </div>
-          </div>
-        </section>
+      <section className="trust"><div className="trust-grid"><div className="trust-item"><b>Secure & Trusted</b><small>HTTPS and authenticated account controls.</small></div><div className="trust-item"><b>Transparent Platform</b><small>Clear rules and server-side reward controls.</small></div><div className="trust-item"><b>Fair & Sustainable</b><small>Reward values depend on platform economics.</small></div><div className="trust-item"><b>No Guaranteed Returns</b><small>Mining rewards are not guaranteed income.</small></div></div></section>
 
-        {/* --- REGISTRATION BONUS BANNER --- */}
-        {bonus && (
-          <div className="ng-bonus ng-animate-fade" style={{ animationDelay: '0.4s' }}>
-            <div>
-              <h2>Early Bird Registration Bonus!</h2>
-              <p>Dapatkan bonus kecepatan klaim untuk pendaftar awal selama kuota masih tersedia.</p>
-            </div>
-            <div className="ng-counter">
-              <strong>{fmt(bonus.remaining_slots)}</strong>
-              <small>Slots Left / {fmt(bonus.total_slots)} Total</small>
-            </div>
-          </div>
-        )}
-      </div>
+      <section className="section" id="how-it-works"><div className="section-head"><div className="eyebrow">HOW IT WORKS</div><h2>Start Your Mining Journey</h2><p>A five-step path from account creation to an upgraded mining network and wallet management.</p></div><div className="steps"><article className="step"><div className="n">01</div><h3>REGISTER</h3><p>Create your account in minutes.</p></article><article className="step"><div className="n">02</div><h3>VERIFY</h3><p>Confirm your email and security checks.</p></article><article className="step"><div className="n">03</div><h3>MINE</h3><p>Your miner contributes hashrate to the platform.</p></article><article className="step"><div className="n">04</div><h3>UPGRADE</h3><p>Increase hashrate with stronger miner levels.</p></article><article className="step"><div className="n">05</div><h3>WITHDRAW</h3><p>Manage eligible rewards through your wallet.</p></article></div></section>
+
+      <section className="section" id="miners"><div className="miners"><div className="miner-intro"><div className="eyebrow">OUR MINERS</div><h2 style={{fontFamily:'Orbitron',fontSize:28,margin:'7px 0'}}>Choose Your Miner</h2><p style={{color:'#849ead',lineHeight:1.55,margin:0,fontSize:13}}>Different miner tiers provide different hashrate and progression paths.</p><Link href="/miners" className="cta primary">View All Miners →</Link></div>{miners.map((miner)=><article className="miner-card" key={miner.name}><div className="miner-img"><img src={miner.image} alt="" /></div><div className="miner-info"><h3>{miner.name}</h3><b>{miner.rate}</b><small>{miner.price} 💎 · {miner.level}</small></div></article>)}</div></section>
+
+      <section className="campaign"><div><div className="eyebrow">LAUNCH CAMPAIGN</div><h2>First 1,000 verified registrations receive an Entry GPU</h2><p>Allocation is decided by the database after email verification. Refreshing the page cannot consume a campaign slot.</p><Link href="/auth/register" className="cta primary" style={{marginTop:16}}>Join Now →</Link></div><div className="meter"><div className="meter-copy"><strong>{fmt(bonus?.remaining_slots)} <span style={{fontSize:15}}>left</span></strong><small>{fmt(bonus?.claimed_slots)} claimed / {fmt(bonus?.total_slots)} total</small><div className="bar"><i /></div></div></div></section>
+
+      <section className="section" id="transparency"><div className="section-head"><div className="eyebrow">SECURE · TRANSPARENT · TRUSTED</div><h2>Built for a Safer Mining Experience</h2><p>Important information is visible before registration. Sensitive actions remain subject to server-side validation.</p></div><div className="feature-grid"><article className="feature"><div className="icon">◈</div><h3>SSL ENCRYPTED</h3><p>Production access uses HTTPS.</p></article><article className="feature"><div className="icon">◇</div><h3>SERVER-SIDE RULES</h3><p>Wallet and reward actions are validated by backend rules.</p></article><article className="feature"><div className="icon">◎</div><h3>GLOBAL NETWORK</h3><p>Built to support a scalable virtual mining environment.</p></article><article className="feature"><div className="icon">◆</div><h3>PUBLIC POLICIES</h3><p>About, Contact, Privacy and Terms are available.</p></article></div></section>
+
+      <section className="section" id="faq"><div className="section-head"><div className="eyebrow">FREQUENTLY ASKED QUESTIONS</div><h2>Find Your Answers</h2></div><div className="faq-list"><details className="faq"><summary>Is the platform free to join?</summary><p>Account creation is free. Miner ownership and reward conditions follow the rules shown in the platform.</p></details><details className="faq"><summary>How do I get the launch bonus?</summary><p>Successful registration becomes eligible after email verification, subject to the campaign's server-side allocation rules and remaining slots.</p></details><details className="faq"><summary>How are rewards calculated?</summary><p>Reward values depend on the configured platform mining economics, available reward resources and applicable controls.</p></details><details className="faq"><summary>Can I upgrade my miner?</summary><p>Yes. Eligible owned miners can progress through their available levels subject to wallet balance and upgrade rules.</p></details></div></section>
+
+      <section className="section"><div className="final"><div><div className="eyebrow">ENTER THE NETWORK</div><h2>Build today. Power tomorrow.</h2><p>Read the public information, then create your account and start building your virtual mining network.</p></div><Link href="/auth/register" className="cta primary">Create Free Account →</Link></div></section>
+
+      <footer className="footer"><div className="footerin"><div>© {new Date().getFullYear()} NextGen Miner · Virtual mining & reward platform</div><nav className="footerlinks"><Link href="/about">About</Link><Link href="/contact">Contact</Link><Link href="/legal/privacy">Privacy Policy</Link><Link href="/legal/terms">Terms of Service</Link></nav></div></footer>
     </main>
   );
 }
