@@ -1,5 +1,56 @@
-import Link from 'next/link';
-export const metadata = { title: 'Privacy Policy', description: 'Privacy information for NextGen Miner accounts and platform operations.' };
+import { PublicPage } from '@/components/public/PublicPage';
+
+export const metadata = {
+  title: 'Privacy Policy',
+  description: 'Privacy information for NextGen Miner accounts and platform operations.',
+};
+
 export default function PrivacyPage() {
-  return <main className="public-page"><style>{`.public-page{min-height:100vh;padding:24px 16px;background:linear-gradient(180deg,#020711,#030b15);color:#f2fbff}.public-wrap{width:min(900px,100%);margin:auto}.public-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px}.public-brand{font:700 13px Orbitron}.public-brand span{color:#24e8ff}.public-home{color:#24e8ff;font-weight:800}.public-card{padding:24px;border:1px solid rgba(40,121,167,.25);border-radius:18px;background:rgba(4,14,25,.9)}.public-card h1{font:700 30px Orbitron;margin:0 0 14px}.public-card h2{font:700 18px Orbitron;margin-top:28px}.public-card p,.public-card li{color:#8faabd;line-height:1.65}.public-card ul{padding-left:20px}.public-note{padding:13px 14px;border-radius:12px;border:1px solid rgba(36,232,255,.18);background:rgba(36,232,255,.04);color:#9db8ca;margin-bottom:16px}.public-footer{margin-top:15px;display:flex;gap:14px;flex-wrap:wrap;color:#70899c;font-size:12px}`}</style><div className="public-wrap"><div className="public-top"><div className="public-brand">NEXTGEN <span>MINER</span></div><Link className="public-home" href="/">Home</Link></div><article className="public-card"><div className="public-note">Operational privacy draft. Final operator identity, jurisdiction and retention requirements should be reviewed before public commercial launch.</div><h1>Privacy Policy</h1><p>NextGen Miner processes information needed to provide account authentication, miner management, wallet functionality, transaction integrity, security and support.</p><h2>Information processed</h2><ul><li>Account information such as email address and username.</li><li>Authentication and session information.</li><li>Miner ownership, upgrade and transaction records.</li><li>Security and anti-abuse verification information where configured.</li></ul><h2>How it is used</h2><p>Information is used to authenticate users, provide platform functions, enforce ownership and reward rules, detect abuse, maintain transaction integrity and provide support.</p><h2>Security</h2><p>The service uses HTTPS on its Vercel-hosted production domain, authenticated sessions and server-side controls for sensitive operations.</p><h2>Service providers</h2><p>The platform may rely on hosting, database and security providers. Review their applicable privacy terms before launch.</p><h2>Retention and requests</h2><p>Information may be retained as needed to operate the service, maintain security and meet applicable obligations. Account privacy requests should use the official support channel.</p><h2>Updates</h2><p>The current version of this policy will be maintained on this page as the platform changes.</p></article><div className="public-footer"><Link href="/about">About</Link><Link href="/contact">Contact</Link><Link href="/legal/terms">Terms</Link></div></div></main>;
+  return (
+    <PublicPage
+      eyebrow="LEGAL · PRIVACY"
+      title="Privacy Policy"
+      description="How account, security and platform-operation information is handled."
+    >
+      <section className="public-card public-hero">
+        <div className="public-note">
+          This policy describes the platform's current operational handling. Final operator identity,
+          legal jurisdiction, retention schedule and any legally required notices should be completed
+          against the actual operating entity before commercial launch.
+        </div>
+        <h2>Information we may process</h2>
+        <ul>
+          <li>Account information such as email address and username.</li>
+          <li>Authentication and session information.</li>
+          <li>Miner ownership, upgrades, wallet and transaction records.</li>
+          <li>Security, anti-abuse and verification information where configured.</li>
+          <li>Support requests and communications submitted by the user.</li>
+        </ul>
+        <h2>Why it is used</h2>
+        <p>
+          Information is used to authenticate accounts, provide platform functions,
+          enforce ownership and reward rules, detect abuse, maintain transaction integrity,
+          process support requests and protect the service.
+        </p>
+        <h2>Service providers</h2>
+        <p>
+          The service may use hosting, database, authentication, security and other infrastructure
+          providers. Those providers may process information as required to provide their services.
+        </p>
+        <h2>Security</h2>
+        <p>
+          Production traffic is served over HTTPS and sensitive operations are designed to use
+          authenticated server-side controls. No security system can guarantee absolute security.
+        </p>
+        <h2>Retention and requests</h2>
+        <p>
+          Information may be retained for operation, security, dispute handling, transaction
+          integrity and applicable legal obligations. Privacy requests should use the official
+          contact channel published on the Contact page.
+        </p>
+        <h2>Updates</h2>
+        <p>This page will be updated when the platform's privacy practices materially change.</p>
+      </section>
+    </PublicPage>
+  );
 }
