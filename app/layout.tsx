@@ -3,6 +3,7 @@ import './deposit-wallet.css';
 import '../styles/nav-drawer.css';
 import '../styles/dashboard-simple.css';
 import '../css/landing-neon-frame.css';
+import '../css/public-pages.css';
 
 export const metadata = {
   metadataBase: new URL('https://nextgen-miner.vercel.app'),
