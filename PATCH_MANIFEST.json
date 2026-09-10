@@ -1,0 +1,31 @@
+{
+  "purpose": "NextGen Miner public landing/legal/referral rebuild",
+  "apply_order": [
+    "css/landing-neon-frame.css",
+    "css/public-pages.css",
+    "components/public/PublicPage.tsx",
+    "lib/site-config.ts",
+    "app/layout.tsx",
+    "app/about/page.tsx",
+    "app/faq/page.tsx",
+    "app/legal/privacy/page.tsx",
+    "app/legal/terms/page.tsx",
+    "app/legal/disclaimer/page.tsx",
+    "app/contact/page.tsx",
+    "components/referrals/ReferralPanel.tsx",
+    "app/referrals/page.tsx",
+    "app/auth/register/page.tsx"
+  ],
+  "environment_variables": [
+    "NEXT_PUBLIC_SITE_URL",
+    "NEXT_PUBLIC_SUPPORT_EMAIL",
+    "NEXT_PUBLIC_DISCORD_URL",
+    "NEXT_PUBLIC_TELEGRAM_URL",
+    "NEXT_PUBLIC_X_URL"
+  ],
+  "notes": [
+    "Do not invent social URLs. Configure the three social URLs with the real official accounts.",
+    "The Supabase migration was applied directly to the connected production project.",
+    "GitHub write access was unavailable in this session, so these files are supplied for manual GitHub upload."
+  ]
+}
