@@ -1,5 +1,65 @@
-import Link from 'next/link';
-export const metadata = { title: 'Contact NextGen Miner', description: 'Support and contact information for NextGen Miner.' };
+import { PublicPage } from '@/components/public/PublicPage';
+import { siteConfig } from '@/lib/site-config';
+
+export const metadata = {
+  title: 'Contact',
+  description: 'Official support and security contact options for NextGen Miner.',
+};
+
+function Channel({ name, description, url }: { name: string; description: string; url: string }) {
+  if (!url) {
+    return (
+      <div className="public-contact">
+        <div><strong>{name}</strong><br /><span>{description}</span></div>
+        <small>Official link not configured</small>
+      </div>
+    );
+  }
+  return (
+    <a className="public-contact" href={url} target="_blank" rel="noreferrer">
+      <div><strong>{name}</strong><br /><span>{description}</span></div>
+      <span>Open →</span>
+    </a>
+  );
+}
+
 export default function ContactPage() {
-  return <main className="public-page"><style>{`.public-page{min-height:100vh;padding:24px 16px;background:linear-gradient(180deg,#020711,#030b15);color:#f2fbff}.public-wrap{width:min(900px,100%);margin:auto}.public-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px}.public-brand{font:700 13px Orbitron}.public-brand span{color:#24e8ff}.public-home{color:#24e8ff;font-weight:800}.public-card{padding:24px;border:1px solid rgba(40,121,167,.25);border-radius:18px;background:rgba(4,14,25,.9)}.public-card h1{font:700 30px Orbitron;margin:0 0 14px}.public-card h2{font:700 18px Orbitron;margin-top:28px}.public-card p{color:#8faabd;line-height:1.65}.public-box{padding:15px;border-radius:13px;border:1px solid rgba(36,232,255,.18);background:rgba(36,232,255,.04);margin-top:15px}.public-box b{display:block;color:#24e8ff;margin-bottom:4px}.public-box span{color:#8faabd;line-height:1.55}.public-footer{margin-top:15px;display:flex;gap:14px;flex-wrap:wrap;color:#70899c;font-size:12px}`}</style><div className="public-wrap"><div className="public-top"><div className="public-brand">NEXTGEN <span>MINER</span></div><Link className="public-home" href="/">Home</Link></div><article className="public-card"><div className="public-brand">SUPPORT</div><h1>Contact NextGen Miner</h1><p>Support should be easy to find and should never require a password, recovery code, private key or other secret.</p><div className="public-box"><b>In-app Support</b><span>Use the Support area after signing in for account, miner, wallet and transaction questions.</span></div><div className="public-box"><b>Security reports</b><span>Report security issues with reproduction details when possible, but never include credentials or private keys.</span></div><h2>Official contact channel</h2><p>The project should publish its final monitored support email or business address here before public commercial launch. Do not invent contact details.</p></article><div className="public-footer"><Link href="/about">About</Link><Link href="/legal/privacy">Privacy</Link><Link href="/legal/terms">Terms</Link></div></div></main>;
+  return (
+    <PublicPage
+      eyebrow="SUPPORT & CONTACT"
+      title="Contact NextGen Miner"
+      description="Use an official channel for support. Never send passwords, recovery codes, private keys or wallet secrets."
+    >
+      <section className="public-card public-hero">
+        <h2>Official channels</h2>
+        <div className="public-list">
+          <Channel name="Discord" description="Community and support channel." url={siteConfig.discordUrl} />
+          <Channel name="Telegram" description="Official Telegram support/community channel." url={siteConfig.telegramUrl} />
+          <Channel name="X" description="Official public updates and announcements." url={siteConfig.xUrl} />
+          {siteConfig.supportEmail ? (
+            <a className="public-contact" href={`mailto:${siteConfig.supportEmail}`}>
+              <div><strong>Support Email</strong><br /><span>{siteConfig.supportEmail}</span></div>
+              <span>Email →</span>
+            </a>
+          ) : (
+            <div className="public-contact">
+              <div><strong>Support Email</strong><br /><span>Monitored support address.</span></div>
+              <small>Not configured</small>
+            </div>
+          )}
+        </div>
+        <h2>Security reports</h2>
+        <p>
+          When reporting a security issue, include reproducible steps and relevant non-sensitive
+          evidence. Do not include passwords, authentication codes, private keys, seed phrases or
+          other credentials.
+        </p>
+        <h2>Account support</h2>
+        <p>
+          Signed-in users can also use the in-app Support Center for account, miner, wallet and
+          transaction questions.
+        </p>
+      </section>
+    </PublicPage>
+  );
 }
