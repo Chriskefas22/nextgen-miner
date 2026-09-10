@@ -1,51 +1,44 @@
-/* NEXTGEN MINER — LANDING PAGE 9.5 LOCK
+/* NEXTGEN MINER — LANDING PAGE 10.0
  * Scope: .ng-fp only.
- * Does not style miner/dashboard/wallet/finance components.
+ * Responsive-first composition: major hero blocks never overlap on mobile.
+ * Motion policy: restrained by default; reduced-motion is fully static.
  */
 
 .ng-fp {
   --ng-cyan: #27eaff;
   --ng-blue: #3d71ff;
   --ng-violet: #9747ff;
-  --ng-pink: #e954ff;
   --ng-green: #48f6be;
   --ng-bg: #020711;
-  --ng-panel: #03101b;
+  --ng-panel: #061321;
   --ng-text: #f4fbff;
   --ng-muted: #829aaa;
   --ng-line: rgba(39, 234, 255, 0.14);
   min-height: 100vh;
-  background:
-    radial-gradient(circle at 50% -10%, rgba(61, 113, 255, 0.09), transparent 35%),
-    var(--ng-bg);
-  color: var(--ng-text);
   overflow-x: clip;
+  color: var(--ng-text);
+  background: var(--ng-bg);
   font-family: Rajdhani, system-ui, sans-serif;
 }
 
 .ng-fp *,
 .ng-fp *::before,
-.ng-fp *::after {
-  box-sizing: border-box;
-}
+.ng-fp *::after { box-sizing: border-box; }
 
-.ng-fp a {
-  color: inherit;
-  text-decoration: none;
-}
+.ng-fp a { color: inherit; text-decoration: none; }
 
 .ng-fp .nav {
   position: sticky;
   top: 0;
   z-index: 100;
-  height: 66px;
+  min-height: 66px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding: 0 clamp(14px, 4vw, 58px);
-  background: rgba(2, 7, 17, 0.78);
-  border-bottom: 1px solid rgba(39, 234, 255, 0.14);
+  padding: 10px clamp(14px, 4vw, 58px);
+  background: rgba(2, 7, 17, .86);
+  border-bottom: 1px solid var(--ng-line);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
 }
@@ -56,75 +49,64 @@
   gap: 10px;
   min-width: max-content;
   font: 700 14px/1 Orbitron, system-ui, sans-serif;
-  letter-spacing: 0.06em;
+  letter-spacing: .06em;
 }
 
-.ng-fp .brand span {
-  color: var(--ng-cyan);
-}
+.ng-fp .brand span { color: var(--ng-cyan); }
 
 .ng-fp .logo {
   width: 40px;
   height: 40px;
   display: grid;
   place-items: center;
-  border: 1px solid rgba(39, 234, 255, 0.72);
+  border: 1px solid rgba(39,234,255,.62);
   border-radius: 11px;
   color: var(--ng-cyan);
-  background:
-    linear-gradient(145deg, rgba(39, 234, 255, 0.11), rgba(151, 71, 255, 0.08));
-  box-shadow:
-    0 0 25px rgba(39, 234, 255, 0.18),
-    inset 0 0 18px rgba(39, 234, 255, 0.05);
+  background: linear-gradient(145deg, rgba(39,234,255,.1), rgba(151,71,255,.08));
+  box-shadow: 0 0 24px rgba(39,234,255,.14);
+}
+
+.ng-fp .navlinks,
+.ng-fp .navactions,
+.ng-fp .footerlinks {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .ng-fp .navlinks {
-  display: flex;
-  align-items: center;
   gap: 23px;
   color: #a4b8c6;
   font-size: 13px;
   font-weight: 800;
 }
 
-.ng-fp .navlinks a,
-.ng-fp .footerlinks a {
-  transition: color 0.2s ease;
-}
-
 .ng-fp .navlinks a:hover,
-.ng-fp .footerlinks a:hover {
-  color: #fff;
-}
-
-.ng-fp .navactions {
-  display: flex;
-  gap: 8px;
-}
+.ng-fp .footerlinks a:hover { color: #fff; }
 
 .ng-fp .navbtn {
+  min-height: 38px;
   padding: 9px 13px;
-  border: 1px solid rgba(68, 142, 193, 0.3);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(68,142,193,.3);
   border-radius: 10px;
-  background: rgba(6, 16, 29, 0.72);
+  background: rgba(6,16,29,.72);
   font-size: 12px;
   font-weight: 900;
-  transition:
-    transform 0.2s ease,
-    border-color 0.2s ease,
-    box-shadow 0.2s ease;
+  transition: transform .2s ease, border-color .2s ease;
 }
 
-.ng-fp .navbtn:hover {
-  transform: translateY(-1px);
-  border-color: rgba(39, 234, 255, 0.4);
-}
+.ng-fp .navbtn:hover { transform: translateY(-1px); border-color: rgba(39,234,255,.45); }
 
 .ng-fp .navbtn.primary {
+  border-color: transparent;
   background: linear-gradient(135deg, #2c6aff, #9145ff);
-  box-shadow: 0 0 25px rgba(85, 79, 255, 0.23);
+  box-shadow: 0 0 22px rgba(85,79,255,.2);
 }
 
+/* HERO */
 .ng-fp .hero {
   position: relative;
   min-height: 720px;
@@ -137,54 +119,47 @@
   position: absolute;
   inset: 0;
   z-index: 0;
-  background:
-    linear-gradient(90deg, rgba(2, 7, 17, 0.98) 0%, rgba(2, 7, 17, 0.79) 29%, rgba(2, 7, 17, 0.2) 61%, rgba(2, 7, 17, 0.24) 100%),
-    url('/assets/landing/nextgen-miner-hero.png');
-  background-size: cover;
-  background-position: center 44%;
-  filter: saturate(1.08);
-  transform: scale(1.015);
+  overflow: hidden;
 }
 
-.ng-fp .hero-bg::after {
+.ng-fp .hero-image {
+  object-fit: cover;
+  object-position: center 44%;
+  filter: saturate(.96) contrast(1.04);
+  transform: scale(1.01);
+}
+
+.ng-fp .hero-bg::before {
   content: "";
   position: absolute;
   inset: 0;
+  z-index: 1;
   background:
-    radial-gradient(circle at 61% 41%, rgba(39, 234, 255, 0.16), transparent 23%),
-    radial-gradient(circle at 76% 54%, rgba(151, 71, 255, 0.1), transparent 27%),
-    linear-gradient(180deg, transparent 60%, #020711 100%);
+    linear-gradient(90deg, rgba(2,7,17,.99) 0%, rgba(2,7,17,.9) 32%, rgba(2,7,17,.5) 60%, rgba(2,7,17,.28) 100%),
+    linear-gradient(180deg, rgba(2,7,17,.16) 0%, rgba(2,7,17,.08) 48%, rgba(2,7,17,.98) 100%);
 }
 
 .ng-fp .hero-grid {
   position: absolute;
   inset: 0;
   z-index: 1;
-  opacity: 0.23;
   pointer-events: none;
+  opacity: .12;
   background-image:
-    linear-gradient(rgba(39, 234, 255, 0.055) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(39, 234, 255, 0.055) 1px, transparent 1px);
+    linear-gradient(rgba(39,234,255,.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(39,234,255,.06) 1px, transparent 1px);
   background-size: 72px 72px;
-  mask-image: linear-gradient(90deg, #000 0%, rgba(0,0,0,.65) 55%, transparent 94%);
+  mask-image: linear-gradient(90deg, #000 0%, rgba(0,0,0,.7) 52%, transparent 92%);
 }
 
 .ng-fp .hero-scan {
   position: absolute;
-  left: 0;
-  right: 0;
-  top: -30%;
-  height: 26%;
-  z-index: 3;
+  inset: 0;
+  z-index: 2;
   pointer-events: none;
-  background: linear-gradient(
-    180deg,
-    transparent,
-    rgba(39, 234, 255, 0.045),
-    transparent
-  );
-  filter: blur(2px);
-  animation: ngHeroScan 8s linear infinite;
+  opacity: .16;
+  background: linear-gradient(180deg, transparent 0 45%, rgba(39,234,255,.08) 50%, transparent 55%);
+  animation: ngHeroScan 12s linear infinite;
 }
 
 .ng-fp .hero::before {
@@ -193,43 +168,30 @@
   inset: 1px;
   z-index: 20;
   pointer-events: none;
-  border: 1px solid rgba(39, 234, 255, 0.1);
+  border: 1px solid rgba(39,234,255,.1);
   border-radius: 0 0 24px 24px;
-  background:
-    linear-gradient(90deg, transparent 0 38%, var(--ng-cyan) 46%, var(--ng-violet) 51%, transparent 59%) top / 240px 2px no-repeat,
-    linear-gradient(180deg, transparent 0 38%, var(--ng-cyan) 46%, var(--ng-pink) 52%, transparent 59%) right / 2px 240px no-repeat,
-    linear-gradient(270deg, transparent 0 38%, var(--ng-cyan) 46%, var(--ng-violet) 51%, transparent 59%) bottom / 240px 2px no-repeat,
-    linear-gradient(0deg, transparent 0 38%, var(--ng-cyan) 46%, var(--ng-pink) 52%, transparent 59%) left / 2px 240px no-repeat;
-  filter:
-    drop-shadow(0 0 5px rgba(39, 234, 255, 0.65))
-    drop-shadow(0 0 15px rgba(151, 71, 255, 0.22));
-  opacity: 0.88;
-  animation: ngRunner 6.2s linear infinite;
+  box-shadow: inset 0 0 45px rgba(0,0,0,.18);
 }
 
 .ng-fp .hero::after {
   content: "";
   position: absolute;
-  inset: 0;
-  z-index: 21;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 150px;
+  z-index: 3;
   pointer-events: none;
-  background:
-    radial-gradient(circle at 67% 47%, rgba(39, 234, 255, 0.055), transparent 27%),
-    linear-gradient(180deg, transparent 72%, rgba(2, 7, 17, 0.28));
-  box-shadow:
-    inset 0 0 0 1px rgba(39, 234, 255, 0.08),
-    inset 0 0 60px rgba(0, 0, 0, 0.3);
-  animation: ngAmbient 7s ease-in-out infinite;
+  background: linear-gradient(180deg, transparent, rgba(2,7,17,.94));
 }
 
 .ng-fp .hero-corner {
   position: absolute;
   z-index: 22;
-  width: 44px;
-  height: 44px;
+  width: 34px;
+  height: 34px;
   pointer-events: none;
-  opacity: 0.9;
-  filter: drop-shadow(0 0 8px rgba(39, 234, 255, 0.55));
+  opacity: .62;
 }
 
 .ng-fp .hero-corner::before,
@@ -237,26 +199,14 @@
   content: "";
   position: absolute;
   background: var(--ng-cyan);
+  box-shadow: 0 0 7px rgba(39,234,255,.35);
 }
-
-.ng-fp .hero-corner::before {
-  width: 44px;
-  height: 1px;
-}
-
-.ng-fp .hero-corner::after {
-  width: 1px;
-  height: 44px;
-}
-
+.ng-fp .hero-corner::before { width: 34px; height: 1px; }
+.ng-fp .hero-corner::after { width: 1px; height: 34px; }
 .ng-fp .hero-corner-tl { left: 22px; top: 22px; }
 .ng-fp .hero-corner-tr { right: 22px; top: 22px; transform: rotate(90deg); }
 .ng-fp .hero-corner-bl { left: 22px; bottom: 22px; transform: rotate(-90deg); }
 .ng-fp .hero-corner-br { right: 22px; bottom: 22px; transform: rotate(180deg); }
-
-.ng-fp .hero-corner::marker {
-  display: none;
-}
 
 .ng-fp .hero-content {
   position: relative;
@@ -264,17 +214,14 @@
   width: min(1180px, 92vw);
   min-height: 720px;
   margin: auto;
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 310px;
   align-items: center;
-  padding: 70px 0 108px;
+  gap: clamp(35px, 6vw, 90px);
+  padding: 78px 0 108px;
 }
 
-.ng-fp .hero-copy {
-  position: relative;
-  z-index: 12;
-  max-width: 620px;
-  margin-top: 5px;
-}
+.ng-fp .hero-copy { max-width: 650px; }
 
 .ng-fp .eyebrow {
   display: inline-flex;
@@ -283,38 +230,36 @@
   color: var(--ng-cyan);
   font-size: 10px;
   font-weight: 900;
-  letter-spacing: 0.23em;
+  letter-spacing: .23em;
 }
 
 .ng-fp .status-pulse,
 .ng-fp .live-dot {
-  display: inline-block;
   width: 7px;
   height: 7px;
   flex: 0 0 auto;
   border-radius: 50%;
   background: var(--ng-green);
-  box-shadow: 0 0 13px rgba(72, 246, 190, 0.86);
-  animation: ngLive 1.8s ease-in-out infinite;
+  box-shadow: 0 0 12px rgba(72,246,190,.65);
+  animation: ngLive 2.4s ease-in-out infinite;
 }
 
 .ng-fp h1 {
   margin: 13px 0 16px;
-  font: 700 clamp(43px, 6.1vw, 78px) / 1.01 Orbitron, system-ui, sans-serif;
-  letter-spacing: -0.05em;
+  font: 700 clamp(42px, 6.1vw, 78px)/1.01 Orbitron, system-ui, sans-serif;
+  letter-spacing: -.05em;
 }
 
 .ng-fp h1 strong {
   display: block;
-  background: linear-gradient(95deg, #fff 8%, #41efff 46%, #a96dff 85%);
+  background: linear-gradient(95deg, #fff 8%, #41efff 48%, #a96dff 88%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  text-shadow: 0 0 30px rgba(39, 234, 255, 0.04);
 }
 
 .ng-fp .hero-desc {
-  max-width: 560px;
+  max-width: 590px;
   margin: 0;
   color: #b2c4cf;
   line-height: 1.58;
@@ -324,127 +269,91 @@
 .ng-fp .hero-actions {
   display: flex;
   gap: 10px;
-  margin-top: 24px;
   flex-wrap: wrap;
+  margin-top: 24px;
 }
 
 .ng-fp .cta {
   position: relative;
+  min-height: 45px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  min-height: 45px;
   padding: 13px 17px;
-  border: 1px solid rgba(39, 234, 255, 0.24);
+  overflow: hidden;
+  border: 1px solid rgba(39,234,255,.22);
   border-radius: 12px;
   font-size: 13px;
   font-weight: 900;
-  overflow: hidden;
-  transition:
-    transform 0.24s ease,
-    box-shadow 0.24s ease,
-    border-color 0.24s ease;
+  transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
 }
 
 .ng-fp .cta::after {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(110deg, transparent 25%, rgba(255,255,255,.13) 48%, transparent 70%);
+  background: linear-gradient(110deg, transparent 30%, rgba(255,255,255,.1) 50%, transparent 70%);
   transform: translateX(-120%);
-  transition: transform 0.45s ease;
+  transition: transform .45s ease;
 }
 
-.ng-fp .cta:hover {
-  transform: translateY(-2px);
-}
-
-.ng-fp .cta:hover::after {
-  transform: translateX(120%);
-}
+.ng-fp .cta:hover { transform: translateY(-2px); }
+.ng-fp .cta:hover::after { transform: translateX(120%); }
 
 .ng-fp .cta.primary {
   background: linear-gradient(135deg, #1fceff, #7d3cff);
-  box-shadow: 0 0 28px rgba(55, 140, 255, 0.27);
+  box-shadow: 0 0 25px rgba(55,140,255,.22);
 }
 
-.ng-fp .cta.primary:hover {
-  border-color: rgba(39, 234, 255, 0.62);
-  box-shadow:
-    0 0 0 1px rgba(39, 234, 255, 0.14),
-    0 0 34px rgba(55, 140, 255, 0.34);
-}
-
-.ng-fp .cta.ghost {
-  background: rgba(5, 16, 29, 0.72);
-}
+.ng-fp .cta.ghost { background: rgba(5,16,29,.7); }
 
 .ng-fp .hero-telemetry {
+  width: min(610px, 100%);
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 8px;
-  width: min(610px, 100%);
   margin-top: 28px;
 }
 
 .ng-fp .telemetry {
   padding: 11px 12px;
-  border: 1px solid rgba(39, 234, 255, 0.16);
+  border: 1px solid rgba(39,234,255,.13);
   border-radius: 12px;
-  background: rgba(3, 12, 24, 0.66);
+  background: rgba(3,12,24,.58);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
 }
 
 .ng-fp .telemetry b {
   display: block;
-  font: 700 11px/1.15 Orbitron, system-ui, sans-serif;
   color: #fff;
+  font: 700 11px/1.15 Orbitron, system-ui, sans-serif;
 }
+.ng-fp .telemetry small { display: block; margin-top: 4px; color: #7fa0b1; font-size: 10px; }
 
-.ng-fp .telemetry small {
-  display: block;
-  margin-top: 4px;
-  color: #7fa0b1;
-  font-size: 10px;
-}
-
+/* Network card is part of the normal desktop grid, never a bottom layer. */
 .ng-fp .hash-panel {
-  position: absolute;
-  right: 2%;
-  top: 50%;
-  z-index: 12;
-  width: 285px;
-  transform: translateY(-40%);
+  width: 100%;
   padding: 15px 16px;
-  border: 1px solid rgba(39, 234, 255, 0.3);
+  border: 1px solid rgba(39,234,255,.24);
   border-radius: 17px;
-  background:
-    linear-gradient(145deg, rgba(4, 19, 34, 0.86), rgba(6, 10, 28, 0.84));
+  background: rgba(4,17,30,.78);
   backdrop-filter: blur(15px);
   -webkit-backdrop-filter: blur(15px);
-  box-shadow:
-    0 22px 60px rgba(0, 0, 0, 0.34),
-    inset 0 0 28px rgba(39, 234, 255, 0.035);
+  box-shadow: 0 22px 60px rgba(0,0,0,.28), inset 0 0 28px rgba(39,234,255,.025);
 }
 
 .ng-fp .panel-top {
   display: flex;
-  align-items: center;
   justify-content: space-between;
   gap: 10px;
   color: #7fa1b4;
   font-size: 9px;
   font-weight: 900;
-  letter-spacing: 0.13em;
+  letter-spacing: .13em;
 }
-
-.ng-fp .panel-live {
-  color: var(--ng-green);
-  white-space: nowrap;
-}
-
+.ng-fp .panel-live { color: var(--ng-green); white-space: nowrap; }
 .ng-fp .panel-live i {
   display: inline-block;
   width: 5px;
@@ -452,7 +361,7 @@
   margin-right: 5px;
   border-radius: 50%;
   background: var(--ng-green);
-  box-shadow: 0 0 9px rgba(72, 246, 190, 0.8);
+  box-shadow: 0 0 8px rgba(72,246,190,.65);
 }
 
 .ng-fp .core-visual {
@@ -466,84 +375,56 @@
   position: absolute;
   left: 50%;
   top: 50%;
-  border: 1px solid rgba(39, 234, 255, 0.38);
+  border: 1px solid rgba(39,234,255,.32);
   border-radius: 50%;
   transform: translate(-50%, -50%);
-  box-shadow:
-    0 0 20px rgba(39, 234, 255, 0.08),
-    inset 0 0 20px rgba(151, 71, 255, 0.05);
 }
-
 .ng-fp .ring-a {
-  width: 90px;
-  height: 90px;
-  border-color: rgba(39, 234, 255, 0.72);
-  animation: ngSpin 9s linear infinite;
+  width: 92px; height: 92px;
+  border-color: rgba(39,234,255,.6);
+  animation: ngSpin 16s linear infinite;
 }
-
 .ng-fp .ring-b {
-  width: 122px;
-  height: 122px;
+  width: 124px; height: 124px;
   border-style: dashed;
-  border-color: rgba(151, 71, 255, 0.5);
-  animation: ngSpinReverse 13s linear infinite;
+  border-color: rgba(151,71,255,.38);
+  animation: ngSpinReverse 22s linear infinite;
 }
-
 .ng-fp .ring-c {
-  width: 145px;
-  height: 145px;
-  border-color: rgba(233, 84, 255, 0.18);
-  box-shadow: 0 0 30px rgba(151, 71, 255, 0.1);
-  animation: ngCorePulse 3.8s ease-in-out infinite;
+  width: 145px; height: 145px;
+  border-color: rgba(233,84,255,.13);
 }
-
 .ng-fp .core-orb {
   position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 44px;
-  height: 44px;
+  left: 50%; top: 50%;
+  width: 44px; height: 44px;
   border-radius: 50%;
   transform: translate(-50%, -50%);
-  background:
-    radial-gradient(circle at 38% 32%, #fff 0 7%, #65f4ff 20%, #4c8dff 47%, #7d3cff 72%, transparent 73%);
-  box-shadow:
-    0 0 22px rgba(39, 234, 255, 0.76),
-    0 0 54px rgba(151, 71, 255, 0.48);
-  animation: ngCoreFloat 3.8s ease-in-out infinite;
+  background: radial-gradient(circle at 38% 32%, #fff 0 7%, #65f4ff 20%, #4c8dff 47%, #7d3cff 72%, transparent 73%);
+  box-shadow: 0 0 22px rgba(39,234,255,.6), 0 0 45px rgba(151,71,255,.3);
+  animation: ngCoreFloat 5s ease-in-out infinite;
 }
-
 .ng-fp .core-ray {
   position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 1px;
-  height: 72px;
+  left: 50%; top: 50%;
+  width: 1px; height: 72px;
   transform-origin: 50% 0;
-  background: linear-gradient(180deg, rgba(39,234,255,.75), transparent);
-  opacity: 0.7;
+  background: linear-gradient(180deg, rgba(39,234,255,.55), transparent);
+  opacity: .5;
 }
-
 .ng-fp .ray-a { transform: translate(-50%, -2px) rotate(0deg); }
 .ng-fp .ray-b { transform: translate(-50%, -2px) rotate(90deg); }
 .ng-fp .ray-c { transform: translate(-50%, -2px) rotate(180deg); }
 .ng-fp .ray-d { transform: translate(-50%, -2px) rotate(270deg); }
 
-.ng-fp .hash-copy label {
-  display: block;
-  color: #7899ad;
-  letter-spacing: 0.14em;
-  font-size: 9px;
-}
-
+.ng-fp .hash-copy label { display: block; color: #7899ad; letter-spacing: .14em; font-size: 9px; }
 .ng-fp .hash-copy strong {
   display: block;
   margin-top: 3px;
   color: var(--ng-cyan);
   font: 700 22px/1.1 Orbitron, system-ui, sans-serif;
-  text-shadow: 0 0 18px rgba(39, 234, 255, 0.4);
+  text-shadow: 0 0 15px rgba(39,234,255,.3);
 }
-
 .ng-fp .hash-line {
   height: 4px;
   margin: 10px 0 8px;
@@ -551,23 +432,18 @@
   border-radius: 99px;
   background: #081526;
 }
-
 .ng-fp .hash-line i {
   display: block;
   width: 76%;
   height: 100%;
-  background: linear-gradient(90deg, var(--ng-cyan), var(--ng-violet), var(--ng-pink));
-  box-shadow: 0 0 15px rgba(39, 234, 255, 0.45);
-  animation: ngSignal 2.4s ease-in-out infinite;
+  background: linear-gradient(90deg, var(--ng-cyan), var(--ng-violet));
 }
-
 .ng-fp .hash-meta {
   display: flex;
   justify-content: space-between;
-  gap: 10px;
   color: #81a1b2;
   font-size: 9px;
-  letter-spacing: 0.08em;
+  letter-spacing: .08em;
 }
 
 .ng-fp .hero-statusbar {
@@ -580,254 +456,107 @@
   transform: translateX(-50%);
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  border: 1px solid rgba(39, 234, 255, 0.16);
-  border-radius: 12px;
   overflow: hidden;
-  background: rgba(2, 10, 20, 0.7);
+  border: 1px solid rgba(39,234,255,.13);
+  border-radius: 12px;
+  background: rgba(2,10,20,.68);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 }
-
 .ng-fp .hero-statusbar span {
   display: flex;
   align-items: center;
   justify-content: center;
   min-width: 0;
   padding: 9px 10px;
-  border-right: 1px solid rgba(157, 99, 255, 0.13);
-  color: rgba(220, 233, 255, 0.66);
+  border-right: 1px solid rgba(157,99,255,.1);
+  color: rgba(220,233,255,.62);
   font-size: 8px;
   font-weight: 900;
-  letter-spacing: 0.1em;
+  letter-spacing: .1em;
   white-space: nowrap;
 }
-
-.ng-fp .hero-statusbar span:last-child {
-  border-right: 0;
-}
-
+.ng-fp .hero-statusbar span:last-child { border-right: 0; }
 .ng-fp .hero-statusbar i {
-  width: 5px;
-  height: 5px;
-  margin-right: 6px;
-  border-radius: 50%;
-  background: var(--ng-green);
-  box-shadow: 0 0 8px rgba(72, 246, 190, 0.8);
+  width: 5px; height: 5px; margin-right: 6px;
+  border-radius: 50%; background: var(--ng-green);
 }
 
+/* CONTENT */
 .ng-fp .trust {
-  position: relative;
-  z-index: 15;
-  margin-top: -1px;
   background: #03101b;
-  border-top: 1px solid rgba(39, 234, 255, 0.12);
-  border-bottom: 1px solid rgba(39, 234, 255, 0.12);
+  border-top: 1px solid var(--ng-line);
+  border-bottom: 1px solid var(--ng-line);
 }
-
 .ng-fp .trust-grid {
   width: min(1180px, 92vw);
   margin: auto;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
 }
-
-.ng-fp .trust-item {
-  padding: 21px 17px;
-  border-right: 1px solid rgba(39, 234, 255, 0.09);
-}
-
-.ng-fp .trust-item:last-child {
-  border-right: 0;
-}
-
-.ng-fp .trust-item b {
-  display: block;
-  font: 700 12px/1.2 Orbitron, system-ui, sans-serif;
-}
-
-.ng-fp .trust-item small {
-  display: block;
-  margin-top: 5px;
-  color: #7994a6;
-  line-height: 1.35;
-}
+.ng-fp .trust-item { padding: 21px 17px; border-right: 1px solid rgba(39,234,255,.08); }
+.ng-fp .trust-item:last-child { border-right: 0; }
+.ng-fp .trust-item b { display: block; font: 700 12px/1.2 Orbitron, system-ui, sans-serif; }
+.ng-fp .trust-item small { display: block; margin-top: 5px; color: #7994a6; line-height: 1.35; }
 
 .ng-fp .section {
   width: min(1180px, 92vw);
   margin: auto;
   padding: 76px 0;
 }
-
-.ng-fp .section-head {
-  max-width: 690px;
-  margin-bottom: 28px;
-}
-
+.ng-fp .section-head { max-width: 690px; margin-bottom: 28px; }
 .ng-fp .section-head h2,
 .ng-fp .miner-intro h2 {
   margin: 7px 0 8px;
   font: 700 29px/1.15 Orbitron, system-ui, sans-serif;
-  letter-spacing: -0.03em;
+  letter-spacing: -.03em;
 }
-
 .ng-fp .section-head p,
-.ng-fp .miner-intro p {
-  margin: 0;
-  color: #849ead;
-  line-height: 1.58;
-}
+.ng-fp .miner-intro p { margin: 0; color: #849ead; line-height: 1.58; }
 
-.ng-fp .steps {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 12px;
-}
-
+.ng-fp .steps { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
 .ng-fp .step {
-  position: relative;
   min-height: 174px;
   padding: 19px 16px;
-  border: 1px solid rgba(45, 133, 185, 0.22);
+  border: 1px solid rgba(45,133,185,.2);
   border-radius: 17px;
-  background:
-    linear-gradient(150deg, rgba(7, 22, 38, 0.87), rgba(3, 12, 23, 0.93));
-  box-shadow: inset 0 0 25px rgba(39, 234, 255, 0.025);
-  transition:
-    transform 0.25s ease,
-    border-color 0.25s ease,
-    box-shadow 0.25s ease;
+  background: linear-gradient(150deg, rgba(7,22,38,.87), rgba(3,12,23,.93));
 }
-
-.ng-fp .step:hover {
-  transform: translateY(-4px);
-  border-color: rgba(39, 234, 255, 0.38);
-  box-shadow:
-    inset 0 0 25px rgba(39, 234, 255, 0.035),
-    0 14px 32px rgba(0, 0, 0, 0.18);
-}
-
-.ng-fp .step:not(:last-child)::after {
-  content: "›";
-  position: absolute;
-  right: -11px;
-  top: 50%;
-  z-index: 5;
-  transform: translateY(-50%);
-  color: var(--ng-cyan);
-  font-size: 28px;
-  text-shadow: 0 0 15px rgba(39, 234, 255, 0.7);
-}
-
 .ng-fp .step .n {
-  width: 37px;
-  height: 37px;
-  display: grid;
-  place-items: center;
-  border: 1px solid rgba(39, 234, 255, 0.24);
+  width: 37px; height: 37px;
+  display: grid; place-items: center;
+  border: 1px solid rgba(39,234,255,.22);
   border-radius: 11px;
   color: var(--ng-cyan);
-  background: rgba(39, 234, 255, 0.05);
+  background: rgba(39,234,255,.04);
   font-weight: 900;
 }
-
-.ng-fp .step h3 {
-  margin: 12px 0 5px;
-  font: 700 13px/1.1 Orbitron, system-ui, sans-serif;
-}
-
-.ng-fp .step p {
-  margin: 0;
-  color: #7f99aa;
-  font-size: 11px;
-  line-height: 1.45;
-}
+.ng-fp .step h3 { margin: 12px 0 5px; font: 700 13px/1.1 Orbitron, system-ui, sans-serif; }
+.ng-fp .step p { margin: 0; color: #7f99aa; font-size: 11px; line-height: 1.45; }
 
 .ng-fp .miners {
   display: grid;
-  grid-template-columns: 240px repeat(5, minmax(0, 1fr));
+  grid-template-columns: 240px repeat(5, minmax(0,1fr));
   gap: 10px;
-  align-items: stretch;
 }
-
-.ng-fp .miner-intro {
-  padding: 8px 14px 8px 0;
-}
-
-.ng-fp .miner-intro .cta {
-  margin-top: 17px;
-}
-
+.ng-fp .miner-intro { padding: 8px 14px 8px 0; }
+.ng-fp .miner-intro .cta { margin-top: 17px; }
 .ng-fp .miner-card {
-  position: relative;
   overflow: hidden;
-  border: 1px solid rgba(48, 126, 173, 0.23);
+  border: 1px solid rgba(48,126,173,.22);
   border-radius: 16px;
-  background:
-    linear-gradient(180deg, rgba(7, 22, 37, 0.9), rgba(3, 11, 21, 0.98));
-  transition:
-    transform 0.25s ease,
-    border-color 0.25s ease,
-    box-shadow 0.25s ease;
+  background: linear-gradient(180deg, rgba(7,22,37,.9), rgba(3,11,21,.98));
 }
-
-.ng-fp .miner-card::after {
-  content: "";
-  position: absolute;
-  left: 12%;
-  right: 12%;
-  bottom: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(39, 234, 255, 0.55), transparent);
-  opacity: 0;
-  transition: opacity 0.25s ease;
-}
-
-.ng-fp .miner-card:hover {
-  transform: translateY(-5px);
-  border-color: rgba(39, 234, 255, 0.42);
-  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.2);
-}
-
-.ng-fp .miner-card:hover::after {
-  opacity: 1;
-}
-
 .ng-fp .miner-img {
   height: 145px;
   padding: 8px;
-  background:
-    radial-gradient(circle at 50% 72%, rgba(39, 234, 255, 0.2), transparent 55%);
+  background: radial-gradient(circle at 50% 72%, rgba(39,234,255,.14), transparent 55%);
 }
-
-.ng-fp .miner-img img {
-  width: 100%;
-  height: 100%;
-  display: block;
-  object-fit: contain;
-  filter: saturate(1.12) contrast(1.03);
-}
-
-.ng-fp .miner-info {
-  padding: 12px;
-}
-
-.ng-fp .miner-info h3 {
-  margin: 0 0 4px;
-  font: 700 12px/1.15 Orbitron, system-ui, sans-serif;
-}
-
-.ng-fp .miner-info b {
-  display: block;
-  color: var(--ng-cyan);
-  font-size: 12px;
-}
-
-.ng-fp .miner-info small {
-  display: block;
-  margin-top: 5px;
-  color: #728ea0;
-  font-size: 9px;
-}
+.ng-fp .miner-img img { width: 100%; height: 100%; display: block; object-fit: contain; }
+.ng-fp .miner-info { padding: 12px; }
+.ng-fp .miner-info h3 { margin: 0 0 4px; font: 700 12px/1.15 Orbitron, system-ui, sans-serif; }
+.ng-fp .miner-info b { display: block; color: var(--ng-cyan); font-size: 12px; }
+.ng-fp .miner-info small { display: block; margin-top: 5px; color: #728ea0; font-size: 9px; }
 
 .ng-fp .campaign {
   position: relative;
@@ -838,46 +567,15 @@
   grid-template-columns: 1fr 1.2fr;
   gap: 20px;
   align-items: center;
-  overflow: hidden;
-  border: 1px solid rgba(44, 173, 230, 0.32);
+  border: 1px solid rgba(44,173,230,.25);
   border-radius: 20px;
-  background:
-    linear-gradient(110deg, rgba(6, 20, 37, 0.96), rgba(16, 8, 37, 0.88));
-  box-shadow: 0 22px 60px rgba(0, 0, 0, 0.26);
+  background: linear-gradient(110deg, rgba(6,20,37,.96), rgba(16,8,37,.88));
 }
-
-.ng-fp .campaign::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background:
-    radial-gradient(circle at 85% 50%, rgba(39, 234, 255, 0.12), transparent 31%),
-    linear-gradient(90deg, transparent, rgba(255,255,255,.018), transparent);
-}
-
 .ng-fp .campaign-copy,
-.ng-fp .meter {
-  position: relative;
-  z-index: 2;
-}
-
-.ng-fp .campaign h2 {
-  max-width: 620px;
-  margin: 6px 0 8px;
-  font: 700 20px/1.25 Orbitron, system-ui, sans-serif;
-}
-
-.ng-fp .campaign p {
-  max-width: 650px;
-  margin: 0;
-  color: #8aa4b4;
-  line-height: 1.5;
-}
-
-.ng-fp .campaign .cta {
-  margin-top: 16px;
-}
+.ng-fp .meter { position: relative; z-index: 2; }
+.ng-fp .campaign h2 { margin: 6px 0 8px; font: 700 20px/1.25 Orbitron, system-ui, sans-serif; }
+.ng-fp .campaign p { margin: 0; color: #8aa4b4; line-height: 1.5; }
+.ng-fp .campaign .cta { margin-top: 16px; }
 
 .ng-fp .meter {
   min-height: 170px;
@@ -885,173 +583,59 @@
   align-items: center;
   gap: 8px;
   overflow: hidden;
-  border: 1px solid rgba(39, 234, 255, 0.23);
+  border: 1px solid rgba(39,234,255,.18);
   border-radius: 16px;
-  background:
-    linear-gradient(135deg, rgba(4, 17, 30, 0.82), rgba(6, 12, 28, 0.65));
+  background: rgba(4,17,30,.72);
 }
-
-.ng-fp .meter-core {
-  position: relative;
-  width: 150px;
-  height: 150px;
-  flex: 0 0 150px;
-}
-
+.ng-fp .meter-core { width: 150px; height: 150px; flex: 0 0 150px; position: relative; }
 .ng-fp .meter-ring {
-  position: absolute;
-  inset: 24px;
-  border: 1px solid rgba(39, 234, 255, 0.56);
-  border-radius: 50%;
-  box-shadow: 0 0 25px rgba(39, 234, 255, 0.12);
-  animation: ngSpin 11s linear infinite;
-}
-
-.ng-fp .meter-ring::before {
-  content: "";
-  position: absolute;
-  inset: -14px;
-  border: 1px dashed rgba(151, 99, 255, 0.34);
+  position: absolute; inset: 24px;
+  border: 1px solid rgba(39,234,255,.5);
   border-radius: 50%;
 }
-
 .ng-fp .meter-orb {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 36px;
-  height: 36px;
-  transform: translate(-50%, -50%);
+  position: absolute; left: 50%; top: 50%;
+  width: 36px; height: 36px;
+  transform: translate(-50%,-50%);
   border-radius: 50%;
   background: radial-gradient(circle at 35% 30%, #fff, #59f1ff 24%, #6c72ff 55%, #8d3cff 72%, transparent 73%);
-  box-shadow:
-    0 0 20px rgba(39, 234, 255, 0.72),
-    0 0 44px rgba(151, 71, 255, 0.42);
-  animation: ngCoreFloat 3.5s ease-in-out infinite;
+  box-shadow: 0 0 20px rgba(39,234,255,.55);
 }
+.ng-fp .meter-copy { min-width: 0; padding: 15px 18px 15px 0; }
+.ng-fp .meter-label { display: block; color: #7896a7; font-size: 9px; letter-spacing: .14em; }
+.ng-fp .meter-copy strong { display: block; margin-top: 2px; color: var(--ng-cyan); font: 700 32px/1.05 Orbitron, system-ui, sans-serif; }
+.ng-fp .meter-copy em { color: #90a8b7; font: 700 13px/1 Orbitron, system-ui, sans-serif; font-style: normal; }
+.ng-fp .meter-copy small { color: #7896a7; font-size: 10px; }
+.ng-fp .bar { height: 6px; margin-top: 10px; overflow: hidden; border-radius: 99px; background: #071527; }
+.ng-fp .bar i { display: block; height: 100%; background: linear-gradient(90deg,var(--ng-cyan),var(--ng-violet)); }
 
-.ng-fp .meter-copy {
-  min-width: 0;
-  padding: 15px 18px 15px 0;
-}
-
-.ng-fp .meter-label {
-  display: block;
-  color: #7896a7;
-  font-size: 9px;
-  letter-spacing: 0.14em;
-}
-
-.ng-fp .meter-copy strong {
-  display: block;
-  margin-top: 2px;
-  color: var(--ng-cyan);
-  font: 700 32px/1.05 Orbitron, system-ui, sans-serif;
-  text-shadow: 0 0 18px rgba(39, 234, 255, 0.4);
-}
-
-.ng-fp .meter-copy em {
-  color: #90a8b7;
-  font: 700 13px/1 Orbitron, system-ui, sans-serif;
-  font-style: normal;
-}
-
-.ng-fp .meter-copy small {
-  color: #7896a7;
-  font-size: 10px;
-}
-
-.ng-fp .bar {
-  height: 6px;
-  margin-top: 10px;
-  overflow: hidden;
-  border-radius: 99px;
-  background: #071527;
-}
-
-.ng-fp .bar i {
-  display: block;
-  width: 34%;
-  height: 100%;
-  background: linear-gradient(90deg, var(--ng-cyan), var(--ng-violet));
-  box-shadow: 0 0 12px rgba(39, 234, 255, 0.5);
-  animation: ngSignal 2.8s ease-in-out infinite;
-}
-
-.ng-fp .feature-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 11px;
-}
-
+.ng-fp .feature-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 11px; }
 .ng-fp .feature {
   padding: 17px;
-  border: 1px solid rgba(44, 124, 169, 0.2);
+  border: 1px solid rgba(44,124,169,.2);
   border-radius: 15px;
-  background: rgba(4, 15, 27, 0.76);
-  transition:
-    transform 0.25s ease,
-    border-color 0.25s ease;
+  background: rgba(4,15,27,.76);
 }
-
-.ng-fp .feature:hover {
-  transform: translateY(-3px);
-  border-color: rgba(39, 234, 255, 0.34);
-}
-
 .ng-fp .feature .icon {
-  width: 37px;
-  height: 37px;
-  display: grid;
-  place-items: center;
+  width: 37px; height: 37px;
+  display: grid; place-items: center;
   margin-bottom: 12px;
-  border: 1px solid rgba(39, 234, 255, 0.18);
+  border: 1px solid rgba(39,234,255,.18);
   border-radius: 11px;
   color: var(--ng-cyan);
-  background: rgba(39, 234, 255, 0.04);
 }
+.ng-fp .feature h3 { margin: 0 0 5px; font: 700 12px/1.15 Orbitron, system-ui, sans-serif; }
+.ng-fp .feature p { margin: 0; color: #7894a7; font-size: 11px; line-height: 1.45; }
 
-.ng-fp .feature h3 {
-  margin: 0 0 5px;
-  font: 700 12px/1.15 Orbitron, system-ui, sans-serif;
-}
-
-.ng-fp .feature p {
-  margin: 0;
-  color: #7894a7;
-  font-size: 11px;
-  line-height: 1.45;
-}
-
-.ng-fp .faq-list {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 9px;
-}
-
+.ng-fp .faq-list { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
 .ng-fp .faq {
-  border: 1px solid rgba(44, 124, 169, 0.2);
-  border-radius: 13px;
-  background: rgba(4, 15, 27, 0.7);
   padding: 14px 16px;
-  transition: border-color 0.2s ease;
+  border: 1px solid rgba(44,124,169,.2);
+  border-radius: 13px;
+  background: rgba(4,15,27,.7);
 }
-
-.ng-fp .faq:hover {
-  border-color: rgba(39, 234, 255, 0.3);
-}
-
-.ng-fp .faq summary {
-  cursor: pointer;
-  font-weight: 900;
-}
-
-.ng-fp .faq p {
-  margin: 8px 0 0;
-  color: #7f99aa;
-  font-size: 11px;
-  line-height: 1.5;
-}
+.ng-fp .faq summary { cursor: pointer; font-weight: 900; }
+.ng-fp .faq p { margin: 8px 0 0; color: #7f99aa; font-size: 11px; line-height: 1.5; }
 
 .ng-fp .final {
   display: flex;
@@ -1060,414 +644,164 @@
   gap: 20px;
   padding: 25px;
   margin-bottom: 58px;
-  border: 1px solid rgba(80, 108, 255, 0.25);
+  border: 1px solid rgba(80,108,255,.22);
   border-radius: 18px;
-  background:
-    linear-gradient(110deg, rgba(9, 27, 44, 0.9), rgba(27, 9, 48, 0.9));
+  background: linear-gradient(110deg, rgba(9,27,44,.9), rgba(27,9,48,.9));
 }
+.ng-fp .final h2 { margin: 6px 0; font: 700 22px/1.15 Orbitron, system-ui, sans-serif; }
+.ng-fp .final p { margin: 0; color: #829eaf; }
 
-.ng-fp .final h2 {
-  margin: 6px 0;
-  font: 700 22px/1.15 Orbitron, system-ui, sans-serif;
-}
-
-.ng-fp .final p {
-  margin: 0;
-  color: #829eaf;
-}
-
-.ng-fp .footer {
-  border-top: 1px solid rgba(39, 234, 255, 0.12);
-  padding: 26px 0 34px;
-  color: #627d90;
-  font-size: 10px;
-}
-
+.ng-fp .footer { padding: 26px 0 34px; border-top: 1px solid var(--ng-line); color: #627d90; font-size: 10px; }
 .ng-fp .footerin {
-  width: min(1180px, 92vw);
+  width: min(1180px,92vw);
   margin: auto;
   display: flex;
   justify-content: space-between;
   gap: 20px;
   flex-wrap: wrap;
 }
-
-.ng-fp .footerlinks {
-  display: flex;
-  gap: 15px;
-  flex-wrap: wrap;
-}
-
-@keyframes ngRunner {
-  0% {
-    background-position: -240px 0, 100% -240px, 240px 100%, 0 240px;
-    opacity: 0.65;
-  }
-  25% {
-    background-position: 0 0, 100% 0, 100% 100%, 0 100%;
-    opacity: 0.95;
-  }
-  50% {
-    background-position: 240px 0, 100% 240px, -240px 100%, 0 -240px;
-    opacity: 0.78;
-  }
-  75% {
-    background-position: 0 0, 100% 0, 100% 100%, 0 100%;
-    opacity: 0.95;
-  }
-  100% {
-    background-position: -240px 0, 100% -240px, 240px 100%, 0 240px;
-    opacity: 0.65;
-  }
-}
-
-@keyframes ngAmbient {
-  0%, 100% { opacity: 0.76; }
-  50% { opacity: 1; }
-}
+.ng-fp .footerlinks { flex-wrap: wrap; gap: 14px; }
 
 @keyframes ngHeroScan {
-  0% { transform: translateY(-20%); opacity: 0; }
-  12% { opacity: 0.65; }
-  78% { opacity: 0.65; }
-  100% { transform: translateY(520%); opacity: 0; }
+  0% { transform: translateY(-45%); opacity: 0; }
+  20%,70% { opacity: .8; }
+  100% { transform: translateY(45%); opacity: 0; }
 }
-
 @keyframes ngLive {
-  0%, 100% { transform: scale(0.86); opacity: 0.72; }
-  50% { transform: scale(1.18); opacity: 1; }
+  0%,100% { transform: scale(.9); opacity: .75; }
+  50% { transform: scale(1.08); opacity: 1; }
+}
+@keyframes ngSpin { from { transform: translate(-50%,-50%) rotate(0deg); } to { transform: translate(-50%,-50%) rotate(360deg); } }
+@keyframes ngSpinReverse { from { transform: translate(-50%,-50%) rotate(360deg); } to { transform: translate(-50%,-50%) rotate(0deg); } }
+@keyframes ngCoreFloat { 0%,100% { transform: translate(-50%,-50%) scale(.97); } 50% { transform: translate(-50%,-50%) scale(1.04); } }
+
+@media (max-width: 1050px) {
+  .ng-fp .navlinks { display: none; }
+  .ng-fp .hero-content { grid-template-columns: minmax(0,1fr) 280px; gap: 30px; }
+  .ng-fp .miners { grid-template-columns: repeat(3,1fr); }
+  .ng-fp .miner-intro { grid-column: 1 / -1; padding: 0 0 8px; }
+  .ng-fp .steps { grid-template-columns: repeat(3,1fr); }
+  .ng-fp .feature-grid { grid-template-columns: repeat(2,1fr); }
 }
 
-@keyframes ngSpin {
-  from { transform: translate(-50%, -50%) rotate(0deg); }
-  to { transform: translate(-50%, -50%) rotate(360deg); }
-}
+@media (max-width: 760px) {
+  .ng-fp .nav { min-height: 60px; padding: 8px 11px; }
+  .ng-fp .brand { font-size: 11px; }
+  .ng-fp .logo { width: 36px; height: 36px; }
+  .ng-fp .navactions .navbtn:first-child { display: none; }
 
-@keyframes ngSpinReverse {
-  from { transform: translate(-50%, -50%) rotate(360deg); }
-  to { transform: translate(-50%, -50%) rotate(0deg); }
-}
-
-@keyframes ngCorePulse {
-  0%, 100% { transform: translate(-50%, -50%) scale(0.97); opacity: 0.5; }
-  50% { transform: translate(-50%, -50%) scale(1.04); opacity: 0.9; }
-}
-
-@keyframes ngCoreFloat {
-  0%, 100% { transform: translate(-50%, -50%) scale(0.96); }
-  50% { transform: translate(-50%, -50%) scale(1.08); }
-}
-
-@keyframes ngSignal {
-  0%, 100% { opacity: 0.72; filter: brightness(0.95); }
-  50% { opacity: 1; filter: brightness(1.18); }
-}
-
-@media (max-width: 1000px) {
-  .ng-fp .navlinks {
-    display: none;
+  .ng-fp .hero { min-height: auto; overflow: clip; }
+  .ng-fp .hero-bg::before {
+    background:
+      linear-gradient(180deg, rgba(2,7,17,.92) 0%, rgba(2,7,17,.76) 42%, rgba(2,7,17,.96) 100%);
   }
-
-  .ng-fp .hero {
-    min-height: 760px;
-  }
-
+  .ng-fp .hero-image { object-position: 62% 30%; opacity: .62; }
+  .ng-fp .hero-grid { opacity: .07; }
   .ng-fp .hero-content {
-    min-height: 760px;
-    padding-bottom: 115px;
+    width: min(100% - 24px, 640px);
+    min-height: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 22px;
+    padding: 58px 0 28px;
   }
+  .ng-fp .hero-copy { max-width: none; }
+  .ng-fp h1 { margin-top: 12px; font-size: clamp(34px, 10vw, 47px); }
+  .ng-fp .hero-desc { font-size: 16px; max-width: none; }
+  .ng-fp .hero-actions { margin-top: 20px; }
+  .ng-fp .hero-actions .cta { flex: 1 1 150px; }
+  .ng-fp .hero-telemetry { margin-top: 18px; }
+  .ng-fp .telemetry { padding: 9px; }
+  .ng-fp .telemetry b { font-size: 9px; }
+  .ng-fp .telemetry small { font-size: 8px; }
 
+  /* Critical fix: network card is normal-flow content on mobile. */
   .ng-fp .hash-panel {
-    right: 0;
-    width: 270px;
-  }
-
-  .ng-fp .miners {
-    grid-template-columns: repeat(3, 1fr);
-  }
-
-  .ng-fp .miner-intro {
-    grid-column: 1 / -1;
-    padding: 0 0 8px;
-  }
-
-  .ng-fp .steps {
-    grid-template-columns: repeat(3, 1fr);
-  }
-
-  .ng-fp .step:nth-child(3)::after,
-  .ng-fp .step:nth-child(5)::after {
-    display: none;
-  }
-
-  .ng-fp .feature-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 700px) {
-  .ng-fp .nav {
-    height: 60px;
-    padding: 0 11px;
-  }
-
-  .ng-fp .brand {
-    font-size: 11px;
-  }
-
-  .ng-fp .logo {
-    width: 36px;
-    height: 36px;
-  }
-
-  .ng-fp .navactions .navbtn:first-child {
-    display: none;
-  }
-
-  .ng-fp .hero {
-    min-height: 805px;
-  }
-
-  .ng-fp .hero-bg {
-    background-position: 58% 34%;
-  }
-
-  .ng-fp .hero-content {
-    min-height: 805px;
-    align-items: flex-end;
-    padding: 0 0 108px;
-  }
-
-  .ng-fp .hero-copy {
     width: 100%;
-    max-width: none;
-    padding-top: 55px;
-  }
-
-  .ng-fp h1 {
-    font-size: 40px;
-  }
-
-  .ng-fp .hero-desc {
-    font-size: 16px;
-  }
-
-  .ng-fp .hero-telemetry {
-    grid-template-columns: 1fr 1fr 1fr;
-    margin-top: 17px;
-  }
-
-  .ng-fp .telemetry {
-    padding: 9px;
-  }
-
-  .ng-fp .telemetry b {
-    font-size: 9px;
-  }
-
-  .ng-fp .telemetry small {
-    font-size: 8px;
-  }
-
-  .ng-fp .hash-panel {
-    position: absolute;
-    right: 0;
-    top: auto;
-    bottom: 18px;
-    width: min(310px, 82vw);
-    transform: none;
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 112px minmax(0,1fr);
     align-items: center;
+    gap: 8px 14px;
+    padding: 12px 13px;
   }
-
-  .ng-fp .panel-top {
-    grid-column: 1 / -1;
-  }
-
-  .ng-fp .core-visual {
-    width: 105px;
-    height: 105px;
-    margin: 3px auto;
-  }
-
+  .ng-fp .panel-top { grid-column: 1 / -1; }
+  .ng-fp .core-visual { width: 104px; height: 104px; margin: 2px auto; }
   .ng-fp .ring-a { width: 64px; height: 64px; }
   .ng-fp .ring-b { width: 86px; height: 86px; }
   .ng-fp .ring-c { width: 103px; height: 103px; }
   .ng-fp .core-orb { width: 32px; height: 32px; }
+  .ng-fp .core-ray { height: 52px; }
+  .ng-fp .hash-copy strong { font-size: 18px; }
 
   .ng-fp .hero-statusbar {
-    bottom: 9px;
-    width: 94vw;
+    position: relative;
+    left: auto;
+    bottom: auto;
+    width: min(100% - 24px, 640px);
+    min-height: auto;
+    margin: 0 auto 24px;
+    transform: none;
     grid-template-columns: 1fr 1fr;
   }
-
   .ng-fp .hero-statusbar span {
-    padding: 7px 6px;
+    padding: 8px 6px;
+    white-space: normal;
+    text-align: center;
+    line-height: 1.2;
     font-size: 7px;
   }
+  .ng-fp .hero-statusbar span:nth-child(2) { border-right: 0; }
+  .ng-fp .hero-statusbar span:nth-child(-n+2) { border-bottom: 1px solid rgba(157,99,255,.1); }
 
-  .ng-fp .hero-statusbar span:nth-child(2) {
-    border-right: 0;
-  }
+  .ng-fp .hero-corner { opacity: .4; }
+  .ng-fp .trust-grid { grid-template-columns: 1fr 1fr; }
+  .ng-fp .trust-item { padding: 14px 11px; }
+  .ng-fp .trust-item:nth-child(2) { border-right: 0; }
+  .ng-fp .trust-item:nth-child(-n+2) { border-bottom: 1px solid rgba(39,234,255,.08); }
+  .ng-fp .trust-item b { font-size: 10px; }
+  .ng-fp .trust-item small { font-size: 9px; }
 
-  .ng-fp .hero-statusbar span:nth-child(-n+2) {
-    border-bottom: 1px solid rgba(157, 99, 255, 0.13);
-  }
-
-  .ng-fp .trust-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .ng-fp .trust-item {
-    padding: 14px 11px;
-  }
-
-  .ng-fp .trust-item:nth-child(2) {
-    border-right: 0;
-  }
-
-  .ng-fp .trust-item:nth-child(-n+2) {
-    border-bottom: 1px solid rgba(39, 234, 255, 0.09);
-  }
-
-  .ng-fp .trust-item b {
-    font-size: 10px;
-  }
-
-  .ng-fp .trust-item small {
-    font-size: 9px;
-  }
-
-  .ng-fp .section {
-    width: 94vw;
-    padding: 55px 0;
-  }
-
+  .ng-fp .section { width: min(100% - 24px, 640px); padding: 54px 0; }
   .ng-fp .section-head h2,
-  .ng-fp .miner-intro h2 {
-    font-size: 24px;
-  }
-
-  .ng-fp .steps {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .ng-fp .step {
-    min-height: 155px;
-  }
-
-  .ng-fp .step::after {
-    display: none;
-  }
-
-  .ng-fp .miners {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .ng-fp .miner-img {
-    height: 120px;
-  }
-
-  .ng-fp .campaign {
-    width: 94vw;
-    grid-template-columns: 1fr;
-    margin-bottom: 52px;
-    padding: 18px;
-  }
-
-  .ng-fp .meter {
-    min-height: 145px;
-  }
-
-  .ng-fp .meter-core {
-    width: 120px;
-    height: 120px;
-    flex-basis: 120px;
-  }
-
-  .ng-fp .meter-copy {
-    padding-right: 12px;
-  }
-
-  .ng-fp .meter-copy strong {
-    font-size: 26px;
-  }
-
-  .ng-fp .feature-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .ng-fp .faq-list {
-    grid-template-columns: 1fr;
-  }
-
-  .ng-fp .final {
-    display: grid;
-    grid-template-columns: 1fr;
-    padding: 20px;
-  }
-
-  .ng-fp .final .cta {
-    width: 100%;
-  }
+  .ng-fp .miner-intro h2 { font-size: 24px; }
+  .ng-fp .steps { grid-template-columns: 1fr 1fr; }
+  .ng-fp .step { min-height: 150px; }
+  .ng-fp .miners { grid-template-columns: 1fr 1fr; }
+  .ng-fp .miner-img { height: 120px; }
+  .ng-fp .campaign { width: min(100% - 24px, 640px); grid-template-columns: 1fr; margin-bottom: 50px; padding: 18px; }
+  .ng-fp .meter { min-height: 145px; }
+  .ng-fp .meter-core { width: 112px; height: 112px; flex-basis: 112px; }
+  .ng-fp .meter-copy { padding-right: 12px; }
+  .ng-fp .meter-copy strong { font-size: 25px; }
+  .ng-fp .faq-list { grid-template-columns: 1fr; }
+  .ng-fp .final { display: grid; grid-template-columns: 1fr; padding: 20px; }
+  .ng-fp .final .cta { width: 100%; }
 }
 
 @media (max-width: 390px) {
-  .ng-fp h1 {
-    font-size: 36px;
-  }
-
-  .ng-fp .hero {
-    min-height: 820px;
-  }
-
-  .ng-fp .hero-content {
-    min-height: 820px;
-  }
-
-  .ng-fp .hero-telemetry {
-    gap: 5px;
-  }
-
-  .ng-fp .telemetry small {
-    display: none;
-  }
-
-  .ng-fp .miners {
-    grid-template-columns: 1fr;
-  }
-
-  .ng-fp .feature-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .ng-fp .brand {
-    letter-spacing: 0.04em;
-  }
+  .ng-fp .hero-content { padding-top: 48px; }
+  .ng-fp h1 { font-size: 34px; }
+  .ng-fp .hero-telemetry { gap: 5px; }
+  .ng-fp .telemetry small { display: none; }
+  .ng-fp .hash-panel { grid-template-columns: 92px minmax(0,1fr); }
+  .ng-fp .core-visual { width: 88px; height: 88px; }
+  .ng-fp .ring-a { width: 56px; height: 56px; }
+  .ng-fp .ring-b { width: 74px; height: 74px; }
+  .ng-fp .ring-c { width: 86px; height: 86px; }
+  .ng-fp .core-orb { width: 28px; height: 28px; }
+  .ng-fp .miners { grid-template-columns: 1fr; }
+  .ng-fp .feature-grid { grid-template-columns: 1fr; }
+  .ng-fp .meter-core { width: 92px; height: 92px; flex-basis: 92px; }
+  .ng-fp .meter-copy strong { font-size: 22px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .ng-fp .hero::before,
-  .ng-fp .hero::after,
   .ng-fp .hero-scan,
   .ng-fp .status-pulse,
   .ng-fp .live-dot,
   .ng-fp .ring-a,
   .ng-fp .ring-b,
-  .ng-fp .ring-c,
-  .ng-fp .core-orb,
-  .ng-fp .hash-line i,
-  .ng-fp .meter-ring,
-  .ng-fp .meter-orb,
-  .ng-fp .bar i {
-    animation: none !important;
-  }
-
-  .ng-fp .cta,
-  .ng-fp .step,
-  .ng-fp .miner-card,
-  .ng-fp .feature {
-    transition: none !important;
-  }
+  .ng-fp .core-orb { animation: none !important; }
+  .ng-fp .cta { transition: none !important; }
 }
