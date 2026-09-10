@@ -1,7 +1,47 @@
 import Link from 'next/link';
+import { PublicPage } from '@/components/public/PublicPage';
 
-export const metadata = { title: 'About NextGen Miner', description: 'Learn how NextGen Miner works and how the platform is designed.' };
+export const metadata = {
+  title: 'About NextGen Miner',
+  description: 'How NextGen Miner works and the principles behind the platform.',
+};
 
 export default function AboutPage() {
-  return <main className="public-page"><style>{`.public-page{min-height:100vh;padding:24px 16px;background:linear-gradient(180deg,#020711,#030b15);color:#f2fbff}.public-wrap{width:min(900px,100%);margin:auto}.public-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px}.public-brand{font:700 13px Orbitron}.public-brand span{color:#24e8ff}.public-home{color:#24e8ff;font-weight:800}.public-card{padding:24px;border:1px solid rgba(40,121,167,.25);border-radius:18px;background:rgba(4,14,25,.9)}.public-card h1{font:700 30px Orbitron;margin:0 0 14px}.public-card h2{font:700 18px Orbitron;margin-top:28px}.public-card p,.public-card li{color:#8faabd;line-height:1.65}.public-card ul{padding-left:20px}.public-note{padding:13px 14px;border-radius:12px;border:1px solid rgba(36,232,255,.18);background:rgba(36,232,255,.04);color:#9db8ca;margin-bottom:16px}.public-footer{margin-top:15px;display:flex;gap:14px;flex-wrap:wrap;color:#70899c;font-size:12px}`}</style><div className="public-wrap"><div className="public-top"><div className="public-brand">NEXTGEN <span>MINER</span></div><Link className="public-home" href="/">Home</Link></div><article className="public-card"><div className="public-note">NextGen Miner is a virtual mining and reward service. Public information is provided so visitors can understand the platform before participating.</div><h1>About NextGen Miner</h1><p>NextGen Miner is built around account-based virtual miners, hashrate progression and wallet management.</p><h2>How the platform works</h2><ul><li>Miners and ownership are stored in the platform backend.</li><li>Wallet and transaction state are controlled by server-side rules.</li><li>Campaign rewards use database-controlled allocation.</li><li>Authentication and anti-abuse controls protect sensitive actions.</li></ul><h2>Rewards and expectations</h2><p>Rewards are not presented as guaranteed investment returns. They may depend on platform economics, configured rates, campaign conditions, available reward resources and risk controls.</p><h2>Operator transparency</h2><p>Before commercial launch, publish the final legal operator identity, jurisdiction, official support address and other legally required information here. No invented company or registration details are used.</p><h2>Read before joining</h2><p>Review the <Link href="/legal/terms" style={{color:'#24e8ff'}}>Terms & Conditions</Link> and <Link href="/legal/privacy" style={{color:'#24e8ff'}}>Privacy Policy</Link> before creating an account.</p></article><div className="public-footer"><Link href="/contact">Contact</Link><Link href="/legal/privacy">Privacy</Link><Link href="/legal/terms">Terms</Link></div></div></main>;
+  return (
+    <PublicPage
+      eyebrow="ABOUT THE PLATFORM"
+      title="A virtual mining platform built around clear rules."
+      description="NextGen Miner combines virtual miners, hashrate progression, wallet management and server-side platform controls."
+    >
+      <section className="public-card public-hero">
+        <h2>How it works</h2>
+        <p>
+          Users create an account, verify access, acquire eligible virtual miners,
+          progress through miner levels and manage eligible rewards through the platform wallet.
+        </p>
+        <div className="public-grid">
+          <article className="public-info"><h3>Virtual miners</h3><p>Miner ownership and progression are recorded by the platform backend.</p></article>
+          <article className="public-info"><h3>Server-side rules</h3><p>Sensitive wallet, reward and ownership operations are validated outside the browser.</p></article>
+          <article className="public-info"><h3>Database campaigns</h3><p>Launch allocations are controlled by database state rather than page refreshes or client counters.</p></article>
+        </div>
+        <h2>Rewards and risk</h2>
+        <p>
+          Mining rewards are not guaranteed income or guaranteed investment returns.
+          Reward values can depend on configured platform economics, available reward resources,
+          campaign conditions and applicable risk controls.
+        </p>
+        <h2>Transparency</h2>
+        <p>
+          NextGen Miner publishes its public product information and policies so visitors can
+          review the platform before registration. Operator identity, jurisdiction and official
+          business details should be completed before commercial launch rather than invented.
+        </p>
+        <p>
+          Read the <Link href="/legal/terms" style={{ color: 'var(--public-cyan)' }}>Terms of Service</Link>,
+          <Link href="/legal/privacy" style={{ color: 'var(--public-cyan)', marginLeft: 5 }}>Privacy Policy</Link> and
+          <Link href="/legal/disclaimer" style={{ color: 'var(--public-cyan)', marginLeft: 5 }}>Disclaimer</Link>.
+        </p>
+      </section>
+    </PublicPage>
+  );
 }
