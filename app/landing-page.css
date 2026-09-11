@@ -910,46 +910,46 @@
         }
 
 /* ================================================================
-   V5 — HOLOGRAPHIC EARTH + SYNCHRONIZED ENTRY GPU
+   V6 — HOLOGRAPHIC EARTH LANDMASS + CALM ENTRY GPU HUD
    ================================================================ */
 
 .ng-fp .network-core-3d__hologram-glow {
   position:absolute;
   left:50%;
   top:50%;
-  width:64%;
-  height:64%;
+  width:58%;
+  height:58%;
   transform:translate(-50%,-50%);
   border-radius:50%;
-  background:radial-gradient(circle, rgba(29,230,255,.22) 0%, rgba(54,134,255,.12) 34%, rgba(94,65,255,.07) 52%, transparent 72%);
-  filter:blur(20px);
+  background:radial-gradient(circle, rgba(29,230,255,.20) 0%, rgba(54,134,255,.09) 38%, rgba(94,65,255,.045) 54%, transparent 72%);
+  filter:blur(22px);
   pointer-events:none;
-  animation:ng-holo-breathe 4.8s ease-in-out infinite;
+  animation:ng-v6-holo-breathe 5.8s ease-in-out infinite;
 }
 
 .ng-fp .network-core-3d__canvas {
-  transform:scale(.81);
-  filter:drop-shadow(0 0 22px rgba(31,218,255,.16));
+  transform:scale(.78);
+  filter:drop-shadow(0 0 24px rgba(31,218,255,.20));
 }
 
 .ng-fp .network-core-3d__scan {
-  background:linear-gradient(180deg, transparent 0%, rgba(62,234,255,.035) 42%, rgba(62,234,255,.11) 50%, rgba(62,234,255,.035) 58%, transparent 100%);
-  animation:ng-holo-scan 5.5s linear infinite;
+  background:linear-gradient(180deg, transparent 0%, rgba(62,234,255,.02) 42%, rgba(62,234,255,.085) 50%, rgba(62,234,255,.02) 58%, transparent 100%);
+  animation:ng-v6-holo-scan 6.5s linear infinite;
 }
 
 .ng-fp .network-core-3d__reflection {
-  left:20%;
-  right:20%;
+  left:22%;
+  right:22%;
   bottom:7%;
-  height:12%;
-  opacity:.8;
+  height:11%;
+  opacity:.62;
 }
 
 .ng-fp .network-core-3d__label {
   position:absolute;
   left:16px;
   bottom:12px;
-  color:rgba(118,208,232,.62);
+  color:rgba(118,208,232,.58);
   font-size:8px;
   letter-spacing:.18em;
   text-transform:uppercase;
@@ -962,14 +962,14 @@
   width:26px;
   height:26px;
   pointer-events:none;
-  opacity:.7;
+  opacity:.68;
 }
 
 .ng-fp .network-core-3d__hud-corner::before,
 .ng-fp .network-core-3d__hud-corner::after {
   content:"";
   position:absolute;
-  background:rgba(42,220,255,.45);
+  background:rgba(42,220,255,.42);
 }
 
 .ng-fp .network-core-3d__hud-corner::before { width:26px; height:1px; top:0; left:0; }
@@ -977,44 +977,36 @@
 .ng-fp .network-core-3d__hud-corner.corner-a { top:13px; left:13px; }
 .ng-fp .network-core-3d__hud-corner.corner-b { right:13px; bottom:13px; transform:rotate(180deg); }
 
+/* Entry GPU: one restrained HUD ring only. No competing orbit clocks. */
 .ng-fp .bonus-orbit {
-  width:64%;
-  height:24%;
+  width:66%;
+  height:22%;
   right:15%;
-  bottom:6%;
-  border-color:rgba(44,238,255,.72);
-  transform:rotate(-17deg);
-  transform-origin:center center;
-  animation:ng-synced-orbit 10s linear infinite;
+  bottom:7%;
+  border:1px solid rgba(56,235,255,.46);
+  border-radius:50%;
+  transform:rotate(-15deg);
   z-index:4;
   pointer-events:none;
-  box-shadow:0 0 22px rgba(42,232,255,.18), inset 0 0 12px rgba(42,232,255,.06);
+  box-shadow:0 0 22px rgba(42,232,255,.12), inset 0 0 10px rgba(42,232,255,.04);
+  animation:ng-v6-entry-pulse 4.8s ease-in-out infinite;
 }
 
-.ng-fp .orbit-two {
-  width:50%;
-  height:18%;
-  right:11%;
-  bottom:10%;
-  border-color:rgba(170,88,255,.7);
-  transform:rotate(14deg);
-  animation:ng-synced-orbit 10s linear infinite -5s;
-  box-shadow:0 0 20px rgba(161,76,255,.13), inset 0 0 10px rgba(161,76,255,.05);
-}
+.ng-fp .orbit-two { display:none !important; }
 
 .ng-fp .bonus-visual::after {
   content:"";
   position:absolute;
-  left:10%;
-  right:4%;
+  left:11%;
+  right:5%;
   bottom:9%;
-  height:24%;
-  border:1px solid rgba(65,220,255,.14);
+  height:19%;
+  border:1px solid rgba(82,224,255,.10);
   border-radius:50%;
-  transform:rotate(-12deg) perspective(300px) rotateX(62deg);
-  box-shadow:0 0 30px rgba(42,214,255,.07);
+  transform:rotate(-12deg) perspective(300px) rotateX(63deg);
+  box-shadow:0 0 26px rgba(42,214,255,.06);
   pointer-events:none;
-  animation:ng-platform-pulse 4.8s ease-in-out infinite;
+  animation:ng-v6-platform-pulse 5.2s ease-in-out infinite;
 }
 
 .ng-fp .gpu-platform {
@@ -1030,60 +1022,55 @@
   right:3%;
   bottom:6%;
   height:17%;
-  background:radial-gradient(ellipse, rgba(47,214,255,.32), rgba(91,65,255,.08) 42%, transparent 72%);
+  background:radial-gradient(ellipse, rgba(47,214,255,.30), rgba(91,65,255,.06) 44%, transparent 72%);
   filter:blur(1px);
 }
 
 .ng-fp .entry-gpu-image {
   z-index:3;
-  filter:drop-shadow(0 0 40px rgba(54,165,255,.36)) drop-shadow(0 21px 27px rgba(0,0,0,.58));
+  filter:drop-shadow(0 0 42px rgba(54,165,255,.36)) drop-shadow(0 22px 28px rgba(0,0,0,.56));
 }
 
-@keyframes ng-holo-breathe {
-  0%,100% { opacity:.64; transform:translate(-50%,-50%) scale(.96); }
-  50% { opacity:1; transform:translate(-50%,-50%) scale(1.04); }
+@keyframes ng-v6-holo-breathe {
+  0%,100% { opacity:.54; transform:translate(-50%,-50%) scale(.96); }
+  50% { opacity:.9; transform:translate(-50%,-50%) scale(1.035); }
 }
 
-@keyframes ng-holo-scan {
+@keyframes ng-v6-holo-scan {
   from { transform:translateY(-115%); }
   to { transform:translateY(115%); }
 }
 
-@keyframes ng-synced-orbit {
-  from { transform:rotate(-17deg) rotate(0deg); }
-  to { transform:rotate(-17deg) rotate(360deg); }
+@keyframes ng-v6-entry-pulse {
+  0%,100% { opacity:.56; transform:rotate(-15deg) scale(.985); }
+  50% { opacity:.92; transform:rotate(-15deg) scale(1.015); }
 }
 
-@keyframes ng-platform-pulse {
-  0%,100% { opacity:.45; transform:rotate(-12deg) perspective(300px) rotateX(62deg) scale(.98); }
-  50% { opacity:.9; transform:rotate(-12deg) perspective(300px) rotateX(62deg) scale(1.02); }
+@keyframes ng-v6-platform-pulse {
+  0%,100% { opacity:.34; transform:rotate(-12deg) perspective(300px) rotateX(63deg) scale(.98); }
+  50% { opacity:.66; transform:rotate(-12deg) perspective(300px) rotateX(63deg) scale(1.025); }
 }
 
 @media (max-width: 900px) {
-  .ng-fp .network-core-3d__canvas { transform:scale(.74); }
-  .ng-fp .network-core-3d__hologram-glow { width:58%; height:58%; }
-  .ng-fp .network-core-3d__label { left:12px; bottom:10px; font-size:7px; }
-
+  .ng-fp .network-core-3d__canvas { transform:scale(.72); }
+  .ng-fp .network-core-3d__hologram-glow { width:52%; height:52%; }
   .ng-fp .bonus-visual { min-height:355px; }
   .ng-fp .gpu-platform { width:92%; height:76%; right:0; bottom:5%; }
-  .ng-fp .bonus-orbit { width:66%; height:23%; right:13%; bottom:6%; }
-  .ng-fp .orbit-two { width:50%; height:17%; right:9%; bottom:10%; }
+  .ng-fp .bonus-orbit { width:66%; height:21%; right:14%; bottom:7%; }
 }
 
 @media (max-width: 600px) {
   .ng-fp .network-visual,
   .ng-fp .network-core-3d { height:350px; min-height:350px; }
-  .ng-fp .network-core-3d__canvas { transform:scale(.68); }
-  .ng-fp .network-core-3d__hologram-glow { width:54%; height:54%; filter:blur(16px); }
-  .ng-fp .network-core-3d__reflection { left:22%; right:22%; bottom:6%; height:10%; }
-  .ng-fp .network-core-3d__hud-corner { opacity:.5; transform:scale(.8); }
+  .ng-fp .network-core-3d__canvas { transform:scale(.66); }
+  .ng-fp .network-core-3d__hologram-glow { width:49%; height:49%; filter:blur(18px); }
+  .ng-fp .network-core-3d__reflection { left:24%; right:24%; bottom:6%; height:9%; }
+  .ng-fp .network-core-3d__hud-corner { opacity:.48; transform:scale(.8); }
   .ng-fp .network-core-3d__label { font-size:6px; }
-
   .ng-fp .bonus-visual { min-height:320px; }
   .ng-fp .gpu-platform { width:96%; height:79%; right:-2%; bottom:4%; }
-  .ng-fp .bonus-orbit { width:70%; height:21%; right:11%; bottom:6%; }
-  .ng-fp .orbit-two { width:54%; height:15%; right:7%; bottom:10%; }
-  .ng-fp .bonus-visual::after { left:9%; right:2%; bottom:9%; height:21%; }
+  .ng-fp .bonus-orbit { width:68%; height:19%; right:10%; bottom:7%; }
+  .ng-fp .bonus-visual::after { left:10%; right:3%; bottom:9%; height:19%; }
 }
 
 @media (prefers-reduced-motion: reduce) {
