@@ -4,6 +4,8 @@ import FAQExplorer, { type FAQItem } from '@/components/public/FAQExplorer';
 export const metadata = {
   title: 'FAQ',
   description: 'Searchable answers about NextGen Miner accounts, miners, rewards, wallet, bonus, referrals, security and platform rules.',
+  alternates: { canonical: '/faq' },
+  openGraph: { url: '/faq' },
 };
 
 const faqs: FAQItem[] = [
