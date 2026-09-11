@@ -151,10 +151,10 @@
         .ng-fp .hero-bg { z-index: -5; overflow: hidden; }
         .ng-fp .hero-image {
           object-fit: cover;
-          object-position: 64% center;
-          opacity: .62;
-          filter: brightness(.7) saturate(1.08) contrast(1.08);
-          transform: scale(1.04);
+          object-position: 72% center;
+          opacity: .76;
+          filter: brightness(.72) saturate(1.12) contrast(1.08);
+          transform: scale(1.035);
         }
 
         .ng-fp .hero-grid {
@@ -297,12 +297,10 @@
           transform: perspective(400px) rotateX(64deg);
         }
 
-        .ng-fp .hero-gpu-image {
-          object-fit: contain;
-          object-position: center bottom;
-          filter: drop-shadow(0 0 36px rgba(35, 163, 255, .28)) drop-shadow(0 22px 28px rgba(0,0,0,.5));
-          transform: translateY(3%);
-        }
+        /* The hero scene is rendered once as the full-bleed background.
+           Keeping the foreground empty prevents the rectangular duplicate-image
+           artifact that appeared on desktop. */
+        .ng-fp .hero-gpu { pointer-events:none; }
 
         .ng-fp .hero-statusbar {
           position: absolute;
@@ -442,7 +440,7 @@
         }
 
         .ng-fp .network-core-3d { position: relative; width: 100%; height: 455px; }
-        .ng-fp .network-core-3d__canvas { position: absolute; inset: 0; width: 100%; height: 100%; display:block; }
+        .ng-fp .network-core-3d__canvas { position: absolute; inset: 0; width: 100%; height: 100%; display:block; transform:scale(.90); transform-origin:center center; }
         .ng-fp .network-core-3d__aura {
           position: absolute; inset: 9% 12%;
           border-radius: 50%;
@@ -677,15 +675,14 @@
           transform:rotate(-15deg);
           bottom:13%; right:15%;
           box-shadow:0 0 19px rgba(42,232,255,.13);
-          animation:ng-orbit 8s linear infinite;
+          animation:ng-orbit 9s linear infinite;
         }
 
         .ng-fp .orbit-two {
           width:48%; height:17%;
           right:8%; bottom:19%;
           border-color:rgba(161,76,255,.55);
-          animation-duration:10s;
-          animation-direction:reverse;
+          animation:ng-orbit 9s linear infinite;
         }
 
         .ng-fp .section { margin-top: 62px; }
@@ -848,14 +845,16 @@
           .ng-fp .hero-content { min-height:760px; grid-template-columns:1fr; }
           .ng-fp .hero-copy { padding:66px 0 6px; max-width:700px; }
           .ng-fp .hero-gpu { position:absolute; right:-8%; bottom:4px; width:74%; height:55%; opacity:.72; }
-          .ng-fp .hero-vignette { background:linear-gradient(90deg, rgba(1,4,9,.98) 0%, rgba(1,6,14,.87) 58%, rgba(2,8,14,.28) 100%), linear-gradient(180deg, rgba(1,6,13,.15), rgba(0,0,0,.38)); }
+          .ng-fp .hero-image { object-position: 74% center; opacity:.68; }
+          .ng-fp .hero-vignette { background:linear-gradient(90deg, rgba(1,4,9,.98) 0%, rgba(1,6,14,.82) 54%, rgba(2,8,14,.22) 100%), linear-gradient(180deg, rgba(1,6,13,.15), rgba(0,0,0,.38)); }
           .ng-fp .hero-statusbar { width:calc(100% - 34px); font-size:8px; }
           .ng-fp .trust { width:calc(100% - 28px); }
           .ng-fp .trust-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
           .ng-fp .trust-item:nth-child(2) { border-right:0; }
           .ng-fp .network-section, .ng-fp .section, .ng-fp .campaign { width:calc(100% - 28px); }
           .ng-fp .network-grid, .ng-fp .campaign { grid-template-columns:1fr; }
-          .ng-fp .network-visual, .ng-fp .network-core-3d { min-height:410px; height:410px; }
+          .ng-fp .network-visual, .ng-fp .network-core-3d { min-height:400px; height:400px; }
+          .ng-fp .network-core-3d__canvas { transform:scale(.87); }
           .ng-fp .campaign-copy { padding:30px 22px 24px; }
           .ng-fp .bonus-visual { min-height:340px; }
           .ng-fp .steps { grid-template-columns:repeat(2,minmax(0,1fr)); }
@@ -873,7 +872,7 @@
           .ng-fp .hero h1 { margin-top:16px; font-size:42px; line-height:1.02; }
           .ng-fp .hero-desc { font-size:16px; }
           .ng-fp .hero-actions .cta { width:100%; }
-          .ng-fp .hero-gpu { right:-12%; width:92%; height:46%; bottom:28px; opacity:.61; }
+          .ng-fp .hero-gpu { right:0; width:100%; height:46%; bottom:28px; opacity:.55; }
           .ng-fp .hero-statusbar { display:none; }
           .ng-fp .trust-grid { grid-template-columns:1fr; }
           .ng-fp .trust-item { border-right:0; border-bottom:1px solid rgba(42,120,164,.17); }
@@ -881,7 +880,9 @@
           .ng-fp .hud-frame { padding:14px; }
           .ng-fp .network-heading h2, .ng-fp .section-head h2 { font-size:18px; }
           .ng-fp .network-heading { align-items:flex-start; }
-          .ng-fp .network-visual, .ng-fp .network-core-3d { height:345px; min-height:345px; }
+          .ng-fp .network-visual, .ng-fp .network-core-3d { height:330px; min-height:330px; }
+          .ng-fp .network-core-3d__canvas { transform:scale(.84); transform-origin:center center; }
+          .ng-fp .network-core-3d__aura { inset:14% 18%; }
           .ng-fp .network-status { padding:4px; }
           .ng-fp .status-main { font-size:28px; }
           .ng-fp .bonus-specs { grid-template-columns:1fr; }
