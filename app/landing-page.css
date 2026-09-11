@@ -1079,3 +1079,41 @@
   .ng-fp .bonus-orbit,
   .ng-fp .bonus-visual::after { animation:none !important; }
 }
+
+
+/* V7 — Entry GPU: remove every competing orbit/circle animation.
+   The GPU stays still; the card uses only a static holographic platform glow. */
+.ng-fp .bonus-orbit,
+.ng-fp .bonus-visual::after {
+  display: none !important;
+  animation: none !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.ng-fp .bonus-visual {
+  isolation: isolate;
+}
+
+.ng-fp .bonus-visual::before {
+  z-index: 0;
+  animation: none !important;
+  opacity: .62;
+}
+
+.ng-fp .gpu-platform {
+  z-index: 2;
+}
+
+.ng-fp .entry-gpu-image {
+  z-index: 3;
+  filter:
+    drop-shadow(0 0 34px rgba(54,165,255,.30))
+    drop-shadow(0 22px 30px rgba(0,0,0,.52));
+}
+
+@media (max-width: 600px) {
+  .ng-fp .bonus-visual::before {
+    opacity: .48;
+  }
+}
