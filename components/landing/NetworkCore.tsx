@@ -4,15 +4,9 @@ import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 
 /**
- * NEXTGEN MINER — HOLOGRAPHIC GLOBAL NETWORK CORE
- *
- * A lightweight real-time 3D hologram Earth built with Three.js:
- * - True 360° Y-axis Earth rotation
- * - Cyan hologram-shaded Earth surface using the existing Earth texture as data
- * - Scanning grid + atmosphere + network nodes + data arcs
- * - One synchronized orbital system around the Earth
- * - Responsive renderer with DPR cap for Android/mobile performance
- * - Respects prefers-reduced-motion
+ * NEXTGEN MINER — GLOBAL MINING NETWORK
+ * V6: holographic Earth with visible landmasses + calm synchronized orbital HUD.
+ * Real WebGL 3D, optimized for mobile, no CSS orbit animation dependency.
  */
 
 const EARTH_TEXTURE = '/assets/landing/earth-equirectangular.webp';
@@ -22,7 +16,6 @@ type Point3 = { x: number; y: number; z: number };
 function latLonToVector3(latitude: number, longitude: number, radius: number): Point3 {
   const phi = (90 - latitude) * (Math.PI / 180);
   const theta = (longitude + 180) * (Math.PI / 180);
-
   return {
     x: -radius * Math.sin(phi) * Math.cos(theta),
     y: radius * Math.cos(phi),
@@ -35,12 +28,12 @@ function makeArcPoints(a: THREE.Vector3, b: THREE.Vector3, radius: number) {
   const start = a.clone().normalize();
   const end = b.clone().normalize();
   const angle = start.angleTo(end);
-  const steps = 40;
+  const steps = 36;
 
   for (let i = 0; i <= steps; i += 1) {
     const t = i / steps;
     const point = start.clone().lerp(end, t).normalize();
-    const lift = Math.sin(Math.PI * t) * (0.07 + angle * 0.055);
+    const lift = Math.sin(Math.PI * t) * (0.055 + angle * 0.045);
     points.push(point.multiplyScalar(radius + lift));
   }
 
@@ -52,7 +45,6 @@ function createHologramEarthMaterial() {
     uniforms: {
       uTexture: { value: null },
       uTime: { value: 0 },
-      uOpacity: { value: 0.95 },
     },
     vertexShader: `
       varying vec2 vUv;
@@ -72,7 +64,6 @@ function createHologramEarthMaterial() {
 
       uniform sampler2D uTexture;
       uniform float uTime;
-      uniform float uOpacity;
 
       varying vec2 vUv;
       varying vec3 vNormal;
@@ -81,32 +72,50 @@ function createHologramEarthMaterial() {
       void main() {
         vec3 tex = texture2D(uTexture, vUv).rgb;
         float luminance = dot(tex, vec3(0.299, 0.587, 0.114));
-        float contrast = smoothstep(0.22, 0.88, luminance);
 
-        vec3 deep = vec3(0.005, 0.065, 0.12);
-        vec3 cyan = vec3(0.05, 0.82, 1.0);
-        vec3 mint = vec3(0.48, 1.0, 0.88);
-        vec3 hologram = mix(deep, cyan, contrast * 0.82);
-        hologram += mint * smoothstep(0.58, 0.95, luminance) * 0.26;
+        // Land is naturally warmer/greener than the blue ocean in the source map.
+        float landSignal = max(tex.r - tex.b * 0.78, tex.g - tex.b * 0.68);
+        float land = smoothstep(0.018, 0.105, landSignal);
+        float coast = smoothstep(0.018, 0.032, landSignal) * (1.0 - smoothstep(0.060, 0.105, landSignal));
+        float cloud = smoothstep(0.76, 0.96, luminance) * (1.0 - land) * 0.32;
 
-        float scan = 0.82 + 0.18 * sin((vUv.y * 135.0) + (uTime * 2.6));
-        hologram *= scan;
+        // Deep holographic ocean.
+        vec3 ocean = mix(
+          vec3(0.004, 0.032, 0.065),
+          vec3(0.015, 0.16, 0.24),
+          smoothstep(0.10, 0.72, luminance)
+        );
+
+        // Bright cyan/mint land silhouette, preserving geography from the equirectangular map.
+        vec3 landColor = mix(
+          vec3(0.06, 0.72, 0.96),
+          vec3(0.56, 1.0, 0.88),
+          smoothstep(0.22, 0.82, luminance)
+        );
+
+        vec3 color = mix(ocean, landColor, land);
+        color += vec3(0.18, 0.92, 1.0) * coast * 0.78;
+        color += vec3(0.16, 0.72, 0.86) * cloud;
+
+        // Fine hologram scan modulation.
+        float scan = 0.93 + 0.07 * sin(vUv.y * 210.0 + uTime * 2.0);
+        color *= scan;
 
         vec3 viewDir = normalize(cameraPosition - vWorldPosition);
-        float fresnel = pow(1.0 - max(dot(normalize(vNormal), viewDir), 0.0), 2.1);
-        hologram += vec3(0.04, 0.72, 1.0) * fresnel * 1.35;
+        float fresnel = pow(1.0 - max(dot(normalize(vNormal), viewDir), 0.0), 2.3);
+        color += vec3(0.03, 0.62, 1.0) * fresnel * 1.25;
 
-        float edge = smoothstep(0.72, 1.0, abs(vUv.y - 0.5) * 2.0);
-        hologram += cyan * edge * 0.05;
+        // Mild longitude shimmer makes the globe feel holographic without washing out land.
+        float sweep = smoothstep(0.0, 1.0, sin((vUv.x * 6.28318) - uTime * 0.35) * 0.5 + 0.5);
+        color += vec3(0.02, 0.30, 0.55) * sweep * 0.06;
 
-        float alpha = clamp(0.48 + contrast * 0.42 + fresnel * 0.25, 0.0, 1.0) * uOpacity;
-        gl_FragColor = vec4(hologram, alpha);
+        float alpha = 0.96;
+        gl_FragColor = vec4(color, alpha);
       }
     `,
-    transparent: true,
+    transparent: false,
     depthWrite: true,
     side: THREE.FrontSide,
-    blending: THREE.AdditiveBlending,
   });
 }
 
@@ -155,7 +164,7 @@ function createPulseMaterial(color: number) {
   return new THREE.MeshBasicMaterial({
     color,
     transparent: true,
-    opacity: 0.78,
+    opacity: 0.88,
     blending: THREE.AdditiveBlending,
     depthWrite: false,
   });
@@ -170,18 +179,16 @@ export default function NetworkCore() {
     const canvas = canvasRef.current;
     if (!host || !canvas) return undefined;
 
-    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-    let reducedMotion = reduceMotion.matches;
-
+    const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    let reducedMotion = motionQuery.matches;
     const onMotionPreference = (event: MediaQueryListEvent) => {
       reducedMotion = event.matches;
     };
-
-    reduceMotion.addEventListener?.('change', onMotionPreference);
+    motionQuery.addEventListener?.('change', onMotionPreference);
 
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(36, 1, 0.1, 20);
-    camera.position.set(0, 0.08, 4.45);
+    const camera = new THREE.PerspectiveCamera(34, 1, 0.1, 20);
+    camera.position.set(0, 0.06, 4.8);
 
     let renderer: THREE.WebGLRenderer;
     try {
@@ -192,42 +199,39 @@ export default function NetworkCore() {
         powerPreference: 'high-performance',
       });
     } catch {
-      reduceMotion.removeEventListener?.('change', onMotionPreference);
+      motionQuery.removeEventListener?.('change', onMotionPreference);
       return undefined;
     }
 
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.45));
     renderer.setClearColor(0x000000, 0);
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.08;
+    renderer.toneMappingExposure = 1.06;
 
     const root = new THREE.Group();
-    root.rotation.x = THREE.MathUtils.degToRad(-7);
+    root.rotation.x = THREE.MathUtils.degToRad(-5);
     scene.add(root);
 
     const earthGroup = new THREE.Group();
-    earthGroup.scale.setScalar(0.90);
+    earthGroup.scale.setScalar(0.84);
     root.add(earthGroup);
 
     scene.add(new THREE.AmbientLight(0x3cc8ff, 1.55));
-
-    const key = new THREE.DirectionalLight(0x9ef5ff, 2.15);
+    const key = new THREE.DirectionalLight(0xa6f7ff, 2.45);
     key.position.set(-4, 3, 5);
     scene.add(key);
-
-    const fill = new THREE.DirectionalLight(0x306eff, 1.1);
+    const fill = new THREE.DirectionalLight(0x276cff, 1.0);
     fill.position.set(3, -1, -2);
     scene.add(fill);
 
-    const hologramMaterial = createHologramEarthMaterial();
     const loader = new THREE.TextureLoader();
+    const hologramMaterial = createHologramEarthMaterial();
     const earthTexture = loader.load(EARTH_TEXTURE, (texture) => {
       texture.colorSpace = THREE.SRGBColorSpace;
       texture.anisotropy = Math.min(renderer.capabilities.getMaxAnisotropy(), 4);
       texture.needsUpdate = true;
       hologramMaterial.uniforms.uTexture.value = texture;
-      hologramMaterial.needsUpdate = true;
     });
     earthTexture.colorSpace = THREE.SRGBColorSpace;
     hologramMaterial.uniforms.uTexture.value = earthTexture;
@@ -240,33 +244,33 @@ export default function NetworkCore() {
     earthGroup.add(earth);
 
     const grid = new THREE.Mesh(
-      new THREE.SphereGeometry(1.012, 56, 36),
+      new THREE.SphereGeometry(1.014, 64, 40),
       new THREE.MeshBasicMaterial({
-        color: 0x48ecff,
+        color: 0x64efff,
         wireframe: true,
         transparent: true,
-        opacity: 0.105,
+        opacity: 0.14,
         depthWrite: false,
         blending: THREE.AdditiveBlending,
       }),
     );
     earthGroup.add(grid);
 
-    const innerScan = new THREE.Mesh(
-      new THREE.SphereGeometry(1.022, 64, 40),
+    const latitudeGlow = new THREE.Mesh(
+      new THREE.SphereGeometry(1.026, 72, 48),
       new THREE.MeshBasicMaterial({
-        color: 0x18dfff,
+        color: 0x25dfff,
         transparent: true,
-        opacity: 0.055,
+        opacity: 0.035,
         side: THREE.BackSide,
         depthWrite: false,
         blending: THREE.AdditiveBlending,
       }),
     );
-    earthGroup.add(innerScan);
+    earthGroup.add(latitudeGlow);
 
     const atmosphere = new THREE.Mesh(
-      new THREE.SphereGeometry(1.075, 80, 56),
+      new THREE.SphereGeometry(1.078, 80, 56),
       createAtmosphereMaterial(),
     );
     earthGroup.add(atmosphere);
@@ -274,7 +278,7 @@ export default function NetworkCore() {
     const nodeData = [
       [-37, -63], [40, -74], [51, 0], [1, 103], [35, 139], [-33, 151],
       [25, 55], [-1, 36], [19, -99], [50, 14], [-6, -75], [-23, 133],
-      [59, 18], [21, 105], [37, 127],
+      [59, 18], [21, 105], [37, 127], [64, -145], [28, 77],
     ];
 
     const nodes = new THREE.Group();
@@ -282,13 +286,12 @@ export default function NetworkCore() {
     earthGroup.add(nodes);
 
     nodeData.forEach(([latitude, longitude], index) => {
-      const p = latLonToVector3(latitude, longitude, 1.045);
+      const p = latLonToVector3(latitude, longitude, 1.048);
       const vector = new THREE.Vector3(p.x, p.y, p.z);
       nodeVectors.push(vector);
-
       const node = new THREE.Mesh(
-        new THREE.SphereGeometry(index % 4 === 0 ? 0.033 : 0.023, 10, 10),
-        createPulseMaterial(index % 3 === 0 ? 0x7dffd9 : 0x39eaff),
+        new THREE.SphereGeometry(index % 5 === 0 ? 0.034 : 0.022, 10, 10),
+        createPulseMaterial(index % 3 === 0 ? 0x79ffe0 : 0x35eaff),
       );
       node.position.copy(vector);
       nodes.add(node);
@@ -296,34 +299,33 @@ export default function NetworkCore() {
 
     const routeGroup = new THREE.Group();
     earthGroup.add(routeGroup);
-
     const routePairs = [
-      [0, 1], [1, 2], [2, 3], [3, 4], [4, 5],
-      [1, 8], [7, 10], [8, 10], [2, 9], [5, 11],
-      [9, 12], [3, 13], [4, 14], [6, 13],
+      [0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [1, 8], [7, 10],
+      [8, 10], [2, 9], [5, 11], [9, 12], [3, 13], [4, 14], [6, 13],
+      [8, 16], [3, 14], [12, 15],
     ];
 
     routePairs.forEach(([a, b], index) => {
       const curve = new THREE.CatmullRomCurve3(makeArcPoints(nodeVectors[a], nodeVectors[b], 1.048));
       const geometry = new THREE.BufferGeometry().setFromPoints(curve.getPoints(36));
       const material = new THREE.LineBasicMaterial({
-        color: index % 3 === 0 ? 0x8bffff : 0x25dfff,
+        color: index % 4 === 0 ? 0x8fffff : 0x25dfff,
         transparent: true,
-        opacity: index % 2 === 0 ? 0.44 : 0.27,
+        opacity: index % 2 === 0 ? 0.34 : 0.20,
         depthWrite: false,
         blending: THREE.AdditiveBlending,
       });
       routeGroup.add(new THREE.Line(geometry, material));
     });
 
-    // One master orbital group keeps every external hologram orbit synchronized.
+    // One calm 3D orbit system; all rings share the same master rotation.
     const orbitSystem = new THREE.Group();
     root.add(orbitSystem);
 
     const orbitSpecs = [
-      { radius: 1.34, yScale: 0.30, rotationX: 0.08, rotationZ: 0.14, color: 0x2fe7ff, opacity: 0.46 },
-      { radius: 1.44, yScale: 0.74, rotationX: 0.78, rotationZ: -0.34, color: 0xa55dff, opacity: 0.28 },
-      { radius: 1.54, yScale: 0.22, rotationX: 0.62, rotationZ: 0.68, color: 0x5ef4d0, opacity: 0.23 },
+      { radius: 1.28, yScale: 0.24, rotationX: 0.08, rotationZ: 0.12, color: 0x35eaff, opacity: 0.40 },
+      { radius: 1.39, yScale: 0.62, rotationX: 0.74, rotationZ: -0.28, color: 0x8c6dff, opacity: 0.22 },
+      { radius: 1.48, yScale: 0.18, rotationX: 0.56, rotationZ: 0.58, color: 0x63f6d4, opacity: 0.17 },
     ];
 
     orbitSpecs.forEach((spec) => {
@@ -337,7 +339,6 @@ export default function NetworkCore() {
           0,
         ));
       }
-
       const geometry = new THREE.BufferGeometry().setFromPoints(points);
       const material = new THREE.LineBasicMaterial({
         color: spec.color,
@@ -355,30 +356,30 @@ export default function NetworkCore() {
     const orbitalNodes = new THREE.Group();
     orbitSystem.add(orbitalNodes);
     [
-      [1.48, 0.2, 0.02],
-      [1.39, 2.25, 0.05],
-      [1.54, 4.18, -0.06],
-      [1.43, 5.45, 0.08],
+      [1.42, 0.15, 0.02],
+      [1.34, 2.18, 0.04],
+      [1.48, 4.02, -0.05],
+      [1.38, 5.26, 0.06],
     ].forEach(([radius, angle, y], index) => {
       const dot = new THREE.Mesh(
-        new THREE.SphereGeometry(index % 2 === 0 ? 0.031 : 0.022, 10, 10),
-        createPulseMaterial(index % 2 === 0 ? 0x44eaff : 0x8cffd9),
+        new THREE.SphereGeometry(index % 2 === 0 ? 0.029 : 0.020, 10, 10),
+        createPulseMaterial(index % 2 === 0 ? 0x48eaff : 0x91ffdf),
       );
       dot.position.set(Math.cos(angle) * radius, y, Math.sin(angle) * radius);
       orbitalNodes.add(dot);
     });
 
-    const pulse = new THREE.Mesh(
-      new THREE.SphereGeometry(0.17, 24, 24),
+    const centerPulse = new THREE.Mesh(
+      new THREE.SphereGeometry(0.19, 24, 24),
       new THREE.MeshBasicMaterial({
-        color: 0x5cffff,
+        color: 0x56eeff,
         transparent: true,
-        opacity: 0.065,
+        opacity: 0.045,
         depthWrite: false,
         blending: THREE.AdditiveBlending,
       }),
     );
-    earthGroup.add(pulse);
+    earthGroup.add(centerPulse);
 
     let animationFrame = 0;
     let lastFrame = performance.now();
@@ -400,19 +401,18 @@ export default function NetworkCore() {
       lastFrame = now;
 
       if (!reducedMotion) {
-        earthGroup.rotation.y += delta * 0.25;
-        grid.rotation.y -= delta * 0.045;
-        innerScan.rotation.y += delta * 0.075;
-        atmosphere.rotation.y += delta * 0.028;
-        orbitSystem.rotation.y += delta * 0.17;
-        orbitalNodes.rotation.z += delta * 0.03;
-        pulse.scale.setScalar(1 + Math.sin(now * 0.0018) * 0.055);
+        earthGroup.rotation.y += delta * 0.20;
+        grid.rotation.y -= delta * 0.024;
+        atmosphere.rotation.y += delta * 0.012;
+        orbitSystem.rotation.y += delta * 0.115;
+        orbitalNodes.rotation.z += delta * 0.015;
+        centerPulse.scale.setScalar(1 + Math.sin(now * 0.0017) * 0.05);
       }
 
       const time = now * 0.001;
       hologramMaterial.uniforms.uTime.value = time;
       const atmosphereMaterial = atmosphere.material as THREE.ShaderMaterial;
-      atmosphereMaterial.uniforms.uOpacity.value = 0.6 + (Math.sin(time * 1.2) * 0.08 + 0.08);
+      atmosphereMaterial.uniforms.uOpacity.value = 0.54 + (Math.sin(time * 1.2) * 0.055 + 0.055);
 
       renderer.render(scene, camera);
       animationFrame = window.requestAnimationFrame(render);
@@ -423,17 +423,14 @@ export default function NetworkCore() {
     return () => {
       window.cancelAnimationFrame(animationFrame);
       resizeObserver.disconnect();
-      reduceMotion.removeEventListener?.('change', onMotionPreference);
+      motionQuery.removeEventListener?.('change', onMotionPreference);
 
       scene.traverse((object) => {
         const mesh = object as THREE.Mesh;
         if (mesh.geometry) mesh.geometry.dispose();
         const material = mesh.material;
-        if (Array.isArray(material)) {
-          material.forEach((item) => item.dispose());
-        } else if (material) {
-          material.dispose();
-        }
+        if (Array.isArray(material)) material.forEach((item) => item.dispose());
+        else if (material) material.dispose();
       });
 
       earthTexture.dispose();
