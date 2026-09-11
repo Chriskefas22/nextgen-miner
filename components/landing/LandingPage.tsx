@@ -90,6 +90,9 @@ export default async function LandingPage() {
   const activeMiners = Math.max(0, Math.round(num(telemetry?.active_miners)));
   const enabledNetworks = Math.max(0, Math.round(num(telemetry?.enabled_networks)));
   const enabledMinerCatalog = Math.max(0, Math.round(num(telemetry?.enabled_miners)));
+  const liveUpdated = telemetry?.generated_at
+    ? new Date(telemetry.generated_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })
+    : '—';
 
   return (
     <main className="ng-fp">
@@ -175,6 +178,13 @@ export default async function LandingPage() {
               <span>Server-side rules</span>
               <span>No guaranteed returns</span>
             </div>
+
+            <div className="hero-live-chip" aria-label="Live network activity">
+              <span className="hero-live-dot" aria-hidden="true" />
+              <span>LIVE NETWORK ACTIVITY</span>
+              <strong>{fmtHashrate(liveHashrate)}</strong>
+              <small>UPDATED {liveUpdated}</small>
+            </div>
           </div>
 
           <div className="hero-gpu" aria-hidden="true" />
@@ -206,6 +216,19 @@ export default async function LandingPage() {
             <span className="trust-icon">▣</span>
             <div><b>No Guaranteed Returns</b><small>Mining rewards are not guaranteed income.</small></div>
           </article>
+        </div>
+      </section>
+
+      <section className="live-strip" aria-label="Live network activity">
+        <div className="live-strip-head">
+          <div className="eyebrow"><span className="live-dot" aria-hidden="true" /> LIVE NETWORK ACTIVITY</div>
+          <span className="live-strip-time">SYNCED {liveUpdated}</span>
+        </div>
+        <div className="live-strip-grid">
+          <div className="live-stat"><small>GLOBAL HASHRATE</small><strong>{fmtHashrate(liveHashrate)}</strong><em>LIVE</em></div>
+          <div className="live-stat"><small>ACTIVE MINERS</small><strong>{activeMiners.toLocaleString('en-US')}</strong><em>LIVE</em></div>
+          <div className="live-stat"><small>NETWORKS</small><strong>{enabledNetworks.toLocaleString('en-US')}</strong><em>ENABLED</em></div>
+          <div className="live-stat"><small>MINER CATALOG</small><strong>{enabledMinerCatalog.toLocaleString('en-US')}</strong><em>ACTIVE</em></div>
         </div>
       </section>
 
@@ -322,8 +345,6 @@ export default async function LandingPage() {
             />
           </div>
 
-          <div className="bonus-orbit orbit-one" aria-hidden="true" />
-          <div className="bonus-orbit orbit-two" aria-hidden="true" />
         </div>
       </section>
 
