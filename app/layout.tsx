@@ -1,4 +1,5 @@
 import './globals.css';
+import './landing-page.css';
 import './deposit-wallet.css';
 import '../styles/nav-drawer.css';
 import '../styles/dashboard-simple.css';
