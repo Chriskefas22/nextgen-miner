@@ -177,15 +177,7 @@ export default async function LandingPage() {
             </div>
           </div>
 
-          <div className="hero-gpu" aria-hidden="true">
-            <Image
-              src="/assets/landing/nextgen-miner-hero.png"
-              alt=""
-              fill
-              sizes="(max-width: 900px) 88vw, 58vw"
-              className="hero-gpu-image"
-            />
-          </div>
+          <div className="hero-gpu" aria-hidden="true" />
         </div>
 
         <div className="hero-statusbar" aria-label="Platform telemetry">
