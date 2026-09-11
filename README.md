@@ -22,8 +22,8 @@ Already applied directly to the production NextGen Miner Supabase project:
 `components/landing/NetworkCore.tsx` imports `three`. The current Vercel build failed because the dependency was absent from `package.json`.
 
 The patch adds:
-- `three`
-- `@types/three`
+- `three` 0.186.x
+- `@types/three` 0.185.4 (the currently published type package; 0.186.0 does not exist)
 
 ## After copying
 
@@ -39,3 +39,11 @@ Then commit/push to `main`. Vercel should automatically create a new production 
 Do not reintroduce fake hard-coded live telemetry. The new landing reads aggregate hashrate/miner/network figures from Supabase.
 
 The registration bonus remains protected by the database. The browser cannot choose another user's ID, and the database checks the authenticated user's identity.
+
+
+## Latest Vercel audit
+
+The first post-push deployment failed before compilation because npm could not resolve
+`@types/three@^0.186.0`. The published `three` package is 0.186.0, but the published
+`@types/three` package is currently 0.185.4. The package version has therefore been
+corrected to `0.185.4`.
