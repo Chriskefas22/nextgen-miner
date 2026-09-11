@@ -5,8 +5,8 @@ import * as THREE from 'three';
 
 /**
  * NEXTGEN MINER — GLOBAL MINING NETWORK
- * V6: holographic Earth with visible landmasses + calm synchronized orbital HUD.
- * Real WebGL 3D, optimized for mobile, no CSS orbit animation dependency.
+ * V7: holographic Earth with visible landmasses + synchronized surface nodes.
+ * Real WebGL 3D, optimized for mobile, one master animation clock.
  */
 
 const EARTH_TEXTURE = '/assets/landing/earth-equirectangular.webp';
@@ -283,17 +283,23 @@ export default function NetworkCore() {
 
     const nodes = new THREE.Group();
     const nodeVectors: THREE.Vector3[] = [];
+    const nodeMeshes: THREE.Mesh[] = [];
+    const nodeMaterials: THREE.MeshBasicMaterial[] = [];
     earthGroup.add(nodes);
 
     nodeData.forEach(([latitude, longitude], index) => {
       const p = latLonToVector3(latitude, longitude, 1.048);
       const vector = new THREE.Vector3(p.x, p.y, p.z);
       nodeVectors.push(vector);
+
+      const material = createPulseMaterial(index % 3 === 0 ? 0x79ffe0 : 0x35eaff);
       const node = new THREE.Mesh(
         new THREE.SphereGeometry(index % 5 === 0 ? 0.034 : 0.022, 10, 10),
-        createPulseMaterial(index % 3 === 0 ? 0x79ffe0 : 0x35eaff),
+        material,
       );
       node.position.copy(vector);
+      nodeMeshes.push(node);
+      nodeMaterials.push(material);
       nodes.add(node);
     });
 
@@ -318,56 +324,8 @@ export default function NetworkCore() {
       routeGroup.add(new THREE.Line(geometry, material));
     });
 
-    // One calm 3D orbit system; all rings share the same master rotation.
-    const orbitSystem = new THREE.Group();
-    root.add(orbitSystem);
-
-    const orbitSpecs = [
-      { radius: 1.28, yScale: 0.24, rotationX: 0.08, rotationZ: 0.12, color: 0x35eaff, opacity: 0.40 },
-      { radius: 1.39, yScale: 0.62, rotationX: 0.74, rotationZ: -0.28, color: 0x8c6dff, opacity: 0.22 },
-      { radius: 1.48, yScale: 0.18, rotationX: 0.56, rotationZ: 0.58, color: 0x63f6d4, opacity: 0.17 },
-    ];
-
-    orbitSpecs.forEach((spec) => {
-      const points: THREE.Vector3[] = [];
-      const steps = 160;
-      for (let i = 0; i < steps; i += 1) {
-        const t = (i / steps) * Math.PI * 2;
-        points.push(new THREE.Vector3(
-          Math.cos(t) * spec.radius,
-          Math.sin(t) * spec.radius * spec.yScale,
-          0,
-        ));
-      }
-      const geometry = new THREE.BufferGeometry().setFromPoints(points);
-      const material = new THREE.LineBasicMaterial({
-        color: spec.color,
-        transparent: true,
-        opacity: spec.opacity,
-        blending: THREE.AdditiveBlending,
-        depthWrite: false,
-      });
-      const loop = new THREE.LineLoop(geometry, material);
-      loop.rotation.x = spec.rotationX;
-      loop.rotation.z = spec.rotationZ;
-      orbitSystem.add(loop);
-    });
-
-    const orbitalNodes = new THREE.Group();
-    orbitSystem.add(orbitalNodes);
-    [
-      [1.42, 0.15, 0.02],
-      [1.34, 2.18, 0.04],
-      [1.48, 4.02, -0.05],
-      [1.38, 5.26, 0.06],
-    ].forEach(([radius, angle, y], index) => {
-      const dot = new THREE.Mesh(
-        new THREE.SphereGeometry(index % 2 === 0 ? 0.029 : 0.020, 10, 10),
-        createPulseMaterial(index % 2 === 0 ? 0x48eaff : 0x91ffdf),
-      );
-      dot.position.set(Math.cos(angle) * radius, y, Math.sin(angle) * radius);
-      orbitalNodes.add(dot);
-    });
+    // V7: no independent orbital nodes. Surface nodes and routes stay attached
+    // to the Earth, so their movement remains physically coherent with the globe.
 
     const centerPulse = new THREE.Mesh(
       new THREE.SphereGeometry(0.19, 24, 24),
@@ -400,19 +358,35 @@ export default function NetworkCore() {
       const delta = Math.min(0.05, (now - lastFrame) / 1000);
       lastFrame = now;
 
+      const time = now * 0.001;
       if (!reducedMotion) {
+        // Single master clock: Earth, surface points and routes move as one system.
         earthGroup.rotation.y += delta * 0.20;
-        grid.rotation.y -= delta * 0.024;
-        atmosphere.rotation.y += delta * 0.012;
-        orbitSystem.rotation.y += delta * 0.115;
-        orbitalNodes.rotation.z += delta * 0.015;
-        centerPulse.scale.setScalar(1 + Math.sin(now * 0.0017) * 0.05);
+
+        const pulseWave = (Math.sin(time * 2.15) + 1) * 0.5;
+        const nodeScale = 0.88 + pulseWave * 0.16;
+        const nodeOpacity = 0.64 + pulseWave * 0.30;
+        nodeMeshes.forEach((node, index) => {
+          const localScale = nodeScale * (index % 5 === 0 ? 1.10 : 1.0);
+          node.scale.setScalar(localScale);
+          nodeMaterials[index].opacity = nodeOpacity;
+        });
+
+        const routePulse = 0.16 + pulseWave * 0.16;
+        routeGroup.traverse((object) => {
+          const line = object as THREE.Line;
+          if (line.material && !Array.isArray(line.material)) {
+            (line.material as THREE.LineBasicMaterial).opacity = routePulse;
+          }
+        });
+
+        centerPulse.scale.setScalar(1 + pulseWave * 0.055);
       }
 
-      const time = now * 0.001;
       hologramMaterial.uniforms.uTime.value = time;
       const atmosphereMaterial = atmosphere.material as THREE.ShaderMaterial;
-      atmosphereMaterial.uniforms.uOpacity.value = 0.54 + (Math.sin(time * 1.2) * 0.055 + 0.055);
+      atmosphereMaterial.uniforms.uOpacity.value =
+        0.54 + (Math.sin(time * 1.2) * 0.055 + 0.055);
 
       renderer.render(scene, camera);
       animationFrame = window.requestAnimationFrame(render);
