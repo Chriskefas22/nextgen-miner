@@ -1,0 +1,7 @@
+NEXTGEN MINER CORRECTED PACKAGE
+
+[OK] components/landing/LandingPage.tsx
+[OK] components/landing/NetworkCore.tsx
+[OK] css/landing-neon-frame.css
+[OK] public/assets/landing/hologram-earth-360.png
+[OK] PATCH_NOTES.md
