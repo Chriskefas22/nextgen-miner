@@ -7,7 +7,6 @@ type BonusStatus = {
   total_slots?: number;
   claimed_slots?: number;
   remaining_slots?: number;
-  active?: boolean;
   bonus_miner?: {
     name?: string;
     hashrate?: number;
@@ -16,11 +15,11 @@ type BonusStatus = {
 };
 
 const miners = [
-  { name: 'Basic CPU', price: '500', rate: '20 H/s', level: 'Lv. 1–10', image: '/assets/miners/basic-cpu.webp' },
-  { name: 'Entry GPU', price: '1,000', rate: '60 H/s', level: 'Lv. 1–10', image: '/assets/miners/entry-gpu.webp' },
-  { name: 'Mini Rig', price: '2,500', rate: '150 H/s', level: 'Lv. 1–10', image: '/assets/miners/mini-rig.webp' },
-  { name: 'Gaming PC', price: '7,500', rate: '450 H/s', level: 'Lv. 1–10', image: '/assets/miners/gaming-pc.webp' },
-  { name: 'Performance Rig', price: '15,000', rate: '850 H/s', level: 'Lv. 1–10', image: '/assets/miners/performance-rig.webp' },
+  { name: 'Basic CPU', price: 500, rate: '20 H/s', level: 'Lv. 1–10', image: '/assets/miners/basic-cpu.webp' },
+  { name: 'Entry GPU', price: 1000, rate: '60 H/s', level: 'Lv. 1–10', image: '/assets/miners/entry-gpu.webp' },
+  { name: 'Mini Rig', price: 2500, rate: '150 H/s', level: 'Lv. 1–10', image: '/assets/miners/mini-rig.webp' },
+  { name: 'Gaming PC', price: 7500, rate: '450 H/s', level: 'Lv. 1–10', image: '/assets/miners/gaming-pc.webp' },
+  { name: 'Performance Rig', price: 15000, rate: '850 H/s', level: 'Lv. 1–10', image: '/assets/miners/performance-rig.webp' },
 ];
 
 function fmt(value: number | undefined, fallback = '—') {
@@ -29,23 +28,39 @@ function fmt(value: number | undefined, fallback = '—') {
 
 export default async function LandingPage() {
   const supabase = await createClient();
-  const { data, error } = await supabase.rpc('nextgen_get_registration_bonus_status');
+
+  // Keep the existing Supabase registration-bonus RPC as the source of truth.
+  const { data, error } = await supabase.rpc(
+    'nextgen_get_registration_bonus_status'
+  );
+
   const bonus = (data ?? null) as BonusStatus | null;
 
-  const total = typeof bonus?.total_slots === 'number' ? bonus.total_slots : 1000;
-  const claimed = typeof bonus?.claimed_slots === 'number' ? Math.max(0, bonus.claimed_slots) : 3;
+  const total =
+    typeof bonus?.total_slots === 'number' ? Math.max(0, bonus.total_slots) : 1000;
+
+  const claimed =
+    typeof bonus?.claimed_slots === 'number'
+      ? Math.max(0, bonus.claimed_slots)
+      : 0;
+
   const remaining =
     typeof bonus?.remaining_slots === 'number'
       ? Math.max(0, bonus.remaining_slots)
       : Math.max(0, total - claimed);
-  const claimedPercent = total > 0 ? Math.min(100, Math.max(0, (claimed / total) * 100)) : 0;
+
+  const claimedPercent =
+    total > 0 ? Math.min(100, Math.max(0, (claimed / total) * 100)) : 0;
 
   const bonusMinerName = bonus?.bonus_miner?.name || 'Entry GPU';
+
   const bonusHashrate =
     typeof bonus?.bonus_miner?.hashrate === 'number'
       ? `${bonus.bonus_miner.hashrate.toLocaleString('en-US')} H/s`
       : '60 H/s';
-  const bonusImage = bonus?.bonus_miner?.image_path || '/assets/miners/entry-gpu.webp';
+
+  const bonusImage =
+    bonus?.bonus_miner?.image_path || '/assets/miners/entry-gpu.webp';
 
   return (
     <main className="ng-fp">
@@ -81,6 +96,7 @@ export default async function LandingPage() {
             className="hero-image"
           />
         </div>
+
         <div className="hero-grid" aria-hidden="true" />
         <div className="hero-scan" aria-hidden="true" />
         <div className="hero-vignette" aria-hidden="true" />
@@ -98,8 +114,9 @@ export default async function LandingPage() {
             </h1>
 
             <p className="hero-desc">
-              Power the future with your miners. Build your rig, grow your hashrate and manage rewards
-              through a virtual crypto-mining network designed around live platform data.
+              Power the future with your miners. Build your rig, grow your
+              hashrate and manage rewards through a virtual crypto-mining
+              network designed around live platform data.
             </p>
 
             <div className="hero-actions">
@@ -168,7 +185,9 @@ export default async function LandingPage() {
 
           <div className="network-heading">
             <div>
-              <div className="eyebrow"><span className="live-dot" aria-hidden="true" /> NETWORK CORE</div>
+              <div className="eyebrow">
+                <span className="live-dot" aria-hidden="true" /> NETWORK CORE
+              </div>
               <h2 id="network-title">Global Mining Network</h2>
             </div>
             <div className="network-online"><i /> ONLINE</div>
@@ -176,23 +195,36 @@ export default async function LandingPage() {
 
           <div className="network-grid">
             <div className="network-visual">
-              <div className="network-globe"><NetworkCore /></div>
-              <div className="core-ring ring-a" aria-hidden="true" />
-              <div className="core-ring ring-b" aria-hidden="true" />
-              <div className="core-ring ring-c" aria-hidden="true" />
+              <NetworkCore />
             </div>
 
             <div className="network-status">
               <div className="status-label">PLATFORM STATUS</div>
               <div className="status-main">OPERATIONAL</div>
               <div className="status-meter"><span /></div>
-              <div className="status-meta"><span>LIVE SYSTEM</span><strong><i /> SYNCED</strong></div>
+
+              <div className="status-meta">
+                <span>LIVE SYSTEM</span>
+                <strong><i /> SYNCED</strong>
+              </div>
 
               <div className="network-metrics">
-                <article><span className="metric-icon">✦</span><div><small>GLOBAL HASHRATE</small><b>2.48 PH/s</b><em>↗ 12.6%</em></div></article>
-                <article><span className="metric-icon">◎</span><div><small>ACTIVE MINERS</small><b>12,842</b><em>↗ 8.3%</em></div></article>
-                <article><span className="metric-icon">◈</span><div><small>NETWORK NODES</small><b>8 / 8</b><em>↗ 100%</em></div></article>
-                <article><span className="metric-icon">◷</span><div><small>SYSTEM UPTIME</small><b>99.97%</b><em>↗ 0.02%</em></div></article>
+                <article>
+                  <span className="metric-icon">✦</span>
+                  <div><small>GLOBAL HASHRATE</small><b>2.48 PH/s</b><em>↗ 12.6%</em></div>
+                </article>
+                <article>
+                  <span className="metric-icon">◎</span>
+                  <div><small>ACTIVE MINERS</small><b>12,842</b><em>↗ 8.3%</em></div>
+                </article>
+                <article>
+                  <span className="metric-icon">◈</span>
+                  <div><small>NETWORK NODES</small><b>8 / 8</b><em>↗ 100%</em></div>
+                </article>
+                <article>
+                  <span className="metric-icon">◷</span>
+                  <div><small>SYSTEM UPTIME</small><b>99.97%</b><em>↗ 0.02%</em></div>
+                </article>
               </div>
             </div>
           </div>
@@ -201,13 +233,22 @@ export default async function LandingPage() {
 
       <section className="campaign" aria-labelledby="campaign-title">
         <div className="campaign-copy">
-          <div className="eyebrow"><span className="bonus-spark" aria-hidden="true">✦</span> REGISTRATION BONUS CAMPAIGN</div>
+          <div className="eyebrow">
+            <span className="bonus-spark" aria-hidden="true">✦</span>
+            REGISTRATION BONUS CAMPAIGN
+          </div>
+
           <div className="campaign-tag">{bonusMinerName.toUpperCase()}</div>
-          <h2 id="campaign-title">Get Your <span>{bonusMinerName}</span></h2>
+
+          <h2 id="campaign-title">
+            Get Your <span>{bonusMinerName}</span>
+          </h2>
           <h3>Right After Verification!</h3>
+
           <p>
-            Complete your registration and email verification to become eligible for the launch allocation.
-            The active campaign and remaining slots are checked server-side.
+            Complete your registration and email verification to become
+            eligible for the launch allocation. The active campaign and
+            remaining slots are checked server-side.
           </p>
 
           <div className="bonus-specs">
@@ -218,7 +259,7 @@ export default async function LandingPage() {
 
           <div className="allocation-bar">
             <div className="allocation-track" aria-hidden="true">
-              <i style={{ width: `${Math.max(0, Math.min(100, 100 - claimedPercent))}%` }} />
+              <i style={{ width: `${100 - claimedPercent}%` }} />
             </div>
             <div className="allocation-labels">
               <span><strong>{fmt(remaining)}</strong> LEFT</span>
@@ -226,8 +267,15 @@ export default async function LandingPage() {
             </div>
           </div>
 
-          <Link href="/auth/register" className="cta primary">Join Now <span aria-hidden="true">→</span></Link>
-          {error && <small className="campaign-error">Live campaign data temporarily unavailable; safe fallback values are shown.</small>}
+          <Link href="/auth/register" className="cta primary">
+            Join Now <span aria-hidden="true">→</span>
+          </Link>
+
+          {error && (
+            <small className="campaign-error">
+              Live campaign data temporarily unavailable; safe fallback values are shown.
+            </small>
+          )}
         </div>
 
         <div className="bonus-visual" aria-label={`${bonusMinerName} registration bonus visual`}>
@@ -235,6 +283,7 @@ export default async function LandingPage() {
             <span>{bonusMinerName.toUpperCase()}</span>
             <b>LIMITED ALLOCATION</b>
           </div>
+
           <div className="gpu-platform">
             <div className="gpu-glow" />
             <Image
@@ -245,6 +294,7 @@ export default async function LandingPage() {
               className="entry-gpu-image"
             />
           </div>
+
           <div className="bonus-orbit orbit-one" aria-hidden="true" />
           <div className="bonus-orbit orbit-two" aria-hidden="true" />
         </div>
@@ -256,6 +306,7 @@ export default async function LandingPage() {
           <h2>Start Your Mining Journey</h2>
           <p>A five-step path from account creation to an upgraded mining network and wallet management.</p>
         </div>
+
         <div className="steps">
           <article className="step"><div className="n">01</div><h3>REGISTER</h3><p>Create your account in minutes.</p></article>
           <article className="step"><div className="n">02</div><h3>VERIFY</h3><p>Confirm your email and security checks.</p></article>
@@ -271,18 +322,26 @@ export default async function LandingPage() {
             <div className="eyebrow">OUR MINERS</div>
             <h2>Choose Your Miner</h2>
             <p>Different miner tiers provide different hashrate and progression paths.</p>
-            <Link href="/miners" className="cta primary">View All Miners <span aria-hidden="true">→</span></Link>
+            <Link href="/miners" className="cta primary">
+              View All Miners <span aria-hidden="true">→</span>
+            </Link>
           </div>
 
           {miners.map((miner) => (
             <article className="miner-card" key={miner.name}>
               <div className="miner-img">
-                <Image src={miner.image} alt="" fill sizes="(max-width: 900px) 45vw, 16vw" loading="lazy" />
+                <Image
+                  src={miner.image}
+                  alt=""
+                  fill
+                  sizes="(max-width: 900px) 45vw, 16vw"
+                  loading="lazy"
+                />
               </div>
               <div className="miner-info">
                 <h3>{miner.name}</h3>
                 <b>{miner.rate}</b>
-                <small>{miner.price} 💎 · {miner.level}</small>
+                <small>{miner.price.toLocaleString('en-US')} 💎 · {miner.level}</small>
               </div>
             </article>
           ))}
@@ -295,6 +354,7 @@ export default async function LandingPage() {
           <h2>Built for a Safer Mining Experience</h2>
           <p>Important information is visible before registration. Sensitive actions remain subject to server-side validation.</p>
         </div>
+
         <div className="feature-grid">
           <article className="feature"><div className="icon">◈</div><h3>SSL ENCRYPTED</h3><p>Production access uses HTTPS.</p></article>
           <article className="feature"><div className="icon">◇</div><h3>SERVER-SIDE RULES</h3><p>Wallet and reward actions are validated by backend rules.</p></article>
@@ -308,11 +368,24 @@ export default async function LandingPage() {
           <div className="eyebrow">FREQUENTLY ASKED QUESTIONS</div>
           <h2>Find Your Answers</h2>
         </div>
+
         <div className="faq-list">
-          <details className="faq"><summary>Is the platform free to join?</summary><p>Account creation is free. Miner ownership and reward conditions follow the rules shown in the platform.</p></details>
-          <details className="faq"><summary>How do I get the launch bonus?</summary><p>Register and complete email verification. Eligibility is checked against the active server-side campaign and its remaining allocation.</p></details>
-          <details className="faq"><summary>How are rewards calculated?</summary><p>Reward values depend on configured platform mining economics, available reward resources and applicable controls.</p></details>
-          <details className="faq"><summary>Can I upgrade my miner?</summary><p>Yes. Eligible owned miners can progress through their available levels subject to wallet balance and upgrade rules.</p></details>
+          <details className="faq">
+            <summary>Is the platform free to join?</summary>
+            <p>Account creation is free. Miner ownership and reward conditions follow the rules shown in the platform.</p>
+          </details>
+          <details className="faq">
+            <summary>How do I get the launch bonus?</summary>
+            <p>Register and complete email verification. Eligibility is checked against the active server-side campaign and its remaining allocation.</p>
+          </details>
+          <details className="faq">
+            <summary>How are rewards calculated?</summary>
+            <p>Reward values depend on configured platform mining economics, available reward resources and applicable controls.</p>
+          </details>
+          <details className="faq">
+            <summary>Can I upgrade my miner?</summary>
+            <p>Yes. Eligible owned miners can progress through their available levels subject to wallet balance and upgrade rules.</p>
+          </details>
         </div>
       </section>
 
@@ -323,7 +396,10 @@ export default async function LandingPage() {
             <h2>Build today. Power tomorrow.</h2>
             <p>Read the public information, create your account and start building your virtual mining network.</p>
           </div>
-          <Link href="/auth/register" className="cta primary">Create Free Account <span aria-hidden="true">→</span></Link>
+
+          <Link href="/auth/register" className="cta primary">
+            Create Free Account <span aria-hidden="true">→</span>
+          </Link>
         </div>
       </section>
 
