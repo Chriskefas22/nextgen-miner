@@ -4,6 +4,8 @@ import { siteConfig } from '@/lib/site-config';
 export const metadata = {
   title: 'Contact',
   description: 'Official support and security contact options for NextGen Miner.',
+  alternates: { canonical: '/contact' },
+  openGraph: { url: '/contact' },
 };
 
 function Channel({ name, description, url }: { name: string; description: string; url: string }) {
@@ -49,16 +51,9 @@ export default function ContactPage() {
           )}
         </div>
         <h2>Security reports</h2>
-        <p>
-          When reporting a security issue, include reproducible steps and relevant non-sensitive
-          evidence. Do not include passwords, authentication codes, private keys, seed phrases or
-          other credentials.
-        </p>
+        <p>When reporting a security issue, include reproducible steps and relevant non-sensitive evidence. Do not include passwords, authentication codes, private keys, seed phrases or other credentials.</p>
         <h2>Account support</h2>
-        <p>
-          Signed-in users can also use the in-app Support Center for account, miner, wallet and
-          transaction questions.
-        </p>
+        <p>Signed-in users can also use the in-app Support Center for account, miner, wallet and transaction questions.</p>
       </section>
     </PublicPage>
   );
