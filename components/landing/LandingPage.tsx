@@ -106,11 +106,11 @@ export default async function LandingPage() {
 
         <nav className="navlinks" aria-label="Primary navigation">
           <a className="active" href="#top">Home</a>
-          <a href="#about">About</a>
-          <a href="#faq">FAQ</a>
-          <a href="#how-it-works">How It Works</a>
-          <a href="#miners">Miners</a>
-          <a href="#referral-program">Referral Program</a>
+          <Link href="/about">About</Link>
+          <Link href="/faq">FAQ</Link>
+          <Link href="/how-it-works">How It Works</Link>
+          <Link href="/miner-catalog">Miners</Link>
+          <Link href="/referrals">Referral Program</Link>
         </nav>
 
         <div className="navactions">
@@ -121,12 +121,12 @@ export default async function LandingPage() {
         <details className="mobile-nav">
           <summary aria-label="Open navigation">☰</summary>
           <nav className="mobile-menu" aria-label="Mobile navigation">
-            <a href="#top">Home</a>
-            <a href="#about">About</a>
-            <a href="#faq">FAQ</a>
-            <a href="#how-it-works">How It Works</a>
-            <a href="#miners">Miners</a>
-            <a href="#referral-program">Referral Program</a>
+            <Link href="/">Home</Link>
+            <Link href="/about">About</Link>
+            <Link href="/faq">FAQ</Link>
+            <Link href="/how-it-works">How It Works</Link>
+            <Link href="/miner-catalog">Miners</Link>
+            <Link href="/referrals">Referral Program</Link>
             <a href="/auth/register">Register</a>
             <a href="/auth/login">Login</a>
           </nav>
@@ -372,7 +372,7 @@ export default async function LandingPage() {
             <div className="eyebrow">OUR MINERS</div>
             <h2>Choose Your Miner</h2>
             <p>Live-enabled miner catalog entries are shown from Supabase and keep the landing page aligned with the shop.</p>
-            <Link href="/miners" className="cta primary">View All Miners <span>→</span></Link>
+            <Link href="/miner-catalog" className="cta primary">View All Miners <span>→</span></Link>
           </div>
 
           {miners.map((miner) => (
@@ -419,6 +419,7 @@ export default async function LandingPage() {
           <div>
             <div className="eyebrow">FREQUENTLY ASKED QUESTIONS</div>
             <h2>Find Your Answers</h2>
+            <Link href="/faq" className="text-link">Explore the full FAQ →</Link>
           </div>
         </div>
 
