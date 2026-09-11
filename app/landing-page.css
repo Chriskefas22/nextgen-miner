@@ -1182,3 +1182,8 @@
 @media (prefers-reduced-motion: reduce) {
   .ng-fp .cta.primary::after, .ng-fp .navbtn.primary::after, .ng-fp .bonus-visual::before { animation:none !important; }
 }
+
+
+/* V9 public-navigation polish */
+.ng-fp .text-link { display:inline-flex; margin-top:10px; color:#27eaff; font-size:12px; font-weight:900; letter-spacing:.04em; }
+.ng-fp .text-link:hover { color:#fff; }
