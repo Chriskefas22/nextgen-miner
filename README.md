@@ -1,21 +1,41 @@
-# NEXTGEN MINER — Real 360° Three.js Earth
+# NextGen Miner landing repair — 2026-09-11
 
-This patch upgrades the Global Mining Network visual to a true 3D sphere.
+## Files to copy into the repository
 
-## Install
+- `package.json` → root `package.json`
+- `components/landing/LandingPage.tsx` → replaces the current landing component
+- `app/api/bonus/claim/route.ts` → new server-side bonus claim endpoint
+- `app/auth/login/page.tsx` → replaces the current login page
+- `supabase/migrations/20260911_landing_live_telemetry_and_bonus_claim.sql` → reproducible DB migration (already applied directly)
 
-```bash
-npm install three@0.186.0
-```
+## Supabase changes
 
-## Copy
+Already applied directly to the production NextGen Miner Supabase project:
 
-```text
-components/landing/NetworkCore.tsx
-css/landing-neon-frame.css
-public/assets/landing/earth-equirectangular.webp
-```
+1. `nextgen_get_landing_telemetry()` security-definer aggregate telemetry RPC.
+2. `nextgen_claim_registration_bonus(uuid)` now enforces `auth.uid() = p_user_id`.
+3. Bonus claim RPC is executable by authenticated users only.
+4. Landing telemetry RPC is executable by anon/authenticated users.
 
-`LandingPage.tsx` does not need to change when it already imports `NetworkCore` in the Global Mining Network section.
+## Why `three` is required
 
-The Earth texture is local, so the Vercel deployment does not depend on third-party runtime image hosting.
+`components/landing/NetworkCore.tsx` imports `three`. The current Vercel build failed because the dependency was absent from `package.json`.
+
+The patch adds:
+- `three`
+- `@types/three`
+
+## After copying
+
+Run:
+
+npm install
+npm run build
+
+Then commit/push to `main`. Vercel should automatically create a new production deployment from the GitHub push.
+
+## Important
+
+Do not reintroduce fake hard-coded live telemetry. The new landing reads aggregate hashrate/miner/network figures from Supabase.
+
+The registration bonus remains protected by the database. The browser cannot choose another user's ID, and the database checks the authenticated user's identity.
