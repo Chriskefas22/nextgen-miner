@@ -43,6 +43,8 @@ function diamonds(value: number | string) {
 export const metadata = {
   title: 'Miner Catalog',
   description: 'Explore the public NextGen Miner catalog before signing in or registering.',
+  alternates: { canonical: '/miner-catalog' },
+  openGraph: { url: '/miner-catalog' },
 };
 
 export default async function MinerCatalogPage() {
@@ -72,7 +74,7 @@ export default async function MinerCatalogPage() {
     <PublicPage
       eyebrow="PUBLIC MINER CATALOG"
       title="Explore the rigs before you join."
-      description="Browse the live-enabled miner catalog, compare tiers and starting hashrate, then register when you are ready. Purchasing and ownership controls remain behind authentication."
+      description="Browse the live-enabled miner catalog, compare tiers and starting hashrate, then open a dedicated miner profile before registering. Purchasing and ownership controls remain behind authentication."
     >
       <section className="public-card public-hero">
         <div className={styles.toolbar}>
@@ -97,7 +99,7 @@ export default async function MinerCatalogPage() {
                     <span className={styles.tier}>{miner.tier || 'Miner'}</span>
                     <span className={styles.levels}>LEVELS 1–{maxLevel}</span>
                   </div>
-                  <div className={styles.imageFrame}>
+                  <Link href={`/miner-catalog/${encodeURIComponent(miner.slug)}`} className={styles.imageFrame} aria-label={`View ${miner.name} details`}>
                     <Image
                       src={imagePath(miner.image_path, miner.slug)}
                       alt={`${miner.name} virtual miner`}
@@ -106,7 +108,7 @@ export default async function MinerCatalogPage() {
                       className={styles.image}
                     />
                     <div className={styles.scanline} aria-hidden="true" />
-                  </div>
+                  </Link>
                   <div className={styles.cardBody}>
                     <div>
                       <p className={styles.kicker}>VIRTUAL MINER</p>
@@ -116,8 +118,8 @@ export default async function MinerCatalogPage() {
                       <div><dt>BASE HASHRATE</dt><dd>{hashrate(miner.base_hashrate)}</dd></div>
                       <div><dt>STARTING PRICE</dt><dd>{diamonds(miner.base_price_diamond)} 💎</dd></div>
                     </dl>
-                    <Link className={styles.explore} href="/auth/register">
-                      Start with this rig <span>→</span>
+                    <Link className={styles.explore} href={`/miner-catalog/${encodeURIComponent(miner.slug)}`}>
+                      View miner details <span>→</span>
                     </Link>
                   </div>
                 </article>
