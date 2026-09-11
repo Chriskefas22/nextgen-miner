@@ -4,6 +4,8 @@ import { PublicPage } from '@/components/public/PublicPage';
 export const metadata = {
   title: 'How It Works',
   description: 'A complete public guide to registration, verification, miners, rewards, wallet actions and withdrawals on NextGen Miner.',
+  alternates: { canonical: '/how-it-works' },
+  openGraph: { url: '/how-it-works' },
 };
 
 const steps = [
