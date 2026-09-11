@@ -1,42 +1,37 @@
-# NEXTGEN MINER — CORRECTED FULL FILE PACKAGE
+# NEXTGEN MINER — TRUE 360° 3D EARTH PATCH
 
-This ZIP has been rebuilt and independently verified.
+## What changed
+- Replaced the previous hand-built WebGL globe with a Three.js scene.
+- Earth rotates continuously around the Y axis: ~1 full rotation / 20 seconds.
+- Added a separate animated cloud shell, atmosphere rim, network node layer, curved network routes, and independent orbital rings.
+- Earth texture is bundled locally as `public/assets/landing/earth-equirectangular.webp`; the runtime does not fetch a remote texture.
+- The generated texture is equirectangular (2:1), so it wraps across the full sphere rather than rotating as a flat image.
+- Added `prefers-reduced-motion` support.
+- Renderer DPR is capped at 1.75 to reduce mobile GPU load.
 
-Required files:
-- components/landing/LandingPage.tsx
-- components/landing/NetworkCore.tsx
-- css/landing-neon-frame.css
-- public/assets/landing/hologram-earth-360.png
-- PATCH_NOTES.md
+## Files to copy
+- `components/landing/NetworkCore.tsx` — replace the existing file.
+- `css/landing-neon-frame.css` — replace/merge the file with the supplied full version.
+- `public/assets/landing/earth-equirectangular.webp` — add this asset.
+- `THREE_INSTALL.md` — installation note.
 
-The previous package was defective: only the PNG and PATCH_NOTES.md made it into the ZIP. This package is specifically rebuilt with the three source files included at their repository-root paths.
+## Dependency
+Run:
 
-## Manual GitHub placement
+```bash
+npm install three@0.186.0
+```
 
-Copy each file exactly to:
-
-components/landing/LandingPage.tsx
-components/landing/NetworkCore.tsx
-css/landing-neon-frame.css
-public/assets/landing/hologram-earth-360.png
+Commit the resulting package manifest and lockfile.
 
 ## Supabase
-
-LandingPage keeps the existing server-side RPC:
-nextgen_get_registration_bonus_status
-
-No client-side Supabase secret or service-role key is introduced.
+No Supabase schema, RPC, keys, or server client behavior is changed. The existing `nextgen_get_registration_bonus_status` flow in `LandingPage.tsx` remains untouched.
 
 ## Vercel
+This component is marked `'use client'` and only accesses browser APIs inside `useEffect`, so SSR is not required for WebGL. The texture is local under `public/`, which avoids a runtime dependency on GitHub/raw URLs. Vercel will serve the asset as a normal static file.
 
-No Vercel configuration change is required. The code uses local public assets through next/image and remains compatible with a normal Next.js production deployment.
-
-## Important CSS note
-
-If your repository already has a large landing stylesheet, do not blindly delete it. The supplied CSS contains the required Network Core styles and mobile protection. You can merge/append it to the existing landing CSS if that stylesheet already contains the rest of your site's visual system.
-
-## Network Core
-
-The globe is isolated from the rest of the page. Its transparent Earth asset is surrounded by independent orbital planes, network nodes, scan and aura. The animation is continuous and respects prefers-reduced-motion.
-
-The visual is a convincing 360° holographic presentation; it is not a heavy WebGL/Three.js renderer.
+## Accessibility / performance
+- `aria-label` describes the visualization.
+- Animation pauses to a static pose when the user requests reduced motion.
+- Three.js renderer uses antialiasing and a capped pixel ratio.
+- Geometries and materials are disposed on unmount.

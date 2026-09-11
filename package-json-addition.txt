@@ -1,0 +1,9 @@
+Add this dependency to the repository's existing `package.json` (do not replace your entire package.json):
+
+"three": "0.186.0"
+
+Then run:
+
+npm install
+
+Three.js 0.186.0 is the current npm release checked on 2026-09-11 and ships with its own TypeScript declarations. See the PATCH_NOTES.md for details.

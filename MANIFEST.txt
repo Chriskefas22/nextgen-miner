@@ -1,7 +1,10 @@
-NEXTGEN MINER CORRECTED PACKAGE
+NEXTGEN MINER — TRUE 360° THREE.JS EARTH PATCH
 
-[OK] components/landing/LandingPage.tsx
-[OK] components/landing/NetworkCore.tsx
-[OK] css/landing-neon-frame.css
-[OK] public/assets/landing/hologram-earth-360.png
-[OK] PATCH_NOTES.md
+components/landing/NetworkCore.tsx
+components/landing/LandingPage.tsx
+css/landing-neon-frame.css
+public/assets/landing/earth-equirectangular.webp
+THREE_INSTALL.md
+package-json-addition.txt
+PATCH_NOTES.md
+README.md
