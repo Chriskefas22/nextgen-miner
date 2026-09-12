@@ -1,7 +1,11 @@
-DELETE THIS FILE FROM THE REPOSITORY:
+MANDATORY DELETE:
 middleware.ts
 
-Reason: Next.js now detects both `middleware.ts` and `proxy.ts`, which causes
-the Vercel production build to fail before compilation.
+The current repository still contains a root `middleware.ts`, while the project also has a root `proxy.ts`.
+Vercel/Next.js therefore aborts the build with:
+"Both middleware file './middleware.ts' and proxy file './proxy.ts' are detected. Please use './proxy.ts' only."
 
-The old `.devs.surf` redirect is already integrated into `lib/supabase/proxy.ts`.
+After deleting `middleware.ts`, the only routing entry point should be:
+proxy.ts
+which imports:
+@/lib/supabase/proxy -> updateSession
