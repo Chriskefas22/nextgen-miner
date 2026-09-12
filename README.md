@@ -1,21 +1,23 @@
-# NextGen Miner — V16 Premium Holographic Brand
+# NextGen Miner V17 — Brand Wordmark Fix
 
-Files to copy into GitHub (`main`):
+## GitHub change
 
-- `components/branding/BrandLink.tsx`
-- `components/branding/BrandLink.module.css`
-- `public/assets/branding/nextgen-miner-logo.svg`
+Replace:
 
-What changed:
-- NEXTGEN uses premium ice-white.
-- MINER uses cyan → electric blue → violet gradient.
-- Added a restrained animated neon energy runner around the N frame.
-- Added a small energy spark that follows the motion.
-- Added 3D/glass depth to the N and frame.
-- Mobile typography scales down so the brand does not overflow.
-- Reduced-motion support disables the animation for accessibility.
+`app/brand-mobile-polish.css`
 
-Important:
-- Keep the existing `LandingPage.tsx` and other application routing unchanged.
-- The existing `BrandLink` imports the CSS module from the same directory, so replace both files together.
-- The standalone SVG is for favicon/static brand surfaces; the animated website mark remains inline in `BrandLink.tsx`.
+with the included file.
+
+## What this fixes
+
+- Removes the legacy cyan override affecting the brand wordmark.
+- NEXTGEN becomes premium ice-white.
+- MINER becomes cyan → electric blue → violet.
+- Keeps the V16 holographic N logo and animation unchanged.
+- Preserves the existing mobile hero polish.
+
+## Commit
+
+`fix: restore premium brand wordmark colors (V17)`
+
+Push to `main`. Vercel should automatically deploy the change.
