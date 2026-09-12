@@ -39,9 +39,7 @@
   overflow:visible;
 }
 
-.frameBase{
-  opacity:.82;
-}
+.frameBase{opacity:.82}
 
 .energyRunner{
   transform-box:fill-box;
