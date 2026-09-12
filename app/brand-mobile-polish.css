@@ -8,3 +8,76 @@
   .ng-fp .hero-desc{max-width:100%;font-size:15px}
   .ng-fp .hero-live-chip{max-width:100%}
 }
+
+/* =========================================================
+   NEXTGEN MINER — BRAND WORDMARK OVERRIDE (V17)
+   Fixes the legacy .ng-fp .brand span span cyan override.
+   NEXTGEN = premium ice white
+   MINER   = cyan → electric blue → violet
+   ========================================================= */
+
+/* Neutralize the legacy landing-page selector. */
+.ng-fp .brand span span{
+  color:unset !important;
+}
+
+/* Support the V16/V17 BrandLink structure without relying
+   on the old generic span selector. */
+.ng-fp .brand .brand-text,
+.ng-fp .brand .brand-text *{
+  font-family:Orbitron,system-ui,sans-serif;
+  font-weight:700;
+}
+
+.ng-fp .brand .brand-text .nextgen,
+.ng-fp .brand .brand-text .nextgen:first-child{
+  color:#f3fbff !important;
+  background:none !important;
+  -webkit-text-fill-color:#f3fbff !important;
+  text-shadow:0 0 16px rgba(243,251,255,.18);
+}
+
+.ng-fp .brand .brand-text .miner,
+.ng-fp .brand .brand-text .miner:last-child{
+  color:transparent !important;
+  background:linear-gradient(
+    90deg,
+    #25e8ff 0%,
+    #5c8cff 52%,
+    #8b5cff 100%
+  ) !important;
+  -webkit-background-clip:text !important;
+  background-clip:text !important;
+  -webkit-text-fill-color:transparent !important;
+  text-shadow:0 0 16px rgba(92,140,255,.32);
+}
+
+/* Safe fallback for the exact two-span wordmark. */
+.ng-fp .brand .brand-text > span:first-child{
+  color:#f3fbff !important;
+  -webkit-text-fill-color:#f3fbff !important;
+  background:none !important;
+}
+
+.ng-fp .brand .brand-text > span:last-child{
+  color:transparent !important;
+  background:linear-gradient(90deg,#25e8ff 0%,#5c8cff 52%,#8b5cff 100%) !important;
+  -webkit-background-clip:text !important;
+  background-clip:text !important;
+  -webkit-text-fill-color:transparent !important;
+}
+
+@media (max-width:600px){
+  .ng-fp .brand .brand-text{
+    font-size:clamp(11px,3.2vw,13.5px);
+    letter-spacing:.052em;
+    white-space:nowrap;
+  }
+}
+
+@media (max-width:390px){
+  .ng-fp .brand .brand-text{
+    font-size:10.8px;
+    letter-spacing:.045em;
+  }
+}
