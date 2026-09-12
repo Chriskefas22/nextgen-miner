@@ -1,0 +1,7 @@
+DELETE THIS FILE FROM THE REPOSITORY:
+middleware.ts
+
+Reason: Next.js now detects both `middleware.ts` and `proxy.ts`, which causes
+the Vercel production build to fail before compilation.
+
+The old `.devs.surf` redirect is already integrated into `lib/supabase/proxy.ts`.
