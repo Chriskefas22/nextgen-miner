@@ -4,54 +4,46 @@ import { createClient } from '@/lib/supabase/server'
 const DEFAULT_ASSET = 'USDT'
 
 export async function POST(request: Request) {
-const supabase = await createClient()
+  const supabase = await createClient()
 
-const {
-data: { user },
-} = await supabase.auth.getUser()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
-if (!user) {
-return NextResponse.json(
-{ error: 'UNAUTHORIZED' },
-{ status: 401 },
-)
-}
+  if (!user) {
+    return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 })
+  }
 
-let asset = DEFAULT_ASSET
+  let asset = DEFAULT_ASSET
 
-try {
-const body = await request.json().catch(() => ({}))
+  try {
+    const body = await request.json().catch(() => ({}))
 
-if (
-  body &&
-  typeof body.asset === 'string' &&
-  body.asset.trim().length > 0
-) {
-  asset = body.asset.trim().toUpperCase()
-}
+    if (
+      body &&
+      typeof body.asset === 'string' &&
+      body.asset.trim().length > 0
+    ) {
+      asset = body.asset.trim().toUpperCase()
+    }
+  } catch {
+    // Safe default remains USDT.
+  }
 
-} catch {
-// Keep the safe default asset.
-}
+  // Compatibility route only: the authoritative settlement engine is
+  // nextgen_claim_mining(). No reward formula is calculated in the API.
+  const { data, error } = await supabase.rpc('nextgen_claim_mining', {
+    p_asset: asset,
+  })
 
-const { data, error } = await supabase.rpc(
-'nextgen_accrue_mining',
-{
-p_asset: asset,
-},
-)
+  if (error) {
+    console.error('[MiningSettlement]', error)
 
-if (error) {
-console.error('[MiningAccrue]', error)
+    return NextResponse.json(
+      { error: error.message || 'MINING_SETTLEMENT_FAILED' },
+      { status: error.code === '42501' ? 403 : 400 },
+    )
+  }
 
-return NextResponse.json(
-  {
-    error: error.message || 'MINING_ACCRUAL_FAILED',
-  },
-  { status: 400 },
-)
-
-}
-
-return NextResponse.json(data)
+  return NextResponse.json(data)
 }
