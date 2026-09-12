@@ -1,13 +1,12 @@
 'use client';
 
 import Link from 'next/link';
-import { Bell, Menu, Plus } from 'lucide-react';
+import { Bell, Plus } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
+import BrandLink from '@/components/branding/BrandLink';
 
-type TopbarProps = {
-  onMenu?: () => void;
-};
+type TopbarProps = { onMenu?: () => void };
 
 export function Topbar({ onMenu }: TopbarProps) {
   const [balance, setBalance] = useState<number | null>(null);
@@ -17,10 +16,7 @@ export function Topbar({ onMenu }: TopbarProps) {
     let mounted = true;
 
     async function loadWallet() {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
+      const { data: { user } } = await supabase.auth.getUser();
       if (!user || !mounted) return;
 
       const { data } = await supabase
@@ -29,33 +25,24 @@ export function Topbar({ onMenu }: TopbarProps) {
         .eq('user_id', user.id)
         .maybeSingle();
 
-      if (mounted) {
-        setBalance(data?.diamond_balance == null ? 0 : Number(data.diamond_balance));
-      }
+      if (mounted) setBalance(data?.diamond_balance == null ? 0 : Number(data.diamond_balance));
     }
 
     loadWallet();
-
-    return () => {
-      mounted = false;
-    };
+    return () => { mounted = false; };
   }, []);
 
-  const formatted =
-    balance === null
-      ? '—'
-      : new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(balance);
+  const formatted = balance === null
+    ? '—'
+    : new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(balance);
 
   return (
     <header className="topbar">
       <button type="button" aria-label="Open menu" className="icon-btn mobile-menu" onClick={onMenu}>
-        <Menu size={18} />
+        <span aria-hidden="true">☰</span>
       </button>
 
-      <Link href="/dashboard" className="brand" aria-label="NextGen Miner dashboard">
-        <div className="brand-mark">N</div>
-        <div className="brand-title">NEXTGEN <span>MINER</span></div>
-      </Link>
+      <BrandLink href="/dashboard" variant="dashboard" className="brand" />
 
       <div className="top-actions">
         <Link href="/wallet/deposit" className="diamond-pill" aria-label="Open deposit">
@@ -63,7 +50,6 @@ export function Topbar({ onMenu }: TopbarProps) {
           <b>{formatted}</b>
           <span aria-hidden="true"><Plus size={15} /></span>
         </Link>
-
         <Link href="/notifications" className="icon-btn" aria-label="Notifications">
           <Bell size={18} />
         </Link>
