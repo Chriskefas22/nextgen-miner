@@ -1,0 +1,15 @@
+Edit `components/landing/LandingPage.tsx` safely rather than replacing the whole file.
+
+1. Add:
+import BrandLink from '@/components/branding/BrandLink';
+
+2. Replace:
+<Link className="brand" href="/" aria-label="NextGen Miner home">
+  <span className="logo">N</span>
+  <span>NEXTGEN <span>MINER</span></span>
+</Link>
+
+with:
+<BrandLink authAware variant="public" className="brand" />
+
+Do not remove the rest of LandingPage.tsx.
