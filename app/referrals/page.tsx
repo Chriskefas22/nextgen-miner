@@ -1,10 +1,19 @@
 import Link from 'next/link';
 import { PublicPage } from '@/components/public/PublicPage';
 import { createClient } from '@/lib/supabase/server';
+import { siteConfig } from '@/lib/site-config';
 
 export const metadata = {
   title: 'Referral Program',
   description: 'Learn how the NextGen Miner referral program works and how referred users are attributed.',
+  alternates: {
+    canonical: `${siteConfig.url}/referrals`,
+  },
+  openGraph: {
+    title: 'Referral Program | NextGen Miner',
+    description: 'Learn how the NextGen Miner referral program works and how referred users are attributed.',
+    url: `${siteConfig.url}/referrals`,
+  },
 };
 
 export default async function ReferralsPage() {
