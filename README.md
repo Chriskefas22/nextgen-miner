@@ -1,23 +1,24 @@
-# NextGen Miner V17 — Brand Wordmark Fix
+# V18 — Wordmark Fix
 
-## GitHub change
+Root cause:
+V17 added a global selector `.ng-fp .brand span span` that also matched the
+nested spans inside the CSS-module BrandLink wordmark. That selector could
+override the intended `BrandLink.module.css` colors.
 
-Replace:
+V18 removes the entire V17 global wordmark override.
 
-`app/brand-mobile-polish.css`
+The canonical styling is already correctly defined in:
+`components/branding/BrandLink.module.css`
 
-with the included file.
+Expected result:
+- NEXTGEN = premium ice white
+- MINER = cyan → blue → violet
+- Mobile sizing remains intact
+- No generic global selector can override the CSS-module wordmark
 
-## What this fixes
+Files:
+- `app/brand-mobile-polish.css`
+- `components/branding/BrandLink.module.css` (included as the known-good reference)
 
-- Removes the legacy cyan override affecting the brand wordmark.
-- NEXTGEN becomes premium ice-white.
-- MINER becomes cyan → electric blue → violet.
-- Keeps the V16 holographic N logo and animation unchanged.
-- Preserves the existing mobile hero polish.
-
-## Commit
-
-`fix: restore premium brand wordmark colors (V17)`
-
-Push to `main`. Vercel should automatically deploy the change.
+Commit suggestion:
+`fix: definitive BrandLink wordmark styling`
