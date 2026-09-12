@@ -1,15 +1,21 @@
-# NextGen Miner V15 — Holographic Brand Logo
+# NextGen Miner — V16 Premium Holographic Brand
 
-This patch upgrades the existing `BrandLink` logo into a premium multi-color holographic N emblem with a CSS-animated energy runner around the frame.
+Files to copy into GitHub (`main`):
 
-## Changes
-- `components/branding/BrandLink.tsx`: new layered SVG logo with cyan/blue/purple/magenta gradients, metallic depth, highlights and moving energy runner.
-- `components/branding/BrandLink.module.css`: runner animation, hover polish and reduced-motion handling.
-- `public/branding/nextgen-miner-logo.svg`: reusable standalone animated SVG brand asset.
-- `app/layout.tsx`: registers the new SVG as site icon and loads the mobile polish stylesheet.
-- `app/brand-mobile-polish.css`: prevents hero headline overflow on narrow Android viewports.
+- `components/branding/BrandLink.tsx`
+- `components/branding/BrandLink.module.css`
+- `public/assets/branding/nextgen-miner-logo.svg`
 
-## Apply
-Replace/add the files in the same repository paths, commit to `main`, then wait for Vercel to build.
+What changed:
+- NEXTGEN uses premium ice-white.
+- MINER uses cyan → electric blue → violet gradient.
+- Added a restrained animated neon energy runner around the N frame.
+- Added a small energy spark that follows the motion.
+- Added 3D/glass depth to the N and frame.
+- Mobile typography scales down so the brand does not overflow.
+- Reduced-motion support disables the animation for accessibility.
 
-The current production deployment had already reached READY before this visual patch; the remaining step is the normal GitHub push so Vercel can build this V15 change.
+Important:
+- Keep the existing `LandingPage.tsx` and other application routing unchanged.
+- The existing `BrandLink` imports the CSS module from the same directory, so replace both files together.
+- The standalone SVG is for favicon/static brand surfaces; the animated website mark remains inline in `BrandLink.tsx`.
