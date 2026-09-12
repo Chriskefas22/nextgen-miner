@@ -7,9 +7,29 @@ import {
   type NextRequest,
 } from 'next/server';
 
-export async function updateSession(
+const RETIRED_HOSTS = new Set([
+  'nextgenminer.devs.surf',
+  'www.nextgenminer.devs.surf',
+]);
+
+const CANONICAL_HOST = 'nextgen-miner.vercel.app';
+
+export async function proxy(
   request: NextRequest
 ) {
+  const host = request.headers
+    .get('host')
+    ?.split(':')[0]
+    .toLowerCase();
+
+  if (host && RETIRED_HOSTS.has(host)) {
+    const url = request.nextUrl.clone();
+    url.protocol = 'https:';
+    url.host = CANONICAL_HOST;
+
+    return NextResponse.redirect(url, 308);
+  }
+
   let supabaseResponse =
     NextResponse.next({
       request,
@@ -73,16 +93,8 @@ export async function updateSession(
       }
     );
 
-  /*
-   * Refresh/validate the Supabase Auth
-   * session before Server Components run.
-   */
   await supabase.auth.getClaims();
 
-  /*
-   * Security headers previously provided
-   * by middleware.ts.
-   */
   supabaseResponse.headers.set(
     'x-content-type-options',
     'nosniff'
@@ -100,3 +112,9 @@ export async function updateSession(
 
   return supabaseResponse;
 }
+
+export const config = {
+  matcher: [
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+  ],
+};
