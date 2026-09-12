@@ -1,24 +1,20 @@
-# V18 — Wordmark Fix
+# NEXTGEN MINER — Control Plane App Sync
 
-Root cause:
-V17 added a global selector `.ng-fp .brand span span` that also matched the
-nested spans inside the CSS-module BrandLink wordmark. That selector could
-override the intended `BrandLink.module.css` colors.
+These are the application-side files required to align Next.js/Vercel with the authoritative Supabase mining control plane.
 
-V18 removes the entire V17 global wordmark override.
+## Replace
 
-The canonical styling is already correctly defined in:
-`components/branding/BrandLink.module.css`
+- `app/dashboard/page.tsx`
+- `app/api/mining/accrue/route.ts`
 
-Expected result:
-- NEXTGEN = premium ice white
-- MINER = cyan → blue → violet
-- Mobile sizing remains intact
-- No generic global selector can override the CSS-module wordmark
+## Supabase contract added
 
-Files:
-- `app/brand-mobile-polish.css`
-- `components/branding/BrandLink.module.css` (included as the known-good reference)
+- `public.nextgen_mining_dashboard_snapshot(text)`
 
-Commit suggestion:
-`fix: definitive BrandLink wordmark styling`
+The dashboard no longer reads `nextgen_reward_ledger` for mining rewards and no longer performs timestamp-based reward calculations. The compatibility `/api/mining/accrue` route now calls `nextgen_claim_mining`.
+
+## Important
+
+The GitHub repository is connected to Vercel, but this session is operating with GitHub write access disabled. Therefore the files are prepared here for manual paste/commit. Once committed to `main`, the existing Vercel Git integration can build the change.
+
+Do not modify the frozen landing files.
