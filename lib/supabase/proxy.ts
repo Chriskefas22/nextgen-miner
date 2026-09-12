@@ -8,7 +8,7 @@ const RETIRED_HOSTS = new Set([
 
 const CANONICAL_HOST = 'nextgen-miner.vercel.app';
 
-export async function proxy(request: NextRequest) {
+export async function updateSession(request: NextRequest) {
   const host = request.headers.get('host')?.split(':')[0].toLowerCase();
 
   if (host && RETIRED_HOSTS.has(host)) {
@@ -28,7 +28,7 @@ export async function proxy(request: NextRequest) {
         getAll() {
           return request.cookies.getAll();
         },
-        setAll(cookiesToSet, headers) {
+        setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value }) => {
             request.cookies.set(name, value);
           });
@@ -37,10 +37,6 @@ export async function proxy(request: NextRequest) {
 
           cookiesToSet.forEach(({ name, value, options }) => {
             supabaseResponse.cookies.set(name, value, options);
-          });
-
-          Object.entries(headers || {}).forEach(([key, value]) => {
-            supabaseResponse.headers.set(key, value);
           });
         },
       },
