@@ -1,0 +1,10 @@
+/* V15: mobile first-screen polish observed during Android QA.
+   Prevent the large hero headline from overflowing narrow viewports. */
+@media (max-width:600px){
+  .ng-fp .hero-content{width:calc(100% - 28px)}
+  .ng-fp .hero-copy{width:100%;max-width:100%;padding-top:52px}
+  .ng-fp .hero .eyebrow{font-size:9px;letter-spacing:.14em;line-height:1.35;white-space:normal;}
+  .ng-fp .hero h1{font-size:clamp(32px,9.6vw,40px);line-height:.98;letter-spacing:-.045em;overflow-wrap:anywhere;word-break:normal;}
+  .ng-fp .hero-desc{max-width:100%;font-size:15px}
+  .ng-fp .hero-live-chip{max-width:100%}
+}
