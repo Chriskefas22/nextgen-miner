@@ -1,0 +1,5 @@
+DELETE THIS EXISTING FILE FROM THE REPOSITORY:
+middleware.ts
+
+Do not rename it, do not keep an empty copy, and do not upload this TXT file as middleware.ts.
+Next.js/Vercel must use lib/supabase/proxy.ts only.
