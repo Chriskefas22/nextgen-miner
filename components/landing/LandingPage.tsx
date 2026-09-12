@@ -2,6 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import NetworkCore from '@/components/landing/NetworkCore';
+import BrandLink from '@/components/branding/BrandLink';
 
 type BonusStatus = {
   total_slots?: number | string;
@@ -91,18 +92,18 @@ export default async function LandingPage() {
   const enabledNetworks = Math.max(0, Math.round(num(telemetry?.enabled_networks)));
   const enabledMinerCatalog = Math.max(0, Math.round(num(telemetry?.enabled_miners)));
   const liveUpdated = telemetry?.generated_at
-    ? new Date(telemetry.generated_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })
+    ? new Date(telemetry.generated_at).toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false,
+      })
     : '—';
 
   return (
     <main className="ng-fp">
-      
-
       <header className="nav">
-        <Link className="brand" href="/" aria-label="NextGen Miner home">
-          <span className="logo">N</span>
-          <span>NEXTGEN <span>MINER</span></span>
-        </Link>
+        <BrandLink authAware variant="public" className="brand" />
 
         <nav className="navlinks" aria-label="Primary navigation">
           <a className="active" href="#top">Home</a>
@@ -127,8 +128,8 @@ export default async function LandingPage() {
             <Link href="/how-it-works">How It Works</Link>
             <Link href="/miner-catalog">Miners</Link>
             <Link href="/referrals">Referral Program</Link>
-            <a href="/auth/register">Register</a>
-            <a href="/auth/login">Login</a>
+            <Link href="/auth/register">Register</Link>
+            <Link href="/auth/login">Login</Link>
           </nav>
         </details>
       </header>
@@ -344,7 +345,6 @@ export default async function LandingPage() {
               className="entry-gpu-image"
             />
           </div>
-
         </div>
       </section>
 
