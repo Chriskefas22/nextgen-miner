@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import BrandLink from '@/components/branding/BrandLink';
 
 type PublicPageProps = {
   eyebrow: string;
@@ -24,9 +25,7 @@ export function PublicPage({ eyebrow, title, description, children }: PublicPage
     <main className="ng-public">
       <div className="public-wrap">
         <header className="public-nav">
-          <Link className="public-brand" href="/">
-            NEXTGEN <span>MINER</span>
-          </Link>
+          <BrandLink authAware variant="public" className="public-brand" />
           <nav className="public-navlinks" aria-label="Public navigation">
             <Link href="/about">About</Link>
             <Link href="/how-it-works">How It Works</Link>
