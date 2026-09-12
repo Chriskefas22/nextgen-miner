@@ -1,0 +1,12 @@
+.brandLink{--ng-brand-cyan:#24e8ff;--ng-brand-white:#ecffff;display:inline-flex;align-items:center;gap:10px;min-width:0;color:var(--ng-brand-white);text-decoration:none;-webkit-tap-highlight-color:transparent}
+.brandLink:focus-visible{outline:2px solid rgba(36,232,255,.78);outline-offset:4px;border-radius:14px}
+.visual{display:inline-flex;align-items:center;gap:10px;min-width:0}
+.markWrap{width:40px;height:40px;flex:0 0 40px;display:grid;place-items:center;filter:drop-shadow(0 0 14px rgba(36,232,255,.16));transition:transform .22s ease,filter .22s ease}
+.mark{width:100%;height:100%;display:block}
+.brandLink:hover .markWrap{transform:translateY(-1px) scale(1.025);filter:drop-shadow(0 0 19px rgba(36,232,255,.32))}
+.wordmark{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:Orbitron,system-ui,sans-serif;font-weight:700;font-size:13px;letter-spacing:.065em;line-height:1}
+.wordmarkAccent{color:var(--ng-brand-cyan);text-shadow:0 0 16px rgba(36,232,255,.16)}
+.publicVisual .wordmark{font-size:13px}
+.dashboardVisual .wordmark{font-size:14px}
+@media (max-width:560px){.markWrap{width:36px;height:36px;flex-basis:36px}.wordmark{font-size:11px !important;letter-spacing:.055em}.visual{gap:8px}}
+@media (prefers-reduced-motion:reduce){.markWrap{transition:none}}
