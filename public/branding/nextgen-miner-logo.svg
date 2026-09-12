@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title desc">
+  <title id="title">NextGen Miner</title>
+  <desc id="desc">Holographic neon N emblem with a moving energy runner around its frame.</desc>
+  <defs>
+    <linearGradient id="frame" x1="28" y1="28" x2="228" y2="228" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#f4ffff"/><stop offset=".2" stop-color="#28efff"/>
+      <stop offset=".55" stop-color="#2f79ff"/><stop offset=".8" stop-color="#7f43ff"/><stop offset="1" stop-color="#f04dff"/>
+    </linearGradient>
+    <linearGradient id="n" x1="72" y1="50" x2="188" y2="206" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#fff"/><stop offset=".2" stop-color="#c4feff"/><stop offset=".45" stop-color="#20e8ff"/><stop offset=".72" stop-color="#3c83ff"/><stop offset="1" stop-color="#d74bff"/>
+    </linearGradient>
+    <radialGradient id="core" cx="36%" cy="30%" r="75%">
+      <stop offset="0" stop-color="#22ecff" stop-opacity=".3"/><stop offset=".45" stop-color="#2b74ff" stop-opacity=".11"/><stop offset="1" stop-color="#020916" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="glow" x="-70%" y="-70%" width="240%" height="240%">
+      <feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <rect x="20" y="20" width="216" height="216" rx="62" fill="#020918" stroke="#163a5b" stroke-width="6"/>
+  <rect x="30" y="30" width="196" height="196" rx="54" fill="url(#core)" stroke="url(#frame)" stroke-width="8" filter="url(#glow)"/>
+  <path d="M82 184V72L174 184V72" fill="none" stroke="url(#n)" stroke-width="24" stroke-linecap="round" stroke-linejoin="round" opacity=".2" filter="url(#glow)"/>
+  <path d="M82 184V72L174 184V72" fill="none" stroke="url(#n)" stroke-width="15" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M88 77L170 178" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".52"/>
+  <rect x="32" y="32" width="192" height="192" rx="52" fill="none" stroke="url(#frame)" stroke-width="6" stroke-linecap="round" stroke-dasharray="20 640" filter="url(#glow)">
+    <animate attributeName="stroke-dashoffset" from="0" to="-660" dur="3.5s" repeatCount="indefinite"/>
+  </rect>
+  <rect x="38" y="38" width="180" height="180" rx="48" fill="none" stroke="#36ecff" stroke-width="2" stroke-linecap="round" stroke-dasharray="5 700" opacity=".7">
+    <animate attributeName="stroke-dashoffset" from="0" to="700" dur="4.8s" repeatCount="indefinite"/>
+  </rect>
+  <circle cx="104" cy="157" r="5" fill="#7af8ff" filter="url(#glow)"/>
+  <circle cx="104" cy="176" r="3.5" fill="#9a78ff" filter="url(#glow)"/>
+</svg>
