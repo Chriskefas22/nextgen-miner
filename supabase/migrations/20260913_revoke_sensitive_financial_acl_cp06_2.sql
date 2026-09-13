@@ -1,0 +1,15 @@
+begin;
+revoke all on table public.nextgen_economic_rule_versions from anon,authenticated;
+revoke all on table public.nextgen_mining_economic_guardrails from anon,authenticated;
+revoke all on table public.nextgen_registration_bonus_campaigns from anon,authenticated;
+revoke all on table public.nextgen_registration_bonus_claims from anon,authenticated;
+revoke all on table public.nextgen_registration_bonus_identities from anon,authenticated;
+revoke all on table public.nextgen_mining_pool_settings from anon,authenticated;
+revoke all on table public.nextgen_mining_economy_settings from anon,authenticated;
+revoke all on table public.nextgen_economy_settings from anon,authenticated;
+revoke all on table public.nextgen_exchange_rates from anon,authenticated;
+revoke all on table public.nextgen_crypto_balances from anon,authenticated;
+revoke all on table public.nextgen_crypto_ledger from anon,authenticated;
+revoke all on table public.nextgen_transactions from anon,authenticated;
+revoke all on table public.nextgen_withdrawals from anon,authenticated;
+commit;
