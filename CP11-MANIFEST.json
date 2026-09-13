@@ -1,0 +1,30 @@
+{
+  "checkpoint": "CP11",
+  "name": "Public Website & Compliance",
+  "landing_page_frozen": true,
+  "files": [
+    ".env.example",
+    "CP11-MANIFEST.json",
+    "CP11-README.md",
+    "app/about/page.tsx",
+    "app/contact/page.tsx",
+    "app/error.tsx",
+    "app/global-error.tsx",
+    "app/layout.tsx",
+    "app/legal/disclaimer/page.tsx",
+    "app/legal/privacy/page.tsx",
+    "app/legal/terms/page.tsx",
+    "app/not-found.tsx",
+    "app/robots.ts",
+    "app/sitemap.ts",
+    "components/public/PublicPage.tsx",
+    "lib/site-config.ts",
+    "tsconfig.json"
+  ],
+  "required_env": [
+    "NEXT_PUBLIC_LEGAL_ENTITY_NAME",
+    "NEXT_PUBLIC_LEGAL_JURISDICTION",
+    "NEXT_PUBLIC_LEGAL_ADDRESS",
+    "NEXT_PUBLIC_SUPPORT_EMAIL"
+  ]
+}
