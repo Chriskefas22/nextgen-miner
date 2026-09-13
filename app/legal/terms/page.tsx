@@ -1,4 +1,5 @@
 import { PublicPage } from '@/components/public/PublicPage';
+import { publicCompliance, siteConfig } from '@/lib/site-config';
 
 export const metadata = {
   title: 'Terms of Service',
@@ -12,12 +13,18 @@ export default function TermsPage() {
     <PublicPage
       eyebrow="LEGAL · TERMS"
       title="Terms of Service"
-      description="Rules for responsible use of the NextGen Miner platform. The actual operating entity and jurisdiction must be inserted before commercial launch."
+      description="Rules for responsible use of the NextGen Miner platform."
     >
       <section className="public-card public-hero">
-        <div className="public-note">These terms are a product-oriented draft and must be reviewed and finalized by the actual operator and qualified legal counsel for the applicable jurisdiction before commercial launch.</div>
+        <div className="public-note">
+          Effective date: {siteConfig.termsEffectiveDate}
+          {publicCompliance.operatorIdentityReady
+            ? ` · Operator: ${siteConfig.legalEntityName} · Jurisdiction: ${siteConfig.jurisdiction}`
+            : ' · Final operator identity, jurisdiction and legal address remain a commercial-launch requirement.'}
+        </div>
+
         <h2>1. Acceptance</h2><p>By accessing or using the service, you agree to follow these Terms, the Privacy Policy, the Disclaimer and any current product rules that apply to the feature you use.</p>
-        <h2>2. Eligibility and account accuracy</h2><p>You must be legally permitted to use the service in your location and provide accurate account information. Protect your credentials and report suspected unauthorized access.</p>
+        <h2>2. Eligibility and account accuracy</h2><p>You must be at least {siteConfig.minimumAge} years old, or older where applicable law requires it, be legally permitted to use the service in your location and provide accurate account information. Protect your credentials and report suspected unauthorized access.</p>
         <h2>3. Account security</h2><p>Do not share passwords, recovery codes, session credentials, private keys or seed phrases. Attempts to bypass authentication or security controls are prohibited.</p>
         <h2>4. Virtual miners</h2><p>Miner ownership, tier, level, hashrate and status are digital platform records. Unless a separate written agreement says otherwise, a virtual miner is not ownership of physical mining hardware.</p>
         <h2>5. Diamond economy</h2><p>Diamond (💎) is the internal platform economy unit. Prices, conversion values and reward parameters are subject to the current platform configuration and are not promises of value outside the service.</p>
@@ -31,8 +38,8 @@ export default function TermsPage() {
         <h2>13. Availability and changes</h2><p>Features, assets, networks, miners, campaigns, economic parameters, payout methods and operational rules can change, pause or become unavailable.</p>
         <h2>14. Intellectual property</h2><p>Unless otherwise stated, the website, branding, software, visual assets, text and interfaces are controlled by the applicable rights holder.</p>
         <h2>15. Risk and limitations</h2><p>The service does not promise uninterrupted availability or guaranteed rewards. Users should participate only within their own risk tolerance and applicable law.</p>
-        <h2>16. Governing law and disputes</h2><p>The final operating entity must specify governing law, jurisdiction, dispute procedure and required consumer notices before commercial launch.</p>
-        <h2>17. Contact</h2><p>Questions about these Terms should use the official Contact channel. Account-specific matters may also use the signed-in Support Center.</p>
+        <h2>16. Governing law and disputes</h2><p>The governing law, jurisdiction and dispute procedure must follow the final operator disclosure and any applicable mandatory law. Those production disclosures must be configured before commercial launch.</p>
+        <h2>17. Contact</h2><p>Questions about these Terms can be submitted through the official Support Center. The monitored support email is published on the Contact page when configured.</p>
       </section>
     </PublicPage>
   );
