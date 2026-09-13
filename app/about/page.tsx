@@ -1,4 +1,5 @@
 import { PublicPage } from '@/components/public/PublicPage';
+import { publicCompliance, siteConfig } from '@/lib/site-config';
 
 export const metadata = {
   title: 'About NextGen Miner',
@@ -6,6 +7,23 @@ export const metadata = {
   alternates: { canonical: '/about' },
   openGraph: { url: '/about' },
 };
+
+function LegalReadinessNote() {
+  if (publicCompliance.operatorIdentityReady) {
+    return (
+      <div className="public-note">
+        Operator: {siteConfig.legalEntityName} · Jurisdiction: {siteConfig.jurisdiction} · Address: {siteConfig.legalAddress}
+      </div>
+    );
+  }
+
+  return (
+    <div className="public-note">
+      Public product information is available in pre-commercial mode. The final operator identity,
+      jurisdiction and legal address must be configured from the actual operating entity before commercial launch.
+    </div>
+  );
+}
 
 export default function AboutPage() {
   return (
@@ -16,8 +34,19 @@ export default function AboutPage() {
     >
       <section className="public-card public-hero">
         <h2>What NextGen Miner is</h2>
-        <p>NextGen Miner is a virtual mining and reward platform. Users can create an account, complete verification, receive an eligible launch bonus when a campaign applies, acquire virtual miners, progress through miner levels and manage eligible rewards through the account wallet.</p>
-        <p>The platform uses server-side controls and database state for sensitive ownership, reward, wallet and campaign decisions. Public pages explain the product before registration; authenticated pages handle user-specific actions.</p>
+        <p>
+          NextGen Miner is a virtual mining and reward platform. Users can create an account,
+          complete verification, receive an eligible launch bonus when a campaign applies, acquire
+          virtual miners, progress through miner levels and manage eligible rewards through the
+          account wallet.
+        </p>
+        <p>
+          The platform uses server-side controls and database state for sensitive ownership,
+          reward, wallet and campaign decisions. Public pages explain the product before
+          registration; authenticated pages handle user-specific actions.
+        </p>
+
+        <LegalReadinessNote />
 
         <h2>How the main systems connect</h2>
         <div className="public-grid">
@@ -37,9 +66,6 @@ export default function AboutPage() {
 
         <h2>Security and integrity</h2>
         <p>Sensitive operations are intended to be validated server-side. Users should protect passwords and authentication factors, avoid sharing wallet secrets and report suspected vulnerabilities through official support.</p>
-
-        <h2>Before you participate</h2>
-        <p>Review the <a href="/how-it-works">How It Works</a> guide, <a href="/miner-catalog">Miner Catalog</a>, <a href="/faq">FAQ</a>, <a href="/legal/terms">Terms of Service</a>, <a href="/legal/privacy">Privacy Policy</a> and <a href="/legal/disclaimer">Disclaimer</a>. Operator identity, jurisdiction and formal business disclosures must be completed against the actual operating entity before commercial launch.</p>
       </section>
     </PublicPage>
   );
