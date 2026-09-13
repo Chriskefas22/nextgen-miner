@@ -6,22 +6,27 @@ function num(value: unknown, digits = 2) {
   if (!Number.isFinite(n)) return '0';
   return n.toLocaleString('en-US', { maximumFractionDigits: digits });
 }
-
-function pct(value: unknown) {
-  return `${num(value, 1)}%`;
-}
-
+function pct(value: unknown) { return `${num(value, 1)}%`; }
 function statusClass(status: string) {
-  if (status === 'HEALTHY') return 'badge green';
-  if (status === 'TARGET') return 'badge green';
+  if (status === 'HEALTHY' || status === 'PASS') return 'badge green';
+  if (status === 'TARGET' || status === 'WARN') return 'badge gold';
   if (status === 'FLOOR') return 'badge gold';
   return 'badge';
 }
 
 export default async function Admin() {
   const supabase = await createClient();
-  const { data, error } = await supabase.rpc('nextgen_economic_capacity_snapshot', { p_asset: 'USDT' });
+  const [{ data, error }, { data: auditData }] = await Promise.all([
+    supabase.rpc('nextgen_economic_capacity_snapshot', { p_asset: 'USDT' }),
+    supabase.rpc('nextgen_economic_liability_audit'),
+  ]);
   const snapshot = (data ?? {}) as Record<string, unknown>;
+  const audit = (auditData ?? {}) as Record<string, unknown>;
+  const auditLiability = (audit.liability ?? {}) as Record<string, unknown>;
+  const auditPayouts = (audit.payouts ?? {}) as Record<string, unknown>;
+  const auditPools = (audit.pools ?? {}) as Record<string, unknown>;
+  const auditRevenue = (audit.revenue ?? {}) as Record<string, unknown>;
+  const auditWithdrawals = (audit.withdrawals ?? {}) as Record<string, unknown>;
 
   const status = String(snapshot.status ?? 'UNAVAILABLE');
   const expansionAllowed = Boolean(snapshot.expansion_allowed ?? false);
@@ -44,17 +49,14 @@ export default async function Admin() {
         <div>
           <div className="eyebrow">OWNER CONTROL · ECONOMIC CAPACITY</div>
           <h1 className="page-title">Economic Control Center</h1>
-          <div className="muted">
-            Authoritative production capacity envelope. New weighted-H/s expansion is blocked below TARGET.
-          </div>
+          <div className="muted">Authoritative production capacity envelope. New weighted-H/s expansion is blocked below TARGET.</div>
         </div>
         <div className={statusClass(status)}>{status}</div>
       </div>
 
       {error ? (
         <section className="glass section" style={{ marginBottom: 14 }}>
-          <div className="eyebrow">CONTROL PLANE</div>
-          <h2>Unavailable</h2>
+          <div className="eyebrow">CONTROL PLANE</div><h2>Unavailable</h2>
           <p className="muted">The owner-only economic snapshot could not be loaded.</p>
         </section>
       ) : (
@@ -82,8 +84,7 @@ export default async function Admin() {
 
           <div className="grid grid-2" style={{ marginTop: 14 }}>
             <section className="glass section">
-              <div className="eyebrow">FUNDED CAPACITY</div>
-              <h2>10-day release envelope</h2>
+              <div className="eyebrow">FUNDED CAPACITY</div><h2>10-day release envelope</h2>
               <div className="list-row"><span>Current mining budget</span><b>${num(miningBudget, 8)}</b></div>
               <div className="list-row"><span>Target-safe weighted H/s</span><b>{num(snapshot.target_safe_weighted_hash, 2)}</b></div>
               <div className="list-row"><span>New weighted H/s headroom</span><b>{num(headroom, 2)}</b></div>
@@ -93,8 +94,7 @@ export default async function Admin() {
             </section>
 
             <section className="glass section">
-              <div className="eyebrow">RESERVE SAFETY</div>
-              <h2>RSM and liability</h2>
+              <div className="eyebrow">RESERVE SAFETY</div><h2>RSM and liability</h2>
               <div className="list-row"><span>Reserve coverage</span><b>{num(coverage, 3)}×</b></div>
               <div className="list-row"><span>Reserve safety multiplier</span><b>{num(rsm, 2)}×</b></div>
               <div className="list-row"><span>Outstanding mining liability</span><b>${num(liability, 8)}</b></div>
@@ -104,11 +104,28 @@ export default async function Admin() {
           </div>
 
           <section className="glass section" style={{ marginTop: 14 }}>
-            <div className="eyebrow">GUARD SEMANTICS</div>
-            <h2>How the economy behaves</h2>
-            <p className="muted">
-              Mining starts at a 45% base allocation, can rise to 50% when reserve coverage is strong, and falls to 40% when reserve coverage is weak. The mining allocation is divided through a 10-day revenue lot; pool share is then divided by active weighted H/s. Existing funded capacity is not cancelled, while new weighted-H/s expansion remains subject to the economic guard.
+            <div className="eyebrow">CP06 LIABILITY AUDIT</div>
+            <h2>Economic integrity</h2>
+            <div className="grid grid-4" style={{ marginTop: 12 }}>
+              <div className="glass stat"><label>Audit status</label><b>{String(audit.status ?? 'UNAVAILABLE')}</b></div>
+              <div className="glass stat"><label>Outstanding liability</label><b>${num(auditLiability.outstanding_usd, 8)}</b></div>
+              <div className="glass stat"><label>Settled mining payouts</label><b>${num(auditPayouts.settled_usd, 8)}</b></div>
+              <div className="glass stat"><label>Pending withdrawal errors</label><b>{num(auditWithdrawals.invalid_pending_reservations, 0)}</b></div>
+            </div>
+            <div className="grid grid-4" style={{ marginTop: 12 }}>
+              <div className="glass stat"><label>Revenue integrity errors</label><b>{num(auditRevenue.invalid_rows, 0)}</b></div>
+              <div className="glass stat"><label>Pool/payout mismatch rows</label><b>{num(auditPools.allocation_payout_mismatch_rows, 0)}</b></div>
+              <div className="glass stat"><label>Reward liability</label><b>${num(auditLiability.reward_usd, 8)}</b></div>
+              <div className="glass stat"><label>Released liability</label><b>${num(auditLiability.released_usd, 8)}</b></div>
+            </div>
+            <p className="muted" style={{ marginTop: 12 }}>
+              {Array.isArray(audit.issues) && audit.issues.length ? `Issues: ${audit.issues.join(', ')}` : 'No integrity exceptions detected by CP06 audit.'}
             </p>
+          </section>
+
+          <section className="glass section" style={{ marginTop: 14 }}>
+            <div className="eyebrow">GUARD SEMANTICS</div><h2>How the economy behaves</h2>
+            <p className="muted">Mining starts at a 45% base allocation, can rise to 50% when reserve coverage is strong, and falls to 40% when reserve coverage is weak. The mining allocation is divided through a 10-day revenue lot; pool share is then divided by active weighted H/s. Existing funded capacity is not cancelled, while new weighted-H/s expansion remains subject to the economic guard and reserve coverage.</p>
             <div className="grid grid-4" style={{ marginTop: 12 }}>
               <div className="glass stat"><label>Healthy target</label><b>$0.12</b></div>
               <div className="glass stat"><label>Target gate</label><b>$0.08</b></div>
