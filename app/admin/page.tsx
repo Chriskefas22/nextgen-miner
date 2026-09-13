@@ -45,7 +45,7 @@ export default async function Admin() {
           <div className="eyebrow">OWNER CONTROL · ECONOMIC CAPACITY</div>
           <h1 className="page-title">Economic Control Center</h1>
           <div className="muted">
-            Authoritative production capacity envelope. New miner/upgrade capacity is blocked below TARGET.
+            Authoritative production capacity envelope. New weighted-H/s expansion is blocked below TARGET.
           </div>
         </div>
         <div className={statusClass(status)}>{status}</div>
@@ -73,6 +73,13 @@ export default async function Admin() {
             <div className="glass stat"><label>Rolling 10-day release</label><b>${num(rollingRelease, 2)}</b></div>
           </div>
 
+          <div className="grid grid-4" style={{ marginTop: 14 }}>
+            <div className="glass stat"><label>Mining allocation</label><b>{num(snapshot.current_mining_allocation_bps, 2)}%</b></div>
+            <div className="glass stat"><label>Base / max / min</label><b>{num(snapshot.base_mining_allocation_bps, 2)} / {num(snapshot.max_mining_allocation_bps, 2)} / {num(snapshot.min_mining_allocation_bps, 2)}</b></div>
+            <div className="glass stat"><label>Target-safe capacity</label><b>{num(snapshot.target_safe_weighted_hash, 2)}</b></div>
+            <div className="glass stat"><label>Weighted H/s per $1</label><b>{num(snapshot.weighted_hash_per_revenue_usd, 2)}</b></div>
+          </div>
+
           <div className="grid grid-2" style={{ marginTop: 14 }}>
             <section className="glass section">
               <div className="eyebrow">FUNDED CAPACITY</div>
@@ -80,7 +87,8 @@ export default async function Admin() {
               <div className="list-row"><span>Current mining budget</span><b>${num(miningBudget, 8)}</b></div>
               <div className="list-row"><span>Target-safe weighted H/s</span><b>{num(snapshot.target_safe_weighted_hash, 2)}</b></div>
               <div className="list-row"><span>New weighted H/s headroom</span><b>{num(headroom, 2)}</b></div>
-              <div className="list-row"><span>Weighted H/s per $1 rolling revenue</span><b>{num(snapshot.weighted_hash_per_revenue_usd, 2)}</b></div>
+              <div className="list-row"><span>Floor-safe weighted H/s</span><b>{num(snapshot.floor_safe_weighted_hash, 2)}</b></div>
+              <div className="list-row"><span>Healthy-safe weighted H/s</span><b>{num(snapshot.healthy_safe_weighted_hash, 2)}</b></div>
               <p className="muted" style={{ marginTop: 12 }}>{String(snapshot.reason ?? 'No reason available.')}</p>
             </section>
 
@@ -90,22 +98,22 @@ export default async function Admin() {
               <div className="list-row"><span>Reserve coverage</span><b>{num(coverage, 3)}×</b></div>
               <div className="list-row"><span>Reserve safety multiplier</span><b>{num(rsm, 2)}×</b></div>
               <div className="list-row"><span>Outstanding mining liability</span><b>${num(liability, 8)}</b></div>
-              <div className="list-row"><span>Economic rule</span><b>{String(snapshot.economic_rule_version ?? 'economic_v1_0')}</b></div>
+              <div className="list-row"><span>Economic rule</span><b>{String(snapshot.economic_rule_version ?? 'economic_v1_1')}</b></div>
               <div className="list-row"><span>Prepared pool date</span><b>{String(snapshot.pool_date ?? '—')}</b></div>
             </section>
           </div>
 
           <section className="glass section" style={{ marginTop: 14 }}>
             <div className="eyebrow">GUARD SEMANTICS</div>
-            <h2>What the guard controls</h2>
+            <h2>How the economy behaves</h2>
             <p className="muted">
-              50% of recognized net revenue enters a 10-day mining lot. In steady state, approximately 5% becomes the daily release budget before the reserve safety multiplier. Existing funded liabilities are not cancelled or reduced by this guard.
+              Mining starts at a 45% base allocation, can rise to 50% when reserve coverage is strong, and falls to 40% when reserve coverage is weak. The mining allocation is divided through a 10-day revenue lot; pool share is then divided by active weighted H/s. Existing funded capacity is not cancelled, while new weighted-H/s expansion remains subject to the economic guard.
             </p>
             <div className="grid grid-4" style={{ marginTop: 12 }}>
-              <div className="glass stat"><label>Healthy floor</label><b>$0.12</b></div>
-              <div className="glass stat"><label>Target</label><b>$0.08</b></div>
-              <div className="glass stat"><label>Floor</label><b>$0.05</b></div>
-              <div className="glass stat"><label>Effective gate</label><b>≥ TARGET</b></div>
+              <div className="glass stat"><label>Healthy target</label><b>$0.12</b></div>
+              <div className="glass stat"><label>Target gate</label><b>$0.08</b></div>
+              <div className="glass stat"><label>Economic floor</label><b>$0.05</b></div>
+              <div className="glass stat"><label>Mining lot</label><b>10 days</b></div>
             </div>
           </section>
         </>
