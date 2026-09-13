@@ -1,20 +1,33 @@
-# NEXTGEN MINER — Control Plane App Sync
+# NEXTGEN MINER — 10-Day Website Patch (GitHub-ready)
 
-These are the application-side files required to align Next.js/Vercel with the authoritative Supabase mining control plane.
+This package uses the actual Next.js repository paths.
 
-## Replace
+## Files
 
-- `app/dashboard/page.tsx`
-- `app/api/mining/accrue/route.ts`
+- `app/dashboard/page.tsx` → replace the existing dashboard page
+- `app/earn/page.tsx` → replace the existing earn page
+- `app/how-it-works/page.tsx` → replace the existing How It Works page
 
-## Supabase contract added
+## Frozen landing files
 
-- `public.nextgen_mining_dashboard_snapshot(text)`
+Do NOT modify:
 
-The dashboard no longer reads `nextgen_reward_ledger` for mining rewards and no longer performs timestamp-based reward calculations. The compatibility `/api/mining/accrue` route now calls `nextgen_claim_mining`.
+- `components/landing/LandingPage.tsx`
+- `components/landing/NetworkCore.tsx`
 
-## Important
+## Economic UI alignment
 
-The GitHub repository is connected to Vercel, but this session is operating with GitHub write access disabled. Therefore the files are prepared here for manual paste/commit. Once committed to `main`, the existing Vercel Git integration can build the change.
+The pages explain the already-configured economic control plane:
 
-Do not modify the frozen landing files.
+- 50% mining allocation
+- 30% reserve
+- 10% donation
+- 10% owner/platform
+- 10-day rolling revenue lots
+- 24-hour user settlement
+- dynamic weighted H/s pool allocation
+- reserve safety multiplier
+- no guaranteed yield
+- zero recognized revenue means zero newly funded mining rewards
+
+This ZIP contains website source replacements only. It does not contain a Supabase migration.
