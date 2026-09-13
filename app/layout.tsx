@@ -9,8 +9,12 @@ import '../css/public-pages.css';
 
 export const metadata = {
   metadataBase: new URL('https://nextgen-miner.vercel.app'),
-  title: { default: 'NextGen Miner — Virtual Mining Platform', template: '%s | NextGen Miner' },
-  description: 'NextGen Miner is a virtual mining and reward platform with live miner data, server-side reward controls and transparent platform rules.',
+  title: {
+    default: 'NextGen Miner — Virtual Mining Platform',
+    template: '%s | NextGen Miner',
+  },
+  description:
+    'NextGen Miner is a virtual mining and reward platform with server-side reward controls and transparent platform rules.',
   alternates: { canonical: '/' },
   robots: { index: true, follow: true },
   icons: {
@@ -19,7 +23,8 @@ export const metadata = {
   },
   openGraph: {
     title: 'NextGen Miner — Virtual Mining Platform',
-    description: 'Build your rig, grow hashrate, upgrade miners and manage rewards through a virtual mining platform.',
+    description:
+      'Build your rig, grow hashrate, upgrade miners and manage rewards through a virtual mining platform.',
     url: '/',
     siteName: 'NextGen Miner',
     type: 'website',
@@ -27,7 +32,8 @@ export const metadata = {
   twitter: {
     card: 'summary',
     title: 'NextGen Miner — Virtual Mining Platform',
-    description: 'Build your rig, grow hashrate and manage rewards through a virtual mining platform.',
+    description:
+      'Build your rig, grow hashrate and manage rewards through a virtual mining platform.',
   },
 };
 
