@@ -1,33 +1,36 @@
-# NEXTGEN MINER — 10-Day Website Patch (GitHub-ready)
+# NEXTGEN MINER — 12 Miner Catalog UI Patch
 
-This package uses the actual Next.js repository paths.
+GitHub-ready source replacements:
 
-## Files
+- `app/miners/page.tsx`
+- `components/miner/MinerCard.tsx`
 
-- `app/dashboard/page.tsx` → replace the existing dashboard page
-- `app/earn/page.tsx` → replace the existing earn page
-- `app/how-it-works/page.tsx` → replace the existing How It Works page
+Backend economic rules are already applied in Supabase production.
 
-## Frozen landing files
+Catalog:
+1. Starter Keyboard
+2. Basic CPU
+3. Entry GPU
+4. Mini Rig
+5. Gaming PC
+6. Performance Rig
+7. Hydro Rig
+8. Quantum Rig
+9. Titan Rig
+10. Nebula Station
+11. Orion Core
+12. Nuclear Reactor
 
-Do NOT modify:
+Rules:
+- 10 levels each
+- Efficiency 100% → 118%
+- 2 identical miners at the same level → next level
+- Merge fee: 25, 50, 100, 200, 400, 800, 1600, 3200, 6400 Diamond
+- Multiple copies are allowed for paid miners
+- Starter Keyboard remains a one-time free onboarding item
+- First 1,000 eligible registrations receive Entry GPU via the existing launch campaign
+- Mining remains revenue-funded; no guaranteed return
 
+Do not modify:
 - `components/landing/LandingPage.tsx`
 - `components/landing/NetworkCore.tsx`
-
-## Economic UI alignment
-
-The pages explain the already-configured economic control plane:
-
-- 50% mining allocation
-- 30% reserve
-- 10% donation
-- 10% owner/platform
-- 10-day rolling revenue lots
-- 24-hour user settlement
-- dynamic weighted H/s pool allocation
-- reserve safety multiplier
-- no guaranteed yield
-- zero recognized revenue means zero newly funded mining rewards
-
-This ZIP contains website source replacements only. It does not contain a Supabase migration.
