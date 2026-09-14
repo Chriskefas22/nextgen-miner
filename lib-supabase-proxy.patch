@@ -1,0 +1,7 @@
+*** Begin Patch
+*** Update File: lib/supabase/proxy.ts
+@@
+ const AUTHENTICATED_PREFIXES = [
++  '/admin',
+   '/dashboard',
+*** End Patch
