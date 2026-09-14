@@ -1,137 +1,160 @@
 import { AppShell } from '@/components/layout/AppShell';
+import { EconomicDashboardRefresh } from '@/components/admin/EconomicDashboardRefresh';
 import { createClient } from '@/lib/supabase/server';
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 function num(value: unknown, digits = 2) {
   const n = Number(value ?? 0);
   if (!Number.isFinite(n)) return '0';
   return n.toLocaleString('en-US', { maximumFractionDigits: digits });
 }
-function pct(value: unknown) { return `${num(value, 1)}%`; }
-function statusClass(status: string) {
+
+function pct(value: unknown, digits = 1) {
+  return `${num(value, digits)}%`;
+}
+
+function badge(status: string) {
   if (status === 'HEALTHY' || status === 'PASS') return 'badge green';
   if (status === 'TARGET' || status === 'WARN') return 'badge gold';
   if (status === 'FLOOR') return 'badge gold';
   return 'badge';
 }
 
-export default async function Admin() {
+export default async function AdminEconomicDashboard() {
   const supabase = await createClient();
-  const [{ data, error }, { data: auditData }] = await Promise.all([
-    supabase.rpc('nextgen_economic_capacity_snapshot', { p_asset: 'USDT' }),
+  const [{ data, error }, { data: auditData, error: auditError }] = await Promise.all([
+    supabase.rpc('nextgen_owner_economic_dashboard_snapshot', { p_asset: 'USDT' }),
     supabase.rpc('nextgen_economic_liability_audit'),
   ]);
-  const snapshot = (data ?? {}) as Record<string, unknown>;
-  const audit = (auditData ?? {}) as Record<string, unknown>;
-  const auditLiability = (audit.liability ?? {}) as Record<string, unknown>;
-  const auditPayouts = (audit.payouts ?? {}) as Record<string, unknown>;
-  const auditPools = (audit.pools ?? {}) as Record<string, unknown>;
-  const auditRevenue = (audit.revenue ?? {}) as Record<string, unknown>;
-  const auditWithdrawals = (audit.withdrawals ?? {}) as Record<string, unknown>;
 
-  const status = String(snapshot.status ?? 'UNAVAILABLE');
-  const expansionAllowed = Boolean(snapshot.expansion_allowed ?? false);
-  const reward = snapshot.reward_usd_per_1000_weighted_hash;
-  const weighted = snapshot.weighted_hash;
-  const raw = snapshot.raw_hash;
-  const recognized = snapshot.recognized_net_revenue_usd_day;
-  const rollingRevenue = snapshot.rolling_10d_net_revenue_usd;
-  const rollingRelease = snapshot.rolling_10d_mining_release_usd;
-  const miningBudget = snapshot.mining_budget_usd;
-  const utilization = snapshot.capacity_utilization_percent;
-  const coverage = snapshot.reserve_coverage_ratio;
-  const rsm = snapshot.reserve_safety_multiplier;
-  const liability = snapshot.outstanding_mining_liability_usd;
-  const headroom = snapshot.new_weighted_hash_headroom;
+  const snapshot = (data ?? {}) as Record<string, any>;
+  const audit = (auditData ?? {}) as Record<string, any>;
+  const revenue = snapshot.recognized_revenue ?? {};
+  const reserve = snapshot.reserve ?? {};
+  const liability = snapshot.liability ?? {};
+  const mining = snapshot.mining ?? {};
+  const capacity = snapshot.capacity ?? {};
+  const guard = snapshot.guard ?? {};
+  const allocation = snapshot.allocation ?? {};
+  const recon = snapshot.reconciliation ?? {};
+  const auditLiability = audit.liability ?? {};
+  const auditPools = audit.pools ?? {};
+  const auditRevenue = audit.revenue ?? {};
+  const auditWithdrawals = audit.withdrawals ?? {};
+  const status = String(guard.status ?? 'UNAVAILABLE');
 
   return (
     <AppShell>
+      <EconomicDashboardRefresh intervalMs={60000} />
       <div className="page-head">
         <div>
           <div className="eyebrow">OWNER CONTROL · ECONOMIC CAPACITY</div>
           <h1 className="page-title">Economic Control Center</h1>
-          <div className="muted">Authoritative production capacity envelope. New weighted-H/s expansion is blocked below TARGET.</div>
+          <div className="muted">Live production view of recognized revenue, reserve, mining release, weighted capacity, liability, and the CP12 capacity guard.</div>
         </div>
-        <div className={statusClass(status)}>{status}</div>
+        <div className={badge(status)}>{status}</div>
       </div>
 
       {error ? (
-        <section className="glass section" style={{ marginBottom: 14 }}>
-          <div className="eyebrow">CONTROL PLANE</div><h2>Unavailable</h2>
-          <p className="muted">The owner-only economic snapshot could not be loaded.</p>
+        <section className="glass section">
+          <div className="eyebrow">CONTROL PLANE</div>
+          <h2>Unavailable</h2>
+          <p className="muted">The owner-only economic dashboard snapshot could not be loaded. The RPC is protected at the database layer.</p>
         </section>
       ) : (
         <>
           <div className="grid grid-4">
-            <div className="glass stat"><label>Reward / 1,000 weighted H/s</label><b>${num(reward, 4)}</b></div>
-            <div className="glass stat"><label>Weighted H/s</label><b>{num(weighted, 2)}</b></div>
-            <div className="glass stat"><label>Capacity utilization</label><b>{pct(utilization)}</b></div>
-            <div className="glass stat"><label>Expansion</label><b>{expansionAllowed ? 'ALLOWED' : 'BLOCKED'}</b></div>
+            <div className="glass stat"><label>Recognized revenue · today</label><b>${num(revenue.today_usd, 2)}</b></div>
+            <div className="glass stat"><label>Reserve balance</label><b>${num(reserve.balance_usd, 2)}</b></div>
+            <div className="glass stat"><label>Outstanding liability</label><b>${num(liability.outstanding_usd, 8)}</b></div>
+            <div className="glass stat"><label>Rolling 10D mining release</label><b>${num(mining.rolling_10d_release_usd, 8)}</b></div>
           </div>
 
           <div className="grid grid-4" style={{ marginTop: 14 }}>
-            <div className="glass stat"><label>Raw H/s</label><b>{num(raw, 2)}</b></div>
-            <div className="glass stat"><label>Recognized net revenue / day</label><b>${num(recognized, 2)}</b></div>
-            <div className="glass stat"><label>Rolling 10-day revenue</label><b>${num(rollingRevenue, 2)}</b></div>
-            <div className="glass stat"><label>Rolling 10-day release</label><b>${num(rollingRelease, 2)}</b></div>
+            <div className="glass stat"><label>Weighted hashrate</label><b>{num(capacity.weighted_hash, 2)} H/s</b></div>
+            <div className="glass stat"><label>Reward / 1,000 weighted H/s</label><b>${num(capacity.reward_usd_per_1000_weighted_hash, 4)}</b></div>
+            <div className="glass stat"><label>Capacity utilization</label><b>{pct(capacity.capacity_utilization_percent)}</b></div>
+            <div className="glass stat"><label>Expansion gate</label><b>{guard.expansion_allowed ? 'ALLOWED' : 'BLOCKED'}</b></div>
           </div>
 
           <div className="grid grid-4" style={{ marginTop: 14 }}>
-            <div className="glass stat"><label>Mining allocation</label><b>{num(snapshot.current_mining_allocation_bps, 2)}%</b></div>
-            <div className="glass stat"><label>Base / max / min</label><b>{num(snapshot.base_mining_allocation_bps, 2)} / {num(snapshot.max_mining_allocation_bps, 2)} / {num(snapshot.min_mining_allocation_bps, 2)}</b></div>
-            <div className="glass stat"><label>Target-safe capacity</label><b>{num(snapshot.target_safe_weighted_hash, 2)}</b></div>
-            <div className="glass stat"><label>Weighted H/s per $1</label><b>{num(snapshot.weighted_hash_per_revenue_usd, 2)}</b></div>
+            <div className="glass stat"><label>Recognized revenue · rolling 10D</label><b>${num(revenue.rolling_10d_usd, 2)}</b></div>
+            <div className="glass stat"><label>Recognized revenue · rolling 30D</label><b>${num(revenue.rolling_30d_usd, 2)}</b></div>
+            <div className="glass stat"><label>Current daily mining release</label><b>${num(mining.current_daily_release_usd, 8)}</b></div>
+            <div className="glass stat"><label>Mining budget</label><b>${num(mining.mining_budget_usd, 8)}</b></div>
           </div>
 
           <div className="grid grid-2" style={{ marginTop: 14 }}>
             <section className="glass section">
-              <div className="eyebrow">FUNDED CAPACITY</div><h2>10-day release envelope</h2>
-              <div className="list-row"><span>Current mining budget</span><b>${num(miningBudget, 8)}</b></div>
-              <div className="list-row"><span>Target-safe weighted H/s</span><b>{num(snapshot.target_safe_weighted_hash, 2)}</b></div>
-              <div className="list-row"><span>New weighted H/s headroom</span><b>{num(headroom, 2)}</b></div>
-              <div className="list-row"><span>Floor-safe weighted H/s</span><b>{num(snapshot.floor_safe_weighted_hash, 2)}</b></div>
-              <div className="list-row"><span>Healthy-safe weighted H/s</span><b>{num(snapshot.healthy_safe_weighted_hash, 2)}</b></div>
-              <p className="muted" style={{ marginTop: 12 }}>{String(snapshot.reason ?? 'No reason available.')}</p>
+              <div className="eyebrow">FUNDED CAPACITY</div>
+              <h2>Capacity guard</h2>
+              <div className="list-row"><span>Guard status</span><b>{status}</b></div>
+              <div className="list-row"><span>Weighted H/s</span><b>{num(capacity.weighted_hash, 2)}</b></div>
+              <div className="list-row"><span>Target-safe weighted H/s</span><b>{num(capacity.target_safe_weighted_hash, 2)}</b></div>
+              <div className="list-row"><span>Healthy-safe weighted H/s</span><b>{num(capacity.healthy_safe_weighted_hash, 2)}</b></div>
+              <div className="list-row"><span>New weighted H/s headroom</span><b>{num(capacity.new_weighted_hash_headroom, 2)}</b></div>
+              <p className="muted" style={{ marginTop: 12 }}>{String(guard.reason ?? 'No guard reason available.')}</p>
             </section>
 
             <section className="glass section">
-              <div className="eyebrow">RESERVE SAFETY</div><h2>RSM and liability</h2>
-              <div className="list-row"><span>Reserve coverage</span><b>{num(coverage, 3)}×</b></div>
-              <div className="list-row"><span>Reserve safety multiplier</span><b>{num(rsm, 2)}×</b></div>
-              <div className="list-row"><span>Outstanding mining liability</span><b>${num(liability, 8)}</b></div>
-              <div className="list-row"><span>Economic rule</span><b>{String(snapshot.economic_rule_version ?? 'economic_v1_1')}</b></div>
-              <div className="list-row"><span>Prepared pool date</span><b>{String(snapshot.pool_date ?? '—')}</b></div>
+              <div className="eyebrow">RESERVE + LIABILITY</div>
+              <h2>Safety envelope</h2>
+              <div className="list-row"><span>Reserve coverage</span><b>{num(reserve.coverage_ratio, 3)}×</b></div>
+              <div className="list-row"><span>Reserve status</span><b>{String(reserve.status ?? 'UNKNOWN')}</b></div>
+              <div className="list-row"><span>Reserve in · 10D</span><b>${num(reserve.in_10d_usd, 2)}</b></div>
+              <div className="list-row"><span>Reserve out · 10D</span><b>${num(reserve.out_10d_usd, 2)}</b></div>
+              <div className="list-row"><span>Open liability rows</span><b>{num(liability.open_rows, 0)}</b></div>
+            </section>
+          </div>
+
+          <div className="grid grid-2" style={{ marginTop: 14 }}>
+            <section className="glass section">
+              <div className="eyebrow">10-DAY REVENUE LOT</div>
+              <h2>Release schedule</h2>
+              <div className="list-row"><span>Rolling 10D release</span><b>${num(mining.rolling_10d_release_usd, 8)}</b></div>
+              <div className="list-row"><span>Current daily release</span><b>${num(mining.current_daily_release_usd, 8)}</b></div>
+              <div className="list-row"><span>Active lot end</span><b>{String(mining.active_lot_end ?? '—')}</b></div>
+              <div className="list-row"><span>Mining allocation</span><b>{num(Number(allocation.mining_bps) / 100, 1)}%</b></div>
+              <div className="list-row"><span>Mining lot</span><b>{num(allocation.mining_lot_days, 0)} days</b></div>
+            </section>
+
+            <section className="glass section">
+              <div className="eyebrow">LOCKED ECONOMIC RULE</div>
+              <h2>CP12 allocation</h2>
+              <div className="list-row"><span>Reserve</span><b>{num(Number(allocation.reserve_bps) / 100, 1)}%</b></div>
+              <div className="list-row"><span>Mining</span><b>{num(Number(allocation.mining_bps) / 100, 1)}%</b></div>
+              <div className="list-row"><span>Donation</span><b>{num(Number(allocation.donation_bps) / 100, 1)}%</b></div>
+              <div className="list-row"><span>Owner / operating</span><b>{num(Number(allocation.owner_operating_bps) / 100, 1)}%</b></div>
+              <div className="list-row"><span>Rule version</span><b>{String(snapshot.economic_rule_version ?? 'economic_v1_2_cp12')}</b></div>
             </section>
           </div>
 
           <section className="glass section" style={{ marginTop: 14 }}>
-            <div className="eyebrow">CP06 LIABILITY AUDIT</div>
-            <h2>Economic integrity</h2>
+            <div className="eyebrow">ECONOMIC INTEGRITY</div>
+            <h2>Reconciliation + liability audit</h2>
             <div className="grid grid-4" style={{ marginTop: 12 }}>
-              <div className="glass stat"><label>Audit status</label><b>{String(audit.status ?? 'UNAVAILABLE')}</b></div>
-              <div className="glass stat"><label>Outstanding liability</label><b>${num(auditLiability.outstanding_usd, 8)}</b></div>
-              <div className="glass stat"><label>Settled mining payouts</label><b>${num(auditPayouts.settled_usd, 8)}</b></div>
-              <div className="glass stat"><label>Pending withdrawal errors</label><b>{num(auditWithdrawals.invalid_pending_reservations, 0)}</b></div>
+              <div className="glass stat"><label>Last reconciliation</label><b>{recon.last_run_ok ? 'PASS' : 'CHECK'}</b></div>
+              <div className="glass stat"><label>Liability diff</label><b>${num(recon.liability_diff_usd, 8)}</b></div>
+              <div className="glass stat"><label>Revenue integrity errors</label><b>{num(auditRevenue.invalid_rows, 0)}</b></div>
+              <div className="glass stat"><label>Pool mismatch rows</label><b>{num(auditPools.allocation_payout_mismatch_rows, 0)}</b></div>
             </div>
             <div className="grid grid-4" style={{ marginTop: 12 }}>
-              <div className="glass stat"><label>Revenue integrity errors</label><b>{num(auditRevenue.invalid_rows, 0)}</b></div>
-              <div className="glass stat"><label>Pool/payout mismatch rows</label><b>{num(auditPools.allocation_payout_mismatch_rows, 0)}</b></div>
               <div className="glass stat"><label>Reward liability</label><b>${num(auditLiability.reward_usd, 8)}</b></div>
               <div className="glass stat"><label>Released liability</label><b>${num(auditLiability.released_usd, 8)}</b></div>
+              <div className="glass stat"><label>Pending withdrawal errors</label><b>{num(auditWithdrawals.invalid_pending_reservations, 0)}</b></div>
+              <div className="glass stat"><label>Audit status</label><b>{String(audit.status ?? (auditError ? 'UNAVAILABLE' : 'PASS'))}</b></div>
             </div>
-            <p className="muted" style={{ marginTop: 12 }}>
-              {Array.isArray(audit.issues) && audit.issues.length ? `Issues: ${audit.issues.join(', ')}` : 'No integrity exceptions detected by CP06 audit.'}
-            </p>
           </section>
 
           <section className="glass section" style={{ marginTop: 14 }}>
-            <div className="eyebrow">GUARD SEMANTICS</div><h2>How the economy behaves</h2>
-            <p className="muted">Mining starts at a 45% base allocation, can rise to 50% when reserve coverage is strong, and falls to 40% when reserve coverage is weak. The mining allocation is divided through a 10-day revenue lot; pool share is then divided by active weighted H/s. Existing funded capacity is not cancelled, while new weighted-H/s expansion remains subject to the economic guard and reserve coverage.</p>
-            <div className="grid grid-4" style={{ marginTop: 12 }}>
-              <div className="glass stat"><label>Healthy target</label><b>$0.12</b></div>
-              <div className="glass stat"><label>Target gate</label><b>$0.08</b></div>
-              <div className="glass stat"><label>Economic floor</label><b>$0.05</b></div>
-              <div className="glass stat"><label>Mining lot</label><b>10 days</b></div>
-            </div>
+            <div className="eyebrow">LIVE STATE</div>
+            <h2>Current production envelope</h2>
+            <p className="muted">As of {String(snapshot.as_of ?? '—')}. Data is sourced from the production economic ledger and CP12 capacity engine. The browser refreshes this server snapshot every 60 seconds while this page remains open.</p>
+            <div className="list-row"><span>Prepared pool</span><b>{String(snapshot.pool?.pool_date ?? '—')}</b></div>
+            <div className="list-row"><span>Prepared at</span><b>{String(snapshot.pool?.prepared_at ?? '—')}</b></div>
+            <div className="list-row"><span>Production mining engine</span><b>economic_capacity_guard_cp12</b></div>
           </section>
         </>
       )}
