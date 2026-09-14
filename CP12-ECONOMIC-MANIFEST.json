@@ -1,0 +1,21 @@
+{
+  "patch": "CP12-ECONOMIC-APP-FOLLOWUP",
+  "status": "verified_manual_push",
+  "files": [
+    "app/auth/login/page.tsx",
+    "CP12-ECONOMIC-README.md"
+  ],
+  "supabase": "applied_directly",
+  "frozen_landing_files": [
+    "components/landing/LandingPage.tsx",
+    "components/landing/NetworkCore.tsx",
+    "app/landing-page.css"
+  ],
+  "validation": {
+    "useSearchParams_wrapped_in_suspense": true,
+    "open_redirect_guard": "same-origin-relative-path-only",
+    "landing_files_modified": false,
+    "manifest_matches_payload": true,
+    "supabase_changes": "applied_directly"
+  }
+}
