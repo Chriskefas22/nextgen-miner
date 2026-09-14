@@ -1,0 +1,18 @@
+{
+  "checkpoint": "CP14",
+  "name": "Economic Monitoring + Reconciliation",
+  "db_status": "production-applied",
+  "engine": "economic_monitoring_cp14",
+  "schedule": "*/15 * * * *",
+  "dashboard_route": "/admin/economic-monitoring",
+  "owner_functions": [
+    "nextgen_economic_monitoring_snapshot(text)",
+    "nextgen_owner_economic_monitoring_dashboard(text)"
+  ],
+  "worker_function": "nextgen_run_economic_monitoring(text)",
+  "automatic_alert_channel": "admin_dashboard",
+  "landing_files_modified": false,
+  "economic_rule": "economic_v1_2_cp12",
+  "allocation": {"reserve_pct": 50, "mining_pct": 25, "donation_pct": 10, "owner_operating_pct": 15},
+  "lot_days": 10
+}
