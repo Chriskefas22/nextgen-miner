@@ -1,0 +1,18 @@
+{
+  "checkpoint": "CP12",
+  "stage": "Stage 2",
+  "title": "App Journey & Authenticated User Flow",
+  "status": "patch_ready_for_manual_push",
+  "files": [
+    "lib/supabase/proxy.ts",
+    "CP12-README.md",
+    "CP12-MANIFEST.json"
+  ],
+  "finding": "Anonymous visitors could render authenticated app surfaces such as /wallet and /miners.",
+  "fix": "Central claim-based authenticated route guard in the existing Supabase session proxy.",
+  "frozen_landing_files": [
+    "components/landing/LandingPage.tsx",
+    "components/landing/NetworkCore.tsx",
+    "app/landing-page.css"
+  ]
+}
