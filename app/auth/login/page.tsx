@@ -1,14 +1,21 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { Suspense, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 import { createClient } from '@/lib/supabase/client';
 import { TurnstileField } from '@/components/auth/TurnstileField';
 
-export default function Login() {
+function safeInternalPath(value: string | null) {
+  if (!value || !value.startsWith('/') || value.startsWith('//')) return '/dashboard';
+  return value;
+}
+
+function LoginContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const nextPath = safeInternalPath(searchParams.get('next'));
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -81,7 +88,7 @@ export default function Login() {
 
       await claimVerifiedBonus();
 
-      router.push('/dashboard');
+      router.push(nextPath);
       router.refresh();
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'Unable to sign in.');
@@ -162,5 +169,13 @@ export default function Login() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function Login() {
+  return (
+    <Suspense fallback={<div className="auth-page" aria-busy="true" />}>
+      <LoginContent />
+    </Suspense>
   );
 }
