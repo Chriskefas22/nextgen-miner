@@ -76,7 +76,7 @@ export default async function EconomicMonitoringPage() {
           <div className="grid grid-4" style={{ marginTop: 14 }}>
             <div className="glass stat"><label>Pending / unreconciled ≤24h</label><b>{money(aging.pending_0_24h_usd)}</b></div>
             <div className="glass stat"><label>Pending / unreconciled 24–72h</label><b>{money(aging.pending_24_72h_usd)}</b></div>
-            <div className="glass stat"><label>Stale >72h</label><b>{money(aging.stale_72h_plus_usd)}</b></div>
+            <div className="glass stat"><label>Stale &gt;72h</label><b>{money(aging.stale_72h_plus_usd)}</b></div>
             <div className="glass stat"><label>Invalid revenue rows</label><b>{num(aging.invalid_revenue_rows, 0)}</b></div>
           </div>
 
