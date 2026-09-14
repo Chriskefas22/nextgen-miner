@@ -1,0 +1,16 @@
+{
+  "checkpoint": "CP13",
+  "name": "Owner Economic Dashboard Metrics",
+  "status": "production-db-applied",
+  "landing_files_modified": false,
+  "frozen_landing_files": [
+    "components/landing/LandingPage.tsx",
+    "components/landing/NetworkCore.tsx",
+    "app/landing-page.css"
+  ],
+  "db_function": "nextgen_owner_economic_dashboard_snapshot(text)",
+  "refresh_interval_seconds": 60,
+  "economic_rule": "economic_v1_2_cp12",
+  "allocation": {"reserve_pct": 50, "mining_pct": 25, "donation_pct": 10, "owner_operating_pct": 15},
+  "lot_days": 10
+}
