@@ -8,6 +8,32 @@ const RETIRED_HOSTS = new Set([
 
 const CANONICAL_HOST = 'nextgen-miner.vercel.app';
 
+const AUTHENTICATED_PREFIXES = [
+  '/dashboard',
+  '/earn',
+  '/miners',
+  '/premium',
+  '/quests',
+  '/faucet',
+  '/ptc',
+  '/shortlinks',
+  '/offers',
+  '/wallet',
+  '/leaderboard',
+  '/contests',
+  '/support',
+  '/profile',
+  '/settings',
+  '/notifications',
+  '/owner',
+];
+
+function isAuthenticatedPath(pathname: string) {
+  return AUTHENTICATED_PREFIXES.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+  );
+}
+
 export async function updateSession(request: NextRequest) {
   const host = request.headers.get('host')?.split(':')[0].toLowerCase();
 
@@ -43,7 +69,19 @@ export async function updateSession(request: NextRequest) {
     },
   );
 
-  await supabase.auth.getClaims();
+  const { data: claimsData } = await supabase.auth.getClaims();
+  const userId = claimsData?.claims?.sub;
+
+  if (isAuthenticatedPath(request.nextUrl.pathname) && typeof userId !== 'string') {
+    const loginUrl = new URL('/auth/login', request.url);
+    const returnTo = `${request.nextUrl.pathname}${request.nextUrl.search}`;
+
+    if (returnTo !== '/auth/login') {
+      loginUrl.searchParams.set('next', returnTo);
+    }
+
+    return NextResponse.redirect(loginUrl, 307);
+  }
 
   supabaseResponse.headers.set('x-content-type-options', 'nosniff');
   supabaseResponse.headers.set('x-frame-options', 'SAMEORIGIN');
