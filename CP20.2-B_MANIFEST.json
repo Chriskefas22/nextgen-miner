@@ -1,0 +1,12 @@
+{
+  "checkpoint": "CP20.2-B",
+  "type": "Economic Integrity Patch",
+  "status": "prepared_not_applied",
+  "production_deployment_audited": "dpl_H95mLTvtjMcbpnoao1PCrSFUgHpq",
+  "files": [
+    "CP20.2-A_AUDIT_LOCKED.md",
+    "CP20.2-B_STATUS.md",
+    "supabase/migrations/20260915_cp20_2_b_economic_integrity.sql",
+    "verification/CP20.2_B_verify.sql"
+  ]
+}
