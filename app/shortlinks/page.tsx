@@ -1,1 +1,27 @@
-import {AppShell} from '@/components/layout/AppShell';export default function Shortlinks(){return <AppShell><div className="page-head"><div><div className="eyebrow">SHORTLINKS</div><h1 className="page-title">Link Missions</h1><div className="muted">Provider-validated completion ledger.</div></div></div><div className="grid grid-2">{['Neon Gate','Quantum Redirect','Future Hub','Skyline Pass'].map((x,i)=><section className="glass section" key={x}><div className="section-head"><h2>{x}</h2><span className="badge gold">LIVE</span></div><div className="list-row"><span className="muted">Estimated reward</span><b>💎 {30+i*10}</b></div><button className="btn btn-primary" style={{width:'100%',marginTop:8}}>Open Shortlink</button></section>)}</div></AppShell>}
+import { AppShell } from '@/components/layout/AppShell';
+
+export default function Shortlinks() {
+  return (
+    <AppShell>
+      <div className="page-head">
+        <div>
+          <div className="eyebrow">SHORTLINKS</div>
+          <h1 className="page-title">Link Missions</h1>
+          <div className="muted">Provider-validated completion ledger.</div>
+        </div>
+      </div>
+      <section className="glass section">
+        <div className="section-head">
+          <div>
+            <div className="eyebrow">PROVIDER STATUS</div>
+            <h2>Shortlinks are not live</h2>
+          </div>
+          <span className="badge">NOT LIVE</span>
+        </div>
+        <p className="muted">
+          No verified shortlink provider/campaign is active in production. Rewards are not displayed or promised until a real provider is integrated and its completion ledger is verified server-side.
+        </p>
+      </section>
+    </AppShell>
+  );
+}
