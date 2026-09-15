@@ -1,8 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import {
-  LayoutDashboard, Coins, Boxes, ArrowUpCircle, Target, Droplets,
+import { LayoutDashboard, Coins, Boxes, ArrowUpCircle, Target, Droplets,
   MousePointerClick, Link2, Gift, Users, Wallet, Clock3, Trophy,
   Headphones, Settings, Crown, LogOut,
 } from 'lucide-react';
@@ -14,6 +13,7 @@ const items = [
   ['Dashboard', '/dashboard', LayoutDashboard],
   ['Earn', '/earn', Coins],
   ['Miners', '/miners', Boxes],
+  ['Merge', '/merge', Boxes],
   ['Upgrade', '/miners?tab=upgrade', ArrowUpCircle],
   ['Premium', '/premium', Crown],
   ['Quests', '/quests', Target],
