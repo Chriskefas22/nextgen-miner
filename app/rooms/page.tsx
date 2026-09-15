@@ -1,7 +1,6 @@
 'use client';
 import Link from 'next/link';
 import { AppShell } from '@/components/layout/AppShell';
-import { AppShell } from '@/components/layout/AppShell';
 import { ArrowRight, Boxes } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
