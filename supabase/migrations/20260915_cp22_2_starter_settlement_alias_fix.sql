@@ -1,0 +1,5 @@
+-- CP22.2 — Starter settlement alias collision fix.
+-- Production migration already applied.
+-- Canonical final implementation is included in:
+-- 20260915_cp22_starter_free_mining_engine.sql
+-- This file is kept as a migration-history placeholder so the GitHub tree records the production sequence.
