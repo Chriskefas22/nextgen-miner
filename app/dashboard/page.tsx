@@ -32,6 +32,8 @@ type MiningPool = {
   rolling_10d_net_revenue_usd?: number | string
   rolling_10d_mining_release_usd?: number | string
   mining_lot_days?: number | string
+  mining_allocation_bps?: number | string
+  reserve_allocation_bps?: number | string
   prepared_at: string
 } | null
 
@@ -71,6 +73,7 @@ type MiningDashboardSnapshot = {
 
 const quickActions = [
   { label: 'Miners', href: '/miners', icon: Boxes },
+  { label: 'Merge', href: '/merge', icon: Boxes },
   { label: 'Wallet', href: '/wallet', icon: Wallet },
   { label: 'Deposit', href: '/wallet', icon: ArrowDownToLine },
   { label: 'Withdraw', href: '/wallet', icon: ArrowUpRight },
@@ -95,6 +98,9 @@ const compactCrypto = (value: number | string | null | undefined) =>
   Number(value ?? 0).toLocaleString('en-US', {
     maximumFractionDigits: 8,
   })
+
+const pctFromBps = (value: number | string | null | undefined) =>
+  `${(Number(value ?? 0) / 100).toFixed(0)}%`
 
 export default async function Dashboard() {
   const supabase = await createClient()
@@ -134,6 +140,9 @@ export default async function Dashboard() {
   const miningFunded =
     Number(currentPool?.mining_budget_usd ?? 0) > 0 &&
     Number(currentPool?.baseline_total_weight ?? 0) > 0
+
+  const reserveBps = currentPool?.reserve_allocation_bps ?? 5000
+  const miningBps = currentPool?.mining_allocation_bps ?? 2500
 
   return (
     <AppShell>
@@ -187,7 +196,8 @@ export default async function Dashboard() {
               <div><span>Rolling revenue</span><strong>${money(currentPool?.rolling_10d_net_revenue_usd)}</strong></div>
               <div><span>Rolling mining release</span><strong>${money(currentPool?.rolling_10d_mining_release_usd)}</strong></div>
               <div><span>Distribution</span><strong>Weighted active H/s</strong></div>
-              <div><span>Reserve</span><strong>30% of recognized net revenue</strong></div>
+              <div><span>Reserve</span><strong>{pctFromBps(reserveBps)} of recognized net revenue</strong></div>
+              <div><span>Mining allocation</span><strong>{pctFromBps(miningBps)} of recognized net revenue</strong></div>
               <div><span>Yield</span><strong>No guaranteed yield</strong></div>
             </div>
             <p className="simple-muted">The 10-day window smooths the economic flow; it does not lock users out of claiming eligible settled rewards.</p>
