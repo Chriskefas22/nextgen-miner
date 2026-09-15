@@ -56,17 +56,6 @@ type MergeCandidate = {
 };
 
 const FILTERS = ['All', 'Starter', 'Common', 'Uncommon', 'Rare', 'Epic', 'Legendary', 'Mythic'] as const;
-const MERGE_FEES: Record<number, number> = {
-  1: 25,
-  2: 50,
-  3: 100,
-  4: 200,
-  5: 400,
-  6: 800,
-  7: 1600,
-  8: 3200,
-  9: 6400,
-};
 
 function asRows<T>(value: unknown): T[] {
   return Array.isArray(value) ? (value as T[]) : [];
@@ -74,7 +63,6 @@ function asRows<T>(value: unknown): T[] {
 
 function normalizeMinerImagePath(imagePath: string | null | undefined, slug: string) {
   if (!imagePath) return `/assets/miners/${slug.trim().toLowerCase()}.webp`;
-
   const cleaned = String(imagePath).trim().replace(/^\/+/, '');
   if (cleaned.startsWith('assets/miners/')) return `/${cleaned}`;
   if (cleaned.startsWith('miners/')) return `/assets/${cleaned}`;
@@ -87,6 +75,7 @@ export default function MinersPage() {
   const [userMiners, setUserMiners] = useState<UserMinerRow[]>([]);
   const [catalog, setCatalog] = useState<CatalogRow[]>([]);
   const [levels, setLevels] = useState<LevelRow[]>([]);
+  const [mergeFees, setMergeFees] = useState<Record<number, number>>({});
   const [balance, setBalance] = useState(0);
   const [filter, setFilter] = useState<(typeof FILTERS)[number]>('All');
   const [loading, setLoading] = useState(true);
@@ -104,7 +93,7 @@ export default function MinersPage() {
     try {
       const { data: { user } } = await supabase.auth.getUser();
 
-      const [catalogResult, levelsResult] = await Promise.all([
+      const [catalogResult, levelsResult, mergeFeeResult] = await Promise.all([
         supabase
           .from('nextgen_miner_catalog')
           .select('id,slug,name,tier,base_hashrate,base_price_diamond,image_path,enabled,sort_order')
@@ -115,13 +104,24 @@ export default function MinersPage() {
           .select('miner_id,level,hashrate,upgrade_price_diamond,cumulative_price_diamond')
           .order('miner_id', { ascending: true })
           .order('level', { ascending: true }),
+        user
+          ? supabase.rpc('nextgen_merge_fee_snapshot')
+          : Promise.resolve({ data: [], error: null }),
       ]);
 
       if (catalogResult.error) throw catalogResult.error;
       if (levelsResult.error) throw levelsResult.error;
+      if (mergeFeeResult.error) throw mergeFeeResult.error;
 
       const nextCatalog = asRows<CatalogRow>(catalogResult.data);
       const nextLevels = asRows<LevelRow>(levelsResult.data);
+
+      const feeMap: Record<number, number> = {};
+      for (const row of asRows<{ from_level?: unknown; fee_diamond?: unknown }>(mergeFeeResult.data)) {
+        const fromLevel = Number(row.from_level);
+        const fee = Number(row.fee_diamond);
+        if (Number.isFinite(fromLevel) && Number.isFinite(fee)) feeMap[fromLevel] = fee;
+      }
 
       let nextUserMiners: UserMinerRow[] = [];
       let walletBalance = 0;
@@ -212,6 +212,7 @@ export default function MinersPage() {
 
       setCatalog(nextCatalog);
       setLevels(nextLevels);
+      setMergeFees(feeMap);
       setUserMiners(nextUserMiners);
       setMiners(mapped);
       setBalance(walletBalance);
@@ -281,10 +282,10 @@ export default function MinersPage() {
           level: group.level,
           ids: group.ids,
           nextHashrate: next ? Number(next.hashrate) : null,
-          fee: MERGE_FEES[group.level] ?? 0,
+          fee: mergeFees[group.level] ?? 0,
         };
       });
-  }, [userMiners, catalog, levels]);
+  }, [userMiners, catalog, levels, mergeFees]);
 
   const activeCount = userMiners.filter((miner) => String(miner.status).toLowerCase() === 'active').length;
   const totalHashrate = userMiners
@@ -422,8 +423,8 @@ export default function MinersPage() {
                 <div className="list-row"><span className="muted">Current</span><b>Lv {candidate.level} · {candidate.ids.length} copies</b></div>
                 <div className="list-row"><span className="muted">Result</span><b>Lv {candidate.level + 1} · {candidate.nextHashrate ?? 0} H/s</b></div>
                 <div className="list-row"><span className="muted">Merge fee</span><b>💎 {candidate.fee.toLocaleString('en-US')}</b></div>
-                <button type="button" className="btn btn-primary" disabled={busy} onClick={() => void doMerge(candidate)}>
-                  Merge Pair
+                <button type="button" className="btn btn-primary" disabled={busy || candidate.fee <= 0} onClick={() => void doMerge(candidate)}>
+                  {candidate.fee <= 0 ? 'FEE UNAVAILABLE' : 'Merge Pair'}
                 </button>
               </div>
             ))}
