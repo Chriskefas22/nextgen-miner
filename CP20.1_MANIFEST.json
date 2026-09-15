@@ -1,0 +1,38 @@
+{
+  "checkpoint": "CP20.1-final-corrected",
+  "verified_github_paths": [
+    "app/miners/page.tsx",
+    "app/dashboard/page.tsx"
+  ],
+  "explicit_source_files_in_package": 10,
+  "live_supabase_changes": [
+    "registration bonus creates free_bonus user miner entitlement",
+    "registration bonus authenticated-only execution",
+    "faucet snapshot RPC"
+  ],
+  "economic_rule": {
+    "version": "economic_v1_2_cp12",
+    "mining_bps": 2500,
+    "reserve_bps": 5000,
+    "donation_bps": 1000,
+    "owner_platform_bps": 1500
+  },
+  "merge_fees": {
+    "1->2": 25,
+    "2->3": 50,
+    "3->4": 100,
+    "4->5": 200,
+    "5->6": 400,
+    "6->7": 800,
+    "7->8": 1600,
+    "8->9": 3200,
+    "9->10": 6400
+  },
+  "faucet": {
+    "cooldown_seconds": 10800,
+    "reward_diamond": 5,
+    "daily_cap_diamond": 50
+  },
+  "github_write_status": "403 Resource not accessible by integration",
+  "deployment_status": "not deployed from this corrected package"
+}
