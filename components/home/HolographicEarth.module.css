@@ -255,7 +255,7 @@
 
 .coreBadge{
   left:50%;
-  top:50%;
+  top:calc(50% - 4%);
   transform:translate(-50%,-50%);
   width:72px;
   height:72px;
@@ -508,23 +508,23 @@
   }
 
   .region:nth-of-type(1){
-    left:13% !important;
-    top:54% !important;
+    left:4% !important;
+    top:52% !important;
   }
 
   .region:nth-of-type(2){
-    left:31% !important;
-    top:22% !important;
+    left:29% !important;
+    top:20% !important;
   }
 
   .region:nth-of-type(3){
-    left:85% !important;
-    top:40% !important;
+    left:75% !important;
+    top:43% !important;
   }
 
   .region:nth-of-type(4){
-    left:73% !important;
-    top:70% !important;
+    left:69% !important;
+    top:72% !important;
   }
 
   .region:nth-of-type(5){

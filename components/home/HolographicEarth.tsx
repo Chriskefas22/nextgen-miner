@@ -388,7 +388,8 @@ export function HolographicEarth({
 
       // Use the same Earth orientation as the supplied blueprint:
       // Europe/Africa central, Americas left, Asia right.
-      earth.rotation.y = 0;
+      earth.rotation.y = THREE.MathUtils.degToRad(100);
+      earth.position.y = 0.16;
       synchronizedSystem.add(earth);
 
       // Very restrained longitude/latitude lattice — no city/route lines.
@@ -407,7 +408,26 @@ export function HolographicEarth({
           blending: THREE.AdditiveBlending,
         }),
       );
+      grid.position.y = 0.16;
       synchronizedSystem.add(grid);
+
+      const earthGlow = new THREE.Mesh(
+        new THREE.SphereGeometry(
+          1.045,
+          mobile ? 44 : 72,
+          mobile ? 30 : 48,
+        ),
+        new THREE.MeshBasicMaterial({
+          color: 0x18cfff,
+          transparent: true,
+          opacity: 0.075,
+          side: THREE.BackSide,
+          depthWrite: false,
+          blending: THREE.AdditiveBlending,
+        }),
+      );
+      earthGlow.position.y = 0.16;
+      synchronizedSystem.add(earthGlow);
 
       const atmosphere = new THREE.Mesh(
         new THREE.SphereGeometry(
@@ -417,6 +437,7 @@ export function HolographicEarth({
         ),
         createAtmosphereMaterial(0x35e9ff, 0.55),
       );
+      atmosphere.position.y = 0.16;
       synchronizedSystem.add(atmosphere);
 
       const violetAtmosphere = new THREE.Mesh(
@@ -427,20 +448,27 @@ export function HolographicEarth({
         ),
         createAtmosphereMaterial(0x9557ff, 0.105),
       );
+      violetAtmosphere.position.y = 0.16;
       synchronizedSystem.add(violetAtmosphere);
 
       const surfaceNetwork = makeSurfaceNetwork(28, mobile);
+      surfaceNetwork.group.position.y = 0.16;
       synchronizedSystem.add(surfaceNetwork.group);
 
       // The rings are children of the SAME master transform as Earth.
       // No independent orbiting group: no drift, no desynchronization.
       const rings = new THREE.Group();
+      rings.position.y = -0.78;
       synchronizedSystem.add(rings);
 
+      // CP20.10: rings are deliberately BELOW the Earth.
+      // They are horizontal platform/orbit rings, not tilted hoops that slice
+      // through the globe. They remain children of the same master transform.
       const ringDefinitions = [
-        { radius: 1.28, tube: 0.008, y: 0.32, rx: 64, rz: 10, color: 0x45eaff, opacity: 0.38 },
-        { radius: 1.39, tube: 0.006, y: 0.27, rx: 63, rz: -28, color: 0xa45aff, opacity: 0.27 },
-        { radius: 1.17, tube: 0.0045, y: 0.19, rx: 56, rz: 70, color: 0x37dfff, opacity: 0.22 },
+        { radius: 1.18, tube: 0.006, y: 0.22, rx: 0, rz: 0, color: 0x45eaff, opacity: 0.46 },
+        { radius: 1.39, tube: 0.005, y: 0.19, rx: 0, rz: 0, color: 0x45eaff, opacity: 0.32 },
+        { radius: 1.60, tube: 0.004, y: 0.16, rx: 0, rz: 0, color: 0xa45aff, opacity: 0.24 },
+        { radius: 1.82, tube: 0.003, y: 0.13, rx: 0, rz: 0, color: 0x37dfff, opacity: 0.17 },
       ];
 
       const ringMeshes = ringDefinitions.map((definition) => {
