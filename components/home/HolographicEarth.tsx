@@ -102,42 +102,29 @@ const REGIONS: Region[] = [
  * These are clustered around the five operating regions instead of
  * being randomly scattered around the whole Earth.
  */
-const CITY_LIGHTS: CityLight[] = [
+type LandLightSeed = {
+  lat: number;
+  lon: number;
+  radiusLat: number;
+  radiusLon: number;
+  count: number;
+  phase: number;
+  intensity: number;
+};
+
+const LAND_LIGHT_SEEDS: LandLightSeed[] = [
   // Americas
-  { lat: 40, lon: -74, size: 0.035, opacity: 0.46, phase: 0.2 },
-  { lat: 34, lon: -118, size: 0.030, opacity: 0.34, phase: 1.2 },
-  { lat: 29, lon: -95, size: 0.026, opacity: 0.30, phase: 2.3 },
-  { lat: 19, lon: -99, size: 0.024, opacity: 0.28, phase: 3.2 },
-  { lat: -23, lon: -46, size: 0.032, opacity: 0.40, phase: 4.0 },
-  { lat: -34, lon: 151, size: 0.020, opacity: 0.22, phase: 4.7 },
-
+  { lat: 40, lon: -92, radiusLat: 25, radiusLon: 32, count: 22, phase: 0.2, intensity: 0.95 },
   // Europe
-  { lat: 51.5, lon: -0.1, size: 0.035, opacity: 0.46, phase: 0.6 },
-  { lat: 48.8, lon: 2.3, size: 0.030, opacity: 0.42, phase: 1.7 },
-  { lat: 52.5, lon: 13.4, size: 0.028, opacity: 0.38, phase: 2.7 },
-  { lat: 41.9, lon: 12.5, size: 0.024, opacity: 0.30, phase: 3.7 },
-  { lat: 40.4, lon: -3.7, size: 0.023, opacity: 0.28, phase: 4.8 },
-
+  { lat: 49, lon: 11, radiusLat: 13, radiusLon: 24, count: 20, phase: 1.2, intensity: 0.90 },
   // Asia
-  { lat: 35.7, lon: 139.7, size: 0.036, opacity: 0.54, phase: 0.5 },
-  { lat: 31.2, lon: 121.5, size: 0.033, opacity: 0.50, phase: 1.6 },
-  { lat: 22.3, lon: 114.2, size: 0.029, opacity: 0.44, phase: 2.5 },
-  { lat: 28.6, lon: 77.2, size: 0.027, opacity: 0.36, phase: 3.4 },
-  { lat: 1.3, lon: 103.8, size: 0.025, opacity: 0.32, phase: 4.4 },
-  { lat: 13.8, lon: 100.5, size: 0.023, opacity: 0.27, phase: 5.2 },
-
+  { lat: 27, lon: 103, radiusLat: 24, radiusLon: 42, count: 28, phase: 2.1, intensity: 1.0 },
   // Africa
-  { lat: 30.0, lon: 31.2, size: 0.026, opacity: 0.28, phase: 0.9 },
-  { lat: -1.3, lon: 36.8, size: 0.023, opacity: 0.24, phase: 2.0 },
-  { lat: -26.2, lon: 28.0, size: 0.028, opacity: 0.32, phase: 3.1 },
-  { lat: 6.5, lon: 3.4, size: 0.026, opacity: 0.29, phase: 4.1 },
-
+  { lat: -5, lon: 23, radiusLat: 28, radiusLon: 28, count: 16, phase: 3.0, intensity: 0.72 },
   // Australia
-  { lat: -33.9, lon: 151.2, size: 0.030, opacity: 0.35, phase: 1.0 },
-  { lat: -37.8, lon: 144.9, size: 0.027, opacity: 0.31, phase: 2.2 },
-  { lat: -27.5, lon: 153.0, size: 0.024, opacity: 0.28, phase: 3.5 },
-  { lat: -31.9, lon: 115.9, size: 0.022, opacity: 0.24, phase: 4.6 },
+  { lat: -28, lon: 134, radiusLat: 16, radiusLon: 28, count: 12, phase: 4.0, intensity: 0.72 },
 ];
+
 
 function latLonToVector3(
   latitude: number,
@@ -834,67 +821,313 @@ function createRegionCluster(
   };
 }
 
-function createCityLights(
+function seededRandom(seed: number) {
+  const x = Math.sin(seed * 12.9898) * 43758.5453;
+  return x - Math.floor(x);
+}
+
+type LandSampler = {
+  data: Uint8ClampedArray;
+  width: number;
+  height: number;
+};
+
+function buildLandSampler(
+  image: HTMLImageElement | ImageBitmap | HTMLCanvasElement,
+): LandSampler | null {
+  const width =
+    image instanceof HTMLCanvasElement
+      ? image.width
+      : 'naturalWidth' in image
+        ? image.naturalWidth
+        : image.width;
+
+  const height =
+    image instanceof HTMLCanvasElement
+      ? image.height
+      : 'naturalHeight' in image
+        ? image.naturalHeight
+        : image.height;
+
+  if (!width || !height) {
+    return null;
+  }
+
+  const canvas =
+    document.createElement('canvas');
+
+  canvas.width = width;
+  canvas.height = height;
+
+  const ctx =
+    canvas.getContext('2d', {
+      willReadFrequently: true,
+    });
+
+  if (!ctx) {
+    return null;
+  }
+
+  try {
+    ctx.drawImage(
+      image as CanvasImageSource,
+      0,
+      0,
+      width,
+      height,
+    );
+
+    return {
+      data: ctx.getImageData(
+        0,
+        0,
+        width,
+        height,
+      ).data,
+      width,
+      height,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function landSignalAt(
+  sampler: LandSampler,
+  latitude: number,
+  longitude: number,
+) {
+  const u =
+    ((longitude + 180) / 360 + 1) % 1;
+
+  const v =
+    THREE.MathUtils.clamp(
+      (90 - latitude) / 180,
+      0,
+      1,
+    );
+
+  const x =
+    Math.round(
+      u * (sampler.width - 1),
+    );
+
+  const y =
+    Math.round(
+      v * (sampler.height - 1),
+    );
+
+  /*
+   * Test a small 3x3 neighbourhood. This tolerates coastline rounding
+   * and prevents a valid land seed from being rejected for being a few
+   * pixels offshore.
+   */
+  let best = -1;
+
+  for (
+    let oy = -2;
+    oy <= 2;
+    oy += 1
+  ) {
+    for (
+      let ox = -2;
+      ox <= 2;
+      ox += 1
+    ) {
+      const sx =
+        (x + ox + sampler.width) %
+        sampler.width;
+
+      const sy =
+        THREE.MathUtils.clamp(
+          y + oy,
+          0,
+          sampler.height - 1,
+        );
+
+      const index =
+        (sy * sampler.width + sx) * 4;
+
+      const r =
+        sampler.data[index] / 255;
+
+      const g =
+        sampler.data[index + 1] / 255;
+
+      const b =
+        sampler.data[index + 2] / 255;
+
+      /*
+       * Exactly mirrors the land discriminator used by the Earth shader.
+       */
+      const signal =
+        Math.max(
+          r - b * 0.78,
+          g - b * 0.68,
+        );
+
+      best =
+        Math.max(
+          best,
+          signal,
+        );
+    }
+  }
+
+  return best;
+}
+
+function resolveLandCoordinate(
+  sampler: LandSampler,
+  seed: LandLightSeed,
+  index: number,
+) {
+  /*
+   * Candidate search is deterministic, so the same texture/region produces
+   * stable lights across reloads and builds.
+   */
+  for (
+    let attempt = 0;
+    attempt < 32;
+    attempt += 1
+  ) {
+    const a =
+      seededRandom(
+        index * 97 +
+          attempt * 13 +
+          seed.phase * 31,
+      );
+
+    const b =
+      seededRandom(
+        index * 53 +
+          attempt * 17 +
+          seed.phase * 19,
+      );
+
+    const latitude =
+      seed.lat +
+      (a * 2 - 1) *
+        seed.radiusLat;
+
+    const longitude =
+      seed.lon +
+      (b * 2 - 1) *
+        seed.radiusLon;
+
+    if (
+      landSignalAt(
+        sampler,
+        latitude,
+        longitude,
+      ) > 0.028
+    ) {
+      return {
+        lat: latitude,
+        lon: longitude,
+      };
+    }
+  }
+
+  return null;
+}
+
+
+function createLandLights(
   mobile: boolean,
   glowTexture: THREE.Texture | null,
+  sampler: LandSampler,
 ) {
   const group =
     new THREE.Group();
 
-  const source = CITY_LIGHTS;
+  const seeds =
+    LAND_LIGHT_SEEDS;
 
-  source.forEach(
-    (city) => {
+  let index = 0;
+
+  seeds.forEach((seed) => {
+    const count =
+      mobile
+        ? Math.max(
+            5,
+            Math.round(seed.count * 0.45),
+          )
+        : seed.count;
+
+    for (
+      let i = 0;
+      i < count;
+      i += 1
+    ) {
+      const resolved =
+        resolveLandCoordinate(
+          sampler,
+          seed,
+          index,
+        );
+
+      index += 1;
+
+      if (!resolved) {
+        continue;
+      }
+
       const position =
         latLonToVector3(
-          city.lat,
-          city.lon,
-          1.024,
+          resolved.lat,
+          resolved.lon,
+          1.025,
         );
 
-      if (glowTexture) {
-        const sprite =
-          new THREE.Sprite(
-            new THREE.SpriteMaterial({
-              map: glowTexture,
-              color: 0xffeab0,
-              transparent: true,
-              opacity: Math.min(
-                0.92,
-                city.opacity * (mobile ? 2.0 : 1.7),
-              ),
-              depthWrite: false,
-              blending:
-                THREE.AdditiveBlending,
-            }),
-          );
-
-        const size =
-          city.size * (mobile ? 3.0 : 3.35);
-
-        sprite.scale.set(
-          size,
-          size,
-          1,
-        );
-
-        sprite.position.copy(
-          position,
-        );
-
-        sprite.userData = {
-          baseOpacity: Math.min(
-            0.92,
-            city.opacity * (mobile ? 2.0 : 1.7),
-          ),
-          phase:
-            city.phase,
-        };
-
-        group.add(sprite);
+      if (!glowTexture) {
+        continue;
       }
-    },
-  );
+
+      const sprite =
+        new THREE.Sprite(
+          new THREE.SpriteMaterial({
+            map: glowTexture,
+            color: 0xffe8a4,
+            transparent: true,
+            opacity:
+              0.16 +
+              seed.intensity * 0.24,
+            depthWrite: false,
+            blending:
+              THREE.AdditiveBlending,
+          }),
+        );
+
+      const size =
+        mobile
+          ? 0.035 +
+            (i % 3) * 0.004
+          : 0.040 +
+            (i % 4) * 0.005;
+
+      sprite.scale.set(
+        size,
+        size,
+        1,
+      );
+
+      sprite.position.copy(
+        position,
+      );
+
+      sprite.userData = {
+        baseOpacity:
+          0.16 +
+          seed.intensity * 0.24,
+        phase:
+          seed.phase +
+          i * 0.27,
+      };
+
+      group.add(sprite);
+    }
+  });
 
   return group;
 }
@@ -1113,6 +1346,11 @@ export function HolographicEarth({
         '(prefers-reduced-motion: reduce)',
       );
 
+    const cityLightsRef = {
+      current:
+        new THREE.Group(),
+    };
+
     try {
       renderer =
         new THREE.WebGLRenderer({
@@ -1284,6 +1522,36 @@ export function HolographicEarth({
 
             texture.needsUpdate =
               true;
+
+            /*
+             * Rebuild living lights from the ACTUAL Earth texture.
+             * This is what prevents dots from floating over oceans:
+             * every candidate is validated against the same UV texture
+             * that the Earth shader is displaying.
+             */
+            const landSampler =
+              buildLandSampler(
+                texture.image,
+              );
+
+            if (landSampler) {
+              const refreshedLights =
+                createLandLights(
+                  mobile,
+                  glowTexture,
+                  landSampler,
+                );
+
+              refreshedLights.position.y =
+                0.10;
+
+              synchronizedSystem.add(
+                refreshedLights,
+              );
+
+              cityLightsRef.current =
+                refreshedLights;
+            }
           },
           undefined,
           () => {
@@ -1574,21 +1842,6 @@ export function HolographicEarth({
         },
       );
 
-      /*
-       * Living city lights.
-       */
-      const cityLights =
-        createCityLights(
-          mobile,
-          glowTexture,
-        );
-
-      cityLights.position.y =
-        0.10;
-
-      synchronizedSystem.add(
-        cityLights,
-      );
 
       /*
        * Core energy halo:
@@ -1831,55 +2084,6 @@ export function HolographicEarth({
           );
         };
 
-      const animateCityLights =
-        (now: number) => {
-          cityLights.children.forEach(
-            (child) => {
-              const sprite =
-                child as THREE.Sprite;
-
-              if (
-                !sprite.material
-              ) {
-                return;
-              }
-
-              const material =
-                sprite.material as THREE.SpriteMaterial;
-
-              const baseOpacity =
-                Number(
-                  sprite.userData
-                    .baseOpacity ??
-                    0.25,
-                );
-
-              const phase =
-                Number(
-                  sprite.userData
-                    .phase ??
-                    0,
-                );
-
-              const flicker =
-                0.77 +
-                0.23 *
-                  (
-                    0.5 +
-                    0.5 *
-                      Math.sin(
-                        now *
-                          0.0015 +
-                          phase,
-                      )
-                  );
-
-              material.opacity =
-                baseOpacity *
-                flicker;
-            },
-          );
-        };
 
       const resize =
         () => {
@@ -2205,7 +2409,42 @@ export function HolographicEarth({
                 0.009;
           }
 
-          animateCityLights(now);
+          cityLightsRef.current.children.forEach(
+            (child) => {
+              const sprite =
+                child as THREE.Sprite;
+
+              const material =
+                sprite.material as THREE.SpriteMaterial;
+
+              const baseOpacity =
+                Number(
+                  sprite.userData.baseOpacity ??
+                    0.24,
+                );
+
+              const phase =
+                Number(
+                  sprite.userData.phase ??
+                    0,
+                );
+
+              const pulse =
+                0.78 +
+                0.22 *
+                  (
+                    0.5 +
+                    0.5 *
+                      Math.sin(
+                        now * 0.0017 +
+                          phase,
+                      )
+                  );
+
+              material.opacity =
+                baseOpacity * pulse;
+            },
+          );
           regionProjection(now);
 
           renderer.render(
