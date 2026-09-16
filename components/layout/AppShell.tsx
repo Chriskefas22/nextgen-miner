@@ -6,9 +6,12 @@ import { Sidebar } from './Sidebar';
 import { Topbar } from './Topbar';
 import { BottomNav } from './BottomNav';
 import '../../styles/dashboard-shell.css';
+import '../../styles/home-premium-polish.css';
 
 export function AppShell({ children }: { children: React.ReactNode }) {
-  const [open, setOpen] = useState(false); const pathname = usePathname(); const home = pathname === '/dashboard';
+  const [open, setOpen] = useState(false);
+  const pathname = usePathname();
+  const home = pathname === '/dashboard';
   return <div className={`app-shell ${home ? 'home-shell' : ''}`}>
     {open ? <button type="button" aria-label="Close navigation overlay" onClick={() => setOpen(false)} className="ng-nav-backdrop" /> : null}
     <Sidebar open={open} onClose={() => setOpen(false)} />
