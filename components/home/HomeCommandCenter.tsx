@@ -124,7 +124,15 @@ export function HomeCommandCenter({ initialData }: { initialData: HomeSnapshot }
             <div><span className={styles.chipIcon}><Gauge size={15} /></span><div><b>Economy Stable</b><small>Live Data</small></div></div>
           </div>
         </div>
-        <div className={styles.heroVisual} aria-hidden="true"><HolographicEarth /></div>
+        <div className={styles.heroVisual} aria-label="Live NextGen global network visualization">
+          <HolographicEarth metrics={{
+            asset,
+            status: activeNow ? 'LIVE' : 'PAUSED',
+            activeHashrate: num(data.active_hashrate),
+            activeMiners: num(data.active_miners, 0),
+            dailyOutputUsd: money(data.live_earnings.daily_usd),
+          }} />
+        </div>
       </section>
 
       {message ? <section className={styles.notice}><ShieldCheck size={16} />{message}</section> : null}
