@@ -1,65 +1,168 @@
 'use client';
 
 import Link from 'next/link';
-import { Activity, ArrowRight, Boxes, CircleDollarSign, Gauge, History, Layers3, RefreshCw, ShieldCheck, Sparkles, Target, Wallet, Zap } from 'lucide-react';
+import {
+  Activity, ArrowRight, Bell, CalendarCheck2, ChevronRight, CircleDollarSign,
+  Coins, Cuboid, Gauge, HeartPulse, History, RefreshCw, ShieldCheck, Sparkles,
+  SwapHorizontal, Zap,
+} from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import styles from './HomeCommandCenter.module.css';
 
 export type HomeSnapshot = {
-  engine:string; today_utc:string; asset:string; diamond_balance:number|string; reserved_diamond:number|string;
-  active_miners:number; active_hashrate:number|string; effective_hashrate:number|string;
-  room:{name:string;room_count:number;capacity:number;workers:number;load_percent:number|string;hashrate:number|string};
-  hashrate_status:{status:string;recharge_expires_at:string|null;premium:boolean;membership_expires_at:string|null};
-  membership:{active:boolean;slug:string;name:string;mining_factor:number|string;task_multiplier:number|string;referral_multiplier:number|string;task_limit_multiplier:number|string;upgrade_discount_bps:number;daily_bonus_diamond:number|string;premium_miner_access:boolean;priority_support:boolean;early_access:boolean;expires_at:string|null};
-  pool:{pool_date:string;asset:string;mining_budget_usd:number|string;allocated_usd:number|string;reward_rate_usd_per_hash_second:number|string;reserve_balance_usd:number|string;reserve_coverage_ratio:number|string;reserve_status:string;network_baseline_hashrate:number|string;network_baseline_weight:number|string;prepared_at:string|null;mining_allocation_bps:number;reserve_allocation_bps:number;rolling_10d_net_revenue_usd:number|string;rolling_10d_mining_release_usd:number|string;mining_lot_days:number}|null;
-  selected_asset:{asset:string;display_name:string;mining_enabled:boolean;pool_enabled:boolean;rate_usd:number|string;rate_updated_at:string|null;status:string};
-  live_earnings:{status:string;estimated_usd:number|string;estimated_crypto:number|string;elapsed_seconds:number|string;currency:string;claim_is_server_settled:boolean;source?:string;hourly_usd?:number|string;daily_usd?:number|string;thirty_day_usd?:number|string;reward_rate_usd_per_hash_second?:number|string;crypto_rate_usd?:number|string;capacity_multiplier?:number|string;starter_reserve_balance_usd?:number|string;starter_coverage_days?:number|string;recharge_expires_at?:string|null;as_of?:string};
-  streak:{current:number;best:number;today_claimed:boolean;base_reward_diamond:number|string;days:Array<{day:number;status:'claimed'|'ready'|'locked';reward_diamond:number|string}>};
-  bonuses:Array<{key:string;label:string;value:string;active:boolean}>;
-  crypto_options:Array<{asset:string;display_name:string;mining_enabled:boolean;pool_enabled:boolean;rate_usd:number|string;rate_updated_at:string|null;status:string}>;
-  earnings_history:Array<{date:string;allocated_usd:number|string;crypto_amount:number|string}>;
-  recent_transactions:Array<{id:number;type:string;diamond_delta:number|string;usd_delta:number|string;asset:string|null;crypto_amount:number|string|null;created_at:string}>;
+  engine: string; today_utc: string; asset: string; diamond_balance: number | string; reserved_diamond: number | string;
+  active_miners: number; active_hashrate: number | string; effective_hashrate: number | string;
+  room: { name: string; room_count: number; capacity: number; workers: number; load_percent: number | string; hashrate: number | string };
+  hashrate_status: { status: string; recharge_expires_at: string | null; premium: boolean; membership_expires_at: string | null };
+  membership: { active: boolean; slug: string; name: string; mining_factor: number | string; task_multiplier: number | string; referral_multiplier: number | string; task_limit_multiplier: number | string; upgrade_discount_bps: number; daily_bonus_diamond: number | string; premium_miner_access: boolean; priority_support: boolean; early_access: boolean; expires_at: string | null };
+  pool: { pool_date: string; asset: string; mining_budget_usd: number | string; allocated_usd: number | string; reward_rate_usd_per_hash_second: number | string; reserve_balance_usd: number | string; reserve_coverage_ratio: number | string; reserve_status: string; network_baseline_hashrate: number | string; network_baseline_weight: number | string; prepared_at: string | null; mining_allocation_bps: number; reserve_allocation_bps: number; rolling_10d_net_revenue_usd: number | string; rolling_10d_mining_release_usd: number | string; mining_lot_days: number } | null;
+  selected_asset: { asset: string; display_name: string; mining_enabled: boolean; pool_enabled: boolean; rate_usd: number | string; rate_updated_at: string | null; status: string };
+  live_earnings: { status: string; estimated_usd: number | string; estimated_crypto: number | string; elapsed_seconds: number | string; currency: string; claim_is_server_settled: boolean; source?: string; hourly_usd?: number | string; daily_usd?: number | string; thirty_day_usd?: number | string; reward_rate_usd_per_hash_second?: number | string; crypto_rate_usd?: number | string; capacity_multiplier?: number | string; starter_reserve_balance_usd?: number | string; starter_coverage_days?: number | string; recharge_expires_at?: string | null; as_of?: string };
+  streak: { current: number; best: number; today_claimed: boolean; base_reward_diamond: number | string; days: Array<{ day: number; status: 'claimed' | 'ready' | 'locked'; reward_diamond: number | string }> };
+  bonuses: Array<{ key: string; label: string; value: string; active: boolean }>;
+  crypto_options: Array<{ asset: string; display_name: string; mining_enabled: boolean; pool_enabled: boolean; rate_usd: number | string; rate_updated_at: string | null; status: string }>;
+  earnings_history: Array<{ date: string; allocated_usd: number | string; crypto_amount: number | string }>;
+  recent_transactions: Array<{ id: number; type: string; diamond_delta: number | string; usd_delta: number | string; asset: string | null; crypto_amount: number | string | null; created_at: string }>;
 };
 
-type ClaimStatus={asset:string;settlement_date:string;status:'READY'|'ALREADY_SETTLED'|'NOT_READY';reason:string;payout_id:number|null;mining_budget_usd:number|string;pool_prepared:boolean};
-const n=(v:number|string|null|undefined,d=2)=>Number(v??0).toLocaleString('en-US',{maximumFractionDigits:d});
-const money=(v:number|string|null|undefined)=>Number(v??0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:8});
-const crypto=(v:number|string|null|undefined)=>Number(v??0).toLocaleString('en-US',{maximumFractionDigits:12});
-const pct=(v:number|string|null|undefined)=>`${Number(v??0).toFixed(1)}%`;
-function err(e:unknown){if(e&&typeof e==='object'&&'message' in e)return String((e as any).message??'Action failed');return e instanceof Error?e.message:'Action failed';}
-function path(values:number[]){const width=600,height=180,pad=18,max=Math.max(...values,0.0000001),min=Math.min(...values,0),span=Math.max(max-min,0.0000001);return values.map((v,i)=>{const x=pad+(i/Math.max(values.length-1,1))*(width-pad*2);const y=height-pad-((v-min)/span)*(height-pad*2);return `${i?'L':'M'}${x.toFixed(2)},${y.toFixed(2)}`}).join(' ')}
-function countdown(target:string|null, nowMs:number){if(!target)return 'NOT ACTIVE';const ms=Math.max(new Date(target).getTime()-nowMs,0);const total=Math.floor(ms/1000);const d=Math.floor(total/86400);const h=Math.floor(total%86400/3600);const m=Math.floor(total%3600/60);const s=total%60;return d>0?`${d}d ${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`:`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;}
+type ClaimStatus = { asset: string; settlement_date: string; status: 'READY' | 'ALREADY_SETTLED' | 'NOT_READY'; reason: string; payout_id: number | null; mining_budget_usd: number | string; pool_prepared: boolean };
+const num = (v: number | string | null | undefined, digits = 2) => Number(v ?? 0).toLocaleString('en-US', { maximumFractionDigits: digits });
+const money = (v: number | string | null | undefined, digits = 2) => Number(v ?? 0).toLocaleString('en-US', { minimumFractionDigits: digits, maximumFractionDigits: digits });
+const crypto = (v: number | string | null | undefined) => Number(v ?? 0).toLocaleString('en-US', { maximumFractionDigits: 12 });
+const clean = (v: string) => v.replaceAll('_', ' ');
+function actionError(e: unknown) { if (e && typeof e === 'object' && 'message' in e) return String((e as { message?: unknown }).message ?? 'Action failed'); return e instanceof Error ? e.message : 'Action failed'; }
+function sparkPath(values: number[]) {
+  const width = 680, height = 220, pad = 22;
+  const max = Math.max(...values, 0.0000001), min = Math.min(...values, 0), span = Math.max(max - min, 0.0000001);
+  return values.map((v, i) => { const x = pad + (i / Math.max(values.length - 1, 1)) * (width - pad * 2); const y = height - pad - ((v - min) / span) * (height - pad * 2); return `${i ? 'L' : 'M'}${x.toFixed(1)},${y.toFixed(1)}`; }).join(' ');
+}
 
-export function HomeCommandCenter({initialData}:{initialData:HomeSnapshot}){
- const [data,setData]=useState(initialData); const [claim,setClaim]=useState<ClaimStatus|null>(null); const [asset,setAsset]=useState(initialData.asset); const [loading,setLoading]=useState(false); const [claiming,setClaiming]=useState(false); const [checkingIn,setCheckingIn]=useState(false); const [recharging,setRecharging]=useState(false); const [message,setMessage]=useState(''); const [clock,setClock]=useState(Date.now());
- const load=useCallback(async(nextAsset=asset,silent=false)=>{const sb=createClient();if(!silent)setLoading(true);try{const[a,c]=await Promise.all([sb.rpc('nextgen_farm_snapshot',{p_asset:nextAsset}),sb.rpc('nextgen_farm_claim_status',{p_asset:nextAsset})]);if(a.error)throw a.error;if(c.error)throw c.error;setData(a.data as HomeSnapshot);setClaim(c.data as ClaimStatus);setAsset(nextAsset);}catch(e){setMessage(err(e));}finally{if(!silent)setLoading(false)}},[asset]);
- useEffect(()=>{void load(asset,true);const t=window.setInterval(()=>void load(asset,true),15000);return()=>window.clearInterval(t)},[asset,load]);
- useEffect(()=>{const t=window.setInterval(()=>setClock(Date.now()),1000);return()=>window.clearInterval(t)},[]);
- const values=useMemo(()=>data.earnings_history.map(x=>Number(x.allocated_usd??0)),[data.earnings_history]); const chart=useMemo(()=>path(values.length?values:[0,0]),[values]); const positive=values.some(v=>v>0); const activeBonuses=data.bonuses.filter(x=>x.active).length;
- const liveBase=Number(data.live_earnings.estimated_crypto??0); const ratePerSec=Number(data.live_earnings.crypto_rate_usd??0)>0?Number(data.live_earnings.reward_rate_usd_per_hash_second??0)*Number(data.effective_hashrate??0)/Number(data.live_earnings.crypto_rate_usd??1):0;
- const snapshotMs=new Date(data.live_earnings.as_of??new Date().toISOString()).getTime(); const elapsedSinceSnapshot=Math.max(0,(clock-snapshotMs)/1000); const expiryMs=data.live_earnings.recharge_expires_at?new Date(data.live_earnings.recharge_expires_at).getTime():0; const activeNow=['ACTIVE','ACTIVE_GUARDED','ACTIVE_POOL'].includes(data.live_earnings.status) && (!expiryMs || clock<expiryMs); const liveDisplay=activeNow?liveBase+Math.min(elapsedSinceSnapshot,Math.max(0,(expiryMs-clock)/1000))*Math.max(ratePerSec,0):liveBase;
- async function settle(){if(claim?.status!=='READY'||claiming)return;setClaiming(true);setMessage('');try{const sb=createClient();const r=await sb.rpc('nextgen_claim_mining',{p_asset:asset});if(r.error)throw r.error;setMessage(r.data?.settled?`Settlement ${r.data?.payout_id?`#${r.data.payout_id}`:''} posted successfully.`:String(r.data?.reason??'No settlement was available.'));await load(asset,true)}catch(e){setMessage(err(e))}finally{setClaiming(false)}}
- async function checkIn(){if(checkingIn||data.streak.today_claimed)return;setCheckingIn(true);setMessage('');try{const sb=createClient();const r=await sb.rpc('nextgen_claim_daily_checkin');if(r.error)throw r.error;setMessage(`Daily check-in claimed: ${n(r.data?.diamond_awarded,0)} 💎.`);await load(asset,true)}catch(e){setMessage(err(e))}finally{setCheckingIn(false)}}
- async function recharge(){if(recharging)return;setRecharging(true);setMessage('');try{const sb=createClient();const r=await sb.rpc('nextgen_recharge_hashrate');if(r.error)throw r.error;setMessage(`Mining recharged for 24h. ${r.data?.recharge_expires_at?`Active until ${new Date(r.data.recharge_expires_at).toLocaleString('id-ID')}.`:''}`);await load(asset,true)}catch(e){setMessage(err(e))}finally{setRecharging(false)}}
- const rechargeLabel=activeNow?countdown(data.live_earnings.recharge_expires_at??data.hashrate_status.recharge_expires_at,clock):'PAUSED · RECHARGE REQUIRED';
- return <div className={styles.shell}>
-  <section className={styles.hero}><div className={styles.heroGrid}><div><div className={styles.liveHeader}><div><div className={styles.kicker}>HOME / LIVE EARNINGS</div><h1 className={styles.title}>Your Mining Core</h1><div className={styles.muted}>Server-synchronized accrual, 24h mining activation and reserve-protected earnings. Wallet balances change only through server settlement.</div></div><span className={`${styles.status} ${activeNow?styles.liveOn:styles.off}`}><Activity size={13}/>{activeNow?'LIVE':'PAUSED'}</span></div>
-   <div className={styles.liveValue}>{crypto(liveDisplay)}<span className={styles.liveUnit}>{asset}</span></div><div className={styles.muted}>{activeNow?'Live accrual is visualized from the last server snapshot and never credits the wallet directly.':'Mining is paused because the 24h activation window has expired or the starter reserve is unavailable.'}</div>
-   <div className={styles.miniGrid} style={{marginTop:14}}><div className={styles.miniCard}><small>PER HOUR</small><b>${money(data.live_earnings.hourly_usd)}</b></div><div className={styles.miniCard}><small>TODAY</small><b>${money(data.live_earnings.daily_usd)}</b></div><div className={styles.miniCard}><small>30D EST.</small><b>${money(data.live_earnings.thirty_day_usd)}</b></div><div className={styles.miniCard}><small>RECHARGE</small><b>{rechargeLabel}</b></div></div>
-   <div className={styles.pending}><div><small>SERVER ACCRUAL</small><strong>{money(data.live_earnings.estimated_usd)} USD · {crypto(data.live_earnings.estimated_crypto)} {asset}</strong><span style={{display:'block',marginTop:4}}>Capacity multiplier {Number(data.live_earnings.capacity_multiplier??1).toFixed(4)}× · coverage {n(data.live_earnings.starter_coverage_days,1)} days</span></div><Gauge size={24}/></div>
-   <div className={styles.heroActions}>{activeNow?<button className={styles.ghost} onClick={()=>void recharge()} disabled={recharging}><RefreshCw size={15}/>{recharging?'RECHARGING…':'RECHARGE 24H'}</button>:<button className={styles.primary} onClick={()=>void recharge()} disabled={recharging}><Zap size={16}/>{recharging?'RECHARGING…':'RECHARGE & RESUME MINING'}</button>}<button className={styles.primary} disabled={claim?.status!=='READY'||claiming} onClick={()=>void settle()}><Zap size={16}/>{claiming?'SYNCING…':claim?.status==='READY'?'CLAIM LAST SETTLEMENT':'NO SETTLEMENT AVAILABLE'}</button><button className={styles.ghost} disabled={loading} onClick={()=>void load(asset)}><RefreshCw size={15}/>{loading?'Refreshing…':'Refresh Core'}</button><Link href="/miners" className={styles.ghost}><Boxes size={15}/>Miner Arsenal</Link></div>
-  </div><div className={styles.sideGrid}><div className={styles.stat}><span>ACTIVE HASHRATE</span><strong>{n(data.active_hashrate)} H/s</strong></div><div className={styles.stat}><span>EFFECTIVE HASHRATE</span><strong>{n(data.effective_hashrate)} H/s</strong></div><div className={styles.stat}><span>ACTIVE MINERS</span><strong>{data.active_miners}</strong></div><div className={styles.stat}><span>DIAMOND BALANCE</span><strong>{n(data.diamond_balance,0)} 💎</strong></div><div className={styles.stat}><span>NETWORK BASELINE</span><strong>{n(data.pool?.network_baseline_hashrate)} H/s</strong></div><div className={styles.stat}><span>POOL STATUS</span><strong>{data.live_earnings.source==='STARTER_RESERVE'?'STARTER RESERVE':(data.pool?.reserve_status??'NOT PREPARED')}</strong></div></div></div></section>
-  {message?<section className={styles.section}><div className={styles.link}><ShieldCheck size={18}/>{message}</div></section>:null}
-  <section className={styles.grid2}><div className={styles.section}><div className={styles.sectionHead}><div><div className={styles.kicker}>COMPUTE BAYS</div><h2>Starter Compute Bay</h2></div><Link href="/rooms" className={styles.link}>Open Rooms <ArrowRight size={13}/></Link></div><div className={styles.roomVisual}><div className={styles.roomTunnel}>{Array.from({length:data.room.capacity}).map((_,i)=><div key={i} className={`${styles.slot} ${i>=data.room.workers?styles.empty:''}`}>{i<data.room.workers?'W':'·'}</div>)}</div><div className={styles.roomMeta}><div><span>COMPUTE BAYS</span><b>{data.room.room_count}</b></div><div><span>WORKERS</span><b>{data.room.workers}/{data.room.capacity}</b></div><div><span>LOAD</span><b>{pct(data.room.load_percent)}</b></div><div><span>HASHRATE</span><b>{n(data.room.hashrate)} H/s</b></div></div></div></div>
-   <div className={styles.section}><div className={styles.sectionHead}><div><div className={styles.kicker}>CORE STATE</div><h2>Core Health</h2></div><Sparkles size={18}/></div><div className={styles.miniGrid}><div className={styles.miniCard}><small>HASHRATE STATUS</small><b>{data.hashrate_status.status.replaceAll('_',' ')}</b></div><div className={styles.miniCard}><small>RECHARGE</small><b>{rechargeLabel}</b></div><div className={styles.miniCard}><small>RULE ENGINE</small><b>{data.engine}</b></div><div className={styles.miniCard}><small>POOL RAIL</small><b>{asset} · {data.selected_asset.status}</b></div></div><div className={styles.muted} style={{marginTop:12}}>Membership factor {Number(data.membership.mining_factor).toFixed(2)}x · effective H/s includes server energy and efficiency state.</div></div></section>
-  <section className={styles.section}><div className={styles.sectionHead}><div><div className={styles.kicker}>CRYPTO MATRIX</div><h2>Choose an Output Rail</h2></div><CircleDollarSign size={19}/></div><div className={styles.muted}>Only a pool with a fresh rate can become LIVE. Supported assets remain visible without implying that every rail is currently mining.</div><div className={styles.cryptoGrid}>{data.crypto_options.map(o=>{const active=o.asset===asset;const liveRail=o.status==='ACTIVE';return <button key={o.asset} type="button" className={`${styles.crypto} ${active?styles.active:''} ${liveRail?'':styles.offline}`} onClick={()=>void load(o.asset)}><b>{o.asset}</b><span>{o.display_name}</span><span>{o.rate_usd?`$${n(o.rate_usd,8)}`:'rate unavailable'}</span><span className={`${styles.cryptoTag} ${liveRail?styles.activeTag:styles.offTag}`}>{o.status.replaceAll('_',' ')}</span></button>})}</div><div className={styles.muted} style={{marginTop:10}}>Selected: <strong>{data.selected_asset.display_name}</strong> · rate ${n(data.selected_asset.rate_usd,8)} · live estimate {crypto(liveDisplay)} {asset}.</div></section>
-  <section className={styles.grid2}><div className={styles.section}><div className={styles.sectionHead}><div><div className={styles.kicker}>DAILY STREAK</div><h2>Daily Pulse</h2></div><Target size={18}/></div><div className={styles.twoColList}><div className={styles.listItem}><span>Current streak</span><strong>{data.streak.current} days</strong></div><div className={styles.listItem}><span>Best streak</span><strong>{data.streak.best} days</strong></div><div className={styles.listItem}><span>Base check-in</span><strong>{n(data.streak.base_reward_diamond,0)} 💎</strong></div><div className={styles.listItem}><span>Today</span><strong>{data.streak.today_claimed?'CLAIMED':'READY'}</strong></div></div><div className={styles.streakGrid}>{data.streak.days.map(d=><div key={d.day} className={`${styles.streak} ${d.status==='claimed'?styles.claimed:d.status==='ready'?styles.ready:styles.locked}`}><b>D{d.day}</b><span>{d.status.toUpperCase()}</span></div>)}</div><button className={styles.primary} style={{marginTop:12,width:'100%'}} disabled={data.streak.today_claimed||checkingIn} onClick={()=>void checkIn()}>{checkingIn?'CHECKING IN…':data.streak.today_claimed?'CLAIMED · RETURN TOMORROW':'CLAIM DAILY CHECK-IN + RECHARGE'}</button></div>
-    <div className={styles.section}><div className={styles.sectionHead}><div><div className={styles.kicker}>PERFORMANCE MATRIX</div><h2>Active Modifiers</h2></div><Sparkles size={18}/></div><div className={styles.muted}>Only entitlements that exist in the current membership model are shown as active.</div><div className={styles.bonusGrid}>{data.bonuses.map(b=><div key={b.key} className={`${styles.bonus} ${b.active?styles.active:''}`}><span>{b.label}</span><b>{b.value}</b></div>)}</div><div className={styles.muted} style={{marginTop:10}}>{activeBonuses} active benefit{activeBonuses===1?'':'s'} · membership: {data.membership.name}.</div></div></section>
-  <section className={styles.section}><div className={styles.sectionHead}><div><div className={styles.kicker}>EARNINGS SIGNAL</div><h2>Earnings Signal</h2></div><History size={18}/></div><div className={styles.chartWrap}><svg className={styles.chart} viewBox="0 0 600 180" role="img" aria-label="Mining earnings history"><line className={styles.chartZero} x1="18" x2="582" y1="162" y2="162" />{positive?<path className={styles.chartArea} d={`${chart} L582,162 L18,162 Z`}/>:null}<path className={styles.chartLine} d={chart}/></svg><div className={styles.chartLabels}>{data.earnings_history.map(r=><span key={r.date}>{r.date.slice(5)}</span>)}</div></div><div className={styles.muted} style={{marginTop:10}}>{positive?'Historical values are settled user mining payouts from the database.':'No settled mining payout exists yet. Live accrual remains separate from settled history.'}</div></section>
-  <section className={styles.activityGrid}><Link href="/miners" className={styles.activity}><Boxes size={18}/><b>Miners</b><span>Buy, upgrade and compare all 12 miner families.</span></Link><Link href="/merge" className={styles.activity}><Layers3 size={18}/><b>Merge</b><span>Combine identical miners using database-controlled merge fees.</span></Link><Link href="/quests" className={styles.activity}><Target size={18}/><b>Quests</b><span>Track supported Diamond engagement objectives.</span></Link><Link href="/wallet/history" className={styles.activity}><History size={18}/><b>History</b><span>Review transaction and mining ledger history.</span></Link></section>
-  <section className={styles.grid3}><div className={styles.section}><div className={styles.kicker}>DIAMOND</div><div className={styles.liveValue} style={{fontSize:30}}>{n(data.diamond_balance,0)} <span className={styles.liveUnit}>💎</span></div><div className={styles.muted}>Internal utility balance for miners, upgrades and merge fees.</div></div><div className={styles.section}><div className={styles.kicker}>STARTER RESERVE</div><div className={styles.liveValue} style={{fontSize:30}}>${money(data.live_earnings.starter_reserve_balance_usd)}</div><div className={styles.muted}>Promotional reserve funding available to the starter mining rail.</div></div><div className={styles.section}><div className={styles.kicker}>WALLET / HISTORY</div><div className={styles.heroActions}><Link href="/wallet" className={styles.ghost}><Wallet size={15}/>Wallet</Link><Link href="/wallet/history" className={styles.ghost}><History size={15}/>History</Link></div></div></section>
-  <section className={styles.section}><div className={styles.sectionHead}><div><div className={styles.kicker}>RECENT ACTIVITY</div><h2>Account Ledger</h2></div><History size={18}/></div>{data.recent_transactions.length===0?<div className={styles.muted}>No account transaction recorded yet.</div>:<div className={styles.twoColList}>{data.recent_transactions.map(tx=><div key={tx.id} className={styles.listItem}><span>{tx.type.replaceAll('_',' ')}</span><strong>{tx.diamond_delta?`${n(tx.diamond_delta,2)} 💎`:tx.crypto_amount?`${crypto(tx.crypto_amount)} ${tx.asset??''}`:`${money(tx.usd_delta)} USD`}</strong></div>)}</div>}</section>
-  <section className={styles.section}><div className={styles.sectionHead}><div><div className={styles.kicker}>CORE PRINCIPLE</div><h2>Server-synchronized. Reserve-protected. No synthetic balance growth.</h2></div><ShieldCheck size={19}/></div><div className={styles.muted}>The live counter is a synchronized projection. Crypto balances change only when a server-side settlement writes the authoritative ledger.</div></section>
- </div>
+export function HomeCommandCenter({ initialData }: { initialData: HomeSnapshot }) {
+  const [data, setData] = useState(initialData);
+  const [claim, setClaim] = useState<ClaimStatus | null>(null);
+  const [asset, setAsset] = useState(initialData.asset || 'USDT');
+  const [loading, setLoading] = useState(false);
+  const [claiming, setClaiming] = useState(false);
+  const [checkingIn, setCheckingIn] = useState(false);
+  const [recharging, setRecharging] = useState(false);
+  const [message, setMessage] = useState('');
+  const [clock, setClock] = useState(Date.now());
+
+  const load = useCallback(async (nextAsset = asset, silent = false) => {
+    const sb = createClient();
+    if (!silent) setLoading(true);
+    try {
+      const [a, c] = await Promise.all([
+        sb.rpc('nextgen_farm_snapshot', { p_asset: nextAsset }),
+        sb.rpc('nextgen_farm_claim_status', { p_asset: nextAsset }),
+      ]);
+      if (a.error) throw a.error;
+      if (c.error) throw c.error;
+      setData(a.data as HomeSnapshot);
+      setClaim(c.data as ClaimStatus);
+      setAsset(nextAsset);
+    } catch (e) { setMessage(actionError(e)); }
+    finally { if (!silent) setLoading(false); }
+  }, [asset]);
+
+  useEffect(() => { void load(asset, true); const t = window.setInterval(() => void load(asset, true), 15000); return () => window.clearInterval(t); }, [asset, load]);
+  useEffect(() => { const t = window.setInterval(() => setClock(Date.now()), 1000); return () => window.clearInterval(t); }, []);
+
+  const historyValues = useMemo(() => data.earnings_history.map((x) => Number(x.allocated_usd ?? 0)), [data.earnings_history]);
+  const chart = useMemo(() => sparkPath(historyValues.length ? historyValues : [0, 0, 0, 0, 0, 0, 0]), [historyValues]);
+  const activeNow = ['ACTIVE', 'ACTIVE_GUARDED', 'ACTIVE_POOL'].includes(data.live_earnings.status) && (!data.live_earnings.recharge_expires_at || clock < new Date(data.live_earnings.recharge_expires_at).getTime());
+  const snapshotMs = new Date(data.live_earnings.as_of ?? new Date().toISOString()).getTime();
+  const elapsedSeconds = Math.max(0, (clock - snapshotMs) / 1000);
+  const maxLiveSeconds = data.live_earnings.recharge_expires_at ? Math.max(0, (new Date(data.live_earnings.recharge_expires_at).getTime() - clock) / 1000) : elapsedSeconds;
+  const cryptoUsd = Math.max(Number(data.live_earnings.crypto_rate_usd ?? 1), 0.0000001);
+  const perSecond = Number(data.live_earnings.reward_rate_usd_per_hash_second ?? 0) * Number(data.effective_hashrate ?? 0) / cryptoUsd;
+  const liveDisplay = activeNow ? Number(data.live_earnings.estimated_crypto ?? 0) + Math.min(elapsedSeconds, maxLiveSeconds) * Math.max(perSecond, 0) : Number(data.live_earnings.estimated_crypto ?? 0);
+  const selected = data.crypto_options.find((x) => x.asset === asset) ?? data.selected_asset;
+  const liveRate = Number(selected.rate_usd ?? 0);
+  const dailyClaim = data.streak.days.find((d) => d.status === 'ready');
+  const activity = data.recent_transactions.slice(0, 4);
+
+  async function settle() { if (claim?.status !== 'READY' || claiming) return; setClaiming(true); setMessage(''); try { const r = await createClient().rpc('nextgen_claim_mining', { p_asset: asset }); if (r.error) throw r.error; setMessage(r.data?.settled ? `Settlement ${r.data?.payout_id ? `#${r.data.payout_id} ` : ''}posted successfully.` : String(r.data?.reason ?? 'No settlement was available.')); await load(asset, true); } catch (e) { setMessage(actionError(e)); } finally { setClaiming(false); } }
+  async function checkIn() { if (checkingIn || data.streak.today_claimed) return; setCheckingIn(true); setMessage(''); try { const r = await createClient().rpc('nextgen_claim_daily_checkin'); if (r.error) throw r.error; setMessage(`Daily check-in claimed: ${num(r.data?.diamond_awarded, 0)} 💎.`); await load(asset, true); } catch (e) { setMessage(actionError(e)); } finally { setCheckingIn(false); } }
+  async function recharge() { if (recharging) return; setRecharging(true); setMessage(''); try { const r = await createClient().rpc('nextgen_recharge_hashrate'); if (r.error) throw r.error; setMessage('Mining recharged for 24h.'); await load(asset, true); } catch (e) { setMessage(actionError(e)); } finally { setRecharging(false); } }
+
+  return (
+    <div className={styles.page}>
+      <section className={styles.hero}>
+        <div className={styles.heroCopy}>
+          <div className={styles.heroKicker}>WELCOME BACK</div>
+          <div className={styles.heroTitle}>YOUR <span>MINING CORE</span></div>
+          <p>Recharge your starter reserve to resume mining.<br className={styles.desktopOnly} /> Choose your asset, stay active and grow your earnings.</p>
+          <div className={`${styles.pausePill} ${activeNow ? styles.activePill : ''}`}><span className={styles.pulseDot} />{activeNow ? 'MINING ACTIVE' : 'PAUSED · ACTION NEEDED'}</div>
+          <div className={styles.heroActions}>
+            <button className={styles.primaryBtn} onClick={() => void recharge()} disabled={recharging}><Zap size={17} />{recharging ? 'RECHARGING…' : activeNow ? 'RECHARGE 24H' : 'RECHARGE & RESUME'}<ChevronRight size={17} /></button>
+            <Link className={styles.secondaryBtn} href="/miners"><Cuboid size={17} />View Miner Arsenal</Link>
+          </div>
+          <div className={styles.statusChips}>
+            <div><span className={styles.chipIcon}><Activity size={15} /></span><div><b>Server Online</b><small>Low Latency</small></div></div>
+            <div><span className={styles.chipIcon}><ShieldCheck size={15} /></span><div><b>Network Secured</b><small>256-bit Encryption</small></div></div>
+            <div><span className={styles.chipIcon}><Gauge size={15} /></span><div><b>Economy Stable</b><small>Live Data</small></div></div>
+          </div>
+        </div>
+        <div className={styles.heroVisual} aria-hidden="true">
+          <div className={styles.spaceGlow} />
+          <div className={styles.miningCube}><div className={styles.cubeTop} /><div className={styles.cubeFront}><span>N</span></div><div className={styles.cubeSide} /><div className={styles.cubeBase} /></div>
+          <div className={styles.verticalWordmark}>NEXTGEN</div>
+          <div className={styles.powerText}>POWER<br />CONNECTS<br /><strong>PEOPLE</strong></div>
+          <div className={styles.ringOuter} /><div className={styles.ringInner} />
+        </div>
+      </section>
+
+      {message ? <section className={styles.notice}><ShieldCheck size={16} />{message}</section> : null}
+
+      <section className={styles.statsRow}>
+        <div className={styles.statCard}><span><Zap size={16} />ACTIVE HASHRATE</span><strong>{num(data.active_hashrate)} <em>H/s</em></strong><small>+0%</small></div>
+        <div className={styles.statCard}><span><Coins size={16} />MINING OUTPUT (TODAY)</span><strong>${money(data.live_earnings.daily_usd)}</strong><small>{money(data.live_earnings.estimated_crypto)} {asset}</small></div>
+        <div className={styles.statCard}><span><Cuboid size={16} />ACTIVE MINERS</span><strong>{data.active_miners}</strong><Link href="/miners">View All <ArrowRight size={13} /></Link></div>
+        <div className={styles.statCard}><span><Sparkles size={16} />DIAMOND BALANCE</span><strong>{num(data.diamond_balance, 0)}</strong><small>Internal Utility</small></div>
+      </section>
+
+      <section className={styles.assetPanel}>
+        <div className={styles.panelHeader}>
+          <div><div className={styles.sectionKicker}>MINING OUTPUT</div><h2>Select Mining Asset</h2><p>Choose the cryptocurrency you want to mine. You can change anytime.</p></div>
+          <span className={styles.liveRates}><i /> Live Rates <RefreshCw size={13} /></span>
+        </div>
+        <div className={styles.assetRail}>
+          {data.crypto_options.slice(0, 8).map((opt) => { const active = opt.asset === asset; return <button key={opt.asset} type="button" className={`${styles.assetButton} ${active ? styles.assetSelected : ''}`} onClick={() => void load(opt.asset)}><span className={styles.assetIcon}>{opt.asset === 'USDT' ? '₮' : opt.asset.slice(0, 1)}</span><b>{opt.asset}</b><small>{opt.display_name}</small></button>; })}
+          <Link href="/more" className={styles.assetButton}><span className={styles.assetIcon}>+</span><b>More</b><small>Assets</small></Link>
+        </div>
+        <div className={styles.assetSelectedBar}><div><span>Selected:</span> {selected.display_name}</div><div><span>Live Rate:</span> ${liveRate ? num(liveRate, 8) : '—'}</div><span className={styles.activeBadge}>{selected.status === 'ACTIVE' ? 'ACTIVE' : clean(selected.status)}</span><button className={styles.changeAsset} onClick={() => void load(asset)} disabled={loading}><SwapHorizontal size={15} />Change Asset</button></div>
+      </section>
+
+      <section className={styles.threeCol}>
+        <div className={`${styles.panel} ${styles.earningsPanel}`}>
+          <div className={styles.panelHeader}><div><div className={styles.sectionKicker}>EARNINGS SIGNAL</div><h2>Mining Output</h2></div><button className={styles.periodBtn}>7 Days <ChevronRight size={14} /></button></div>
+          <div className={styles.chartWrap}><svg viewBox="0 0 680 220" preserveAspectRatio="none" className={styles.chartSvg} aria-label="Earnings chart"><defs><linearGradient id="earningsArea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="currentColor" stopOpacity=".22" /><stop offset="1" stopColor="currentColor" stopOpacity="0" /></linearGradient></defs>{[20,65,110,155,200].map((y) => <line key={y} x1="22" x2="658" y1={y} y2={y} className={styles.chartGrid} />)}<path d={`${chart} L658,198 L22,198 Z`} fill="url(#earningsArea)" className={styles.chartArea} /><path d={chart} className={styles.chartLine} /></svg><div className={styles.axis}><span>09-07</span><span>09-08</span><span>09-09</span><span>09-10</span><span>09-11</span><span>09-12</span><span>09-13</span></div></div>
+          <div className={styles.chartMessage}><History size={18} /><div><b>No settled mining payout yet.</b><small>Live accrual remains separate from settled history.</small></div></div>
+        </div>
+
+        <div className={styles.panel}>
+          <div className={styles.panelHeader}><div><div className={styles.sectionKicker}>CORE STATUS</div><h2>Mining Core</h2></div><HeartPulse size={18} /></div>
+          <div className={styles.coreStatus}><div className={styles.coreIcon}><HeartPulse size={22} /></div><div><span className={styles.goldBadge}>{activeNow ? 'ACTIVE' : 'ACTION REQUIRED'}</span><h3>{activeNow ? 'Mining Active' : 'Mining Paused'}</h3><p>{activeNow ? 'Your 24h activation window is active and live accrual is being visualized from the latest server snapshot.' : 'Mining is paused because the 24h activation window has expired or the starter reserve is unavailable.'}</p></div></div>
+          <div className={styles.coreStats}><div><small>ACTIVE</small><b>{num(data.active_hashrate)} H/s</b></div><div><small>EFFECTIVE</small><b>{num(data.effective_hashrate)} H/s</b></div></div>
+          <button className={styles.primaryWide} onClick={() => void recharge()} disabled={recharging}><Zap size={16} />{recharging ? 'RECHARGING…' : 'Recharge & Resume'}</button>
+        </div>
+
+        <div className={styles.panel}>
+          <div className={styles.panelHeader}><div><div className={styles.sectionKicker}>RECENT ACTIVITY</div><h2>Latest Events</h2></div><Link href="/wallet/history" className={styles.viewAll}>View All <ArrowRight size={13} /></Link></div>
+          <div className={styles.activityList}>{activity.map((row) => <div className={styles.activityRow} key={row.id}><span className={styles.activityIcon}><Coins size={15} /></span><div><b>{clean(row.type)}</b><small>{new Date(row.created_at).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</small></div><strong>{Number(row.diamond_delta) < 0 ? '' : '+'}{num(row.diamond_delta, 0)} <em>💎</em></strong></div>)}{!activity.length ? <div className={styles.emptyActivity}>No recent activity yet.</div> : null}</div>
+        </div>
+      </section>
+
+      <section className={styles.lowerGrid}>
+        <div className={styles.panel}><div className={styles.panelHeader}><div><div className={styles.sectionKicker}>DAILY PULSE</div><h2>Check-in</h2></div><CalendarCheck2 size={18} /></div><div className={styles.pulseStats}><div><small>Current Streak</small><strong>{data.streak.current} <em>days</em></strong></div><div><small>Best Streak</small><strong>{data.streak.best} <em>days</em></strong></div><div><small>Base Check-in</small><strong>{num(data.streak.base_reward_diamond, 0)} <em>💎</em></strong></div></div><div className={styles.streakRail}>{data.streak.days.slice(0, 7).map((day) => <div key={day.day} className={`${styles.dayCell} ${styles[day.status]}`}><b>D{day.day}</b><span>{num(day.reward_diamond, 0)}</span></div>)}</div><button className={styles.primaryWide} onClick={() => void checkIn()} disabled={checkingIn || data.streak.today_claimed}><CalendarCheck2 size={16} />{data.streak.today_claimed ? 'CHECK-IN CLAIMED' : checkingIn ? 'CLAIMING…' : `Claim Daily Check-in${dailyClaim ? ` · ${num(dailyClaim.reward_diamond, 0)} 💎` : ''}`}</button></div>
+        <div className={styles.panel}><div className={styles.panelHeader}><div><div className={styles.sectionKicker}>LIVE EARNINGS</div><h2>Current Accrual</h2></div><Gauge size={18} /></div><div className={styles.accrualValue}>{crypto(liveDisplay)} <span>{asset}</span></div><p className={styles.muted}>${money(data.live_earnings.estimated_usd)} USD server snapshot · {activeNow ? 'live visualization active' : 'paused'}</p><div className={styles.accrualGrid}><div><small>PER HOUR</small><b>${money(data.live_earnings.hourly_usd)}</b></div><div><small>TODAY</small><b>${money(data.live_earnings.daily_usd)}</b></div><div><small>30D EST.</small><b>${money(data.live_earnings.thirty_day_usd)}</b></div></div><div className={styles.capacityLine}><span>Capacity multiplier</span><b>{Number(data.live_earnings.capacity_multiplier ?? 1).toFixed(4)}×</b></div><div className={styles.capacityLine}><span>Starter coverage</span><b>{num(data.live_earnings.starter_coverage_days, 1)} days</b></div></div>
+        <div className={styles.panel}><div className={styles.panelHeader}><div><div className={styles.sectionKicker}>SYSTEM</div><h2>Network Snapshot</h2></div><CircleDollarSign size={18} /></div><div className={styles.networkGrid}><div><small>Pool</small><b>{asset}</b></div><div><small>Baseline</small><b>{num(data.pool?.network_baseline_hashrate)} H/s</b></div><div><small>Reserve</small><b>{data.pool?.reserve_status ?? 'NOT PREPARED'}</b></div><div><small>Engine</small><b>{data.engine}</b></div></div><div className={styles.networkFooter}><ShieldCheck size={15} /> Server-side settlement · fail-closed controls</div></div>
+      </section>
+
+      <section className={styles.bottomBanner}><div><div className={styles.sectionKicker}>NEXTGEN MINER</div><h2>A STRONGER TOMORROW</h2><p>Build your miners. Strengthen your core. Grow with the network.</p></div><div className={styles.bannerStats}><div><b>12</b><small>Miner Families</small></div><div><b>∞</b><small>Global Network</small></div><div><b>24/7</b><small>Server Operations</small></div><div><b>100%</b><small>Transparent</small></div></div></section>
+      <div className={styles.mobileHint}><Bell size={14} /> Home is synchronized every 15 seconds from the production snapshot.</div>
+    </div>
+  );
 }
