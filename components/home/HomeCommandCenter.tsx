@@ -31,6 +31,22 @@ const num = (v: number | string | null | undefined, digits = 2) => Number(v ?? 0
 const money = (v: number | string | null | undefined, digits = 2) => Number(v ?? 0).toLocaleString('en-US', { minimumFractionDigits: digits, maximumFractionDigits: digits });
 const crypto = (v: number | string | null | undefined) => Number(v ?? 0).toLocaleString('en-US', { maximumFractionDigits: 12 });
 const clean = (v: string) => v.replaceAll('_', ' ');
+
+function CryptoLogo({ asset }: { asset: string }) {
+  const a = asset.toUpperCase();
+  const common = { width: 22, height: 22, viewBox: '0 0 32 32', 'aria-hidden': true } as const;
+  if (a === 'BTC') return <svg {...common}><circle cx="16" cy="16" r="13" fill="#f7931a"/><path d="M18.8 8.1c2.5.6 3.7 2.1 3.4 4-.2 1.2-1 2.1-2.2 2.7 2.2.7 3.2 2.1 2.9 4-.5 3-3.3 4.2-7.4 3.6l-.3 2.3-1.9-.2.3-2.4-1.6-.2-.3 2.4-1.9-.2.3-2.4-1.5-.2.2-1.8 1.1.1c.5.1.8-.2.9-.8l1.1-7.2c.1-.6-.1-.9-.7-1l-1.1-.1.3-1.8 1.5.2.4-2.5 1.9.3-.4 2.4 1.6.2.4-2.4 1.9.3-.3 2.2Zm-5.1 8.1-.5 3.1c2.6.4 4.3 0 4.5-1.4.2-1.3-1-1.9-4-2.3Zm.7-4.8-.4 2.7c2.4.3 3.8-.1 4-1.4.2-1.2-1-1.7-3.6-2Z" fill="#fff"/></svg>;
+  if (a === 'ETH') return <svg {...common}><circle cx="16" cy="16" r="13" fill="#627eea"/><path d="m16 5.5 7 11-7 4-7-4 7-11Z" fill="#d9ddff"/><path d="m16 5.5-7 11 7-3.1V5.5Z" fill="#fff"/><path d="m16 21.8 7-5.3-7 10-7-10 7 5.3Z" fill="#c1c8ff"/></svg>;
+  if (a === 'USDT') return <svg {...common}><circle cx="16" cy="16" r="13" fill="#26a17b"/><path d="M8 9h16v3h-6v11h-4V12H8V9Zm2 6.5c1.7 1.1 4 1.7 6 1.7s4.3-.6 6-1.7v2c-1.7 1-3.8 1.5-6 1.5s-4.3-.5-6-1.5v-2Z" fill="#fff"/></svg>;
+  if (a === 'BNB') return <svg {...common}><circle cx="16" cy="16" r="13" fill="#f3ba2f"/><path d="m16 7 2.5 2.5-2.5 2.5-2.5-2.5L16 7Zm-5 5 2.5 2.5L11 17l-2.5-2.5L11 12Zm10 0 2.5 2.5L21 17l-2.5-2.5L21 12Zm-5 5 2.5 2.5-2.5 2.5-2.5-2.5L16 17Zm0-5 4 4-4 4-4-4 4-4Z" fill="#fff"/></svg>;
+  if (a === 'DOGE') return <svg {...common}><circle cx="16" cy="16" r="13" fill="#c2a633"/><path d="M10 8h6.2c4.1 0 6.7 3.1 6.7 8s-2.6 8-6.7 8H10v-6.5H8.5v-2.5H10V8Zm4 3.5v9h2c2 0 3-1.5 3-4.5s-1-4.5-3-4.5h-2Z" fill="#fff"/></svg>;
+  if (a === 'BCH') return <svg {...common}><circle cx="16" cy="16" r="13" fill="#0ac18e"/><path d="M11 8h5.2c2.9 0 4.6 1.5 4.6 3.6 0 1.4-.7 2.5-1.9 3.1 1.5.5 2.4 1.6 2.4 3.2 0 2.6-2.1 4.1-5 4.1H11V8Zm3 2.7v3h2.1c1.1 0 1.8-.5 1.8-1.5s-.7-1.5-1.8-1.5H14Zm0 5.5v3.1h2.4c1.2 0 2-.5 2-1.5s-.8-1.6-2-1.6H14Z" fill="#fff"/></svg>;
+  if (a === 'DASH') return <svg {...common}><circle cx="16" cy="16" r="13" fill="#008de4"/><path d="M9 11h10.5c1.6 0 2.8 1 2.8 2.4 0 1.2-.8 2.2-2 2.5 1.2.3 2 1.3 2 2.6 0 1.5-1.2 2.5-2.8 2.5H9l1-3h9.1c.4 0 .7-.3.7-.7s-.3-.7-.7-.7h-8.5l1-3h7.8c.4 0 .7-.3.7-.7s-.3-.7-.7-.7H9.8L9 11Z" fill="#fff"/></svg>;
+  if (a === 'DGB') return <svg {...common}><circle cx="16" cy="16" r="13" fill="#006ad4"/><path d="M10 9h6.5c3.5 0 5.5 2.3 5.5 7s-2 7-5.5 7H10V9Zm3.5 3.2v7.6h2.7c1.7 0 2.7-1.1 2.7-3.8s-1-3.8-2.7-3.8h-2.7Z" fill="#fff"/></svg>;
+  if (a === 'FEY') return <svg {...common}><circle cx="16" cy="16" r="13" fill="#6c63ff"/><path d="M9 9h13v3.2h-8.8v2.2h7.2v3h-7.2V23H9V9Z" fill="#fff"/></svg>;
+  return <svg {...common}><circle cx="16" cy="16" r="13" fill="url(#coinGradient)"/><defs><linearGradient id="coinGradient" x1="4" y1="4" x2="28" y2="28"><stop stopColor="#55f4c5"/><stop offset="1" stopColor="#0c7a7a"/></linearGradient></defs><text x="16" y="21" textAnchor="middle" fill="#fff" fontSize="14" fontWeight="800">{a.slice(0,1)}</text></svg>;
+}
+
 function actionError(e: unknown) { if (e && typeof e === 'object' && 'message' in e) return String((e as { message?: unknown }).message ?? 'Action failed'); return e instanceof Error ? e.message : 'Action failed'; }
 function sparkPath(values: number[]) {
   const width = 680, height = 220, pad = 22;
@@ -79,7 +95,10 @@ export function HomeCommandCenter({ initialData }: { initialData: HomeSnapshot }
   const perSecond = Number(data.live_earnings.reward_rate_usd_per_hash_second ?? 0) * Number(data.effective_hashrate ?? 0) / cryptoUsd;
   const liveDisplay = activeNow ? Number(data.live_earnings.estimated_crypto ?? 0) + Math.min(elapsedSeconds, maxLiveSeconds) * Math.max(perSecond, 0) : Number(data.live_earnings.estimated_crypto ?? 0);
   const selected = data.crypto_options.find((x) => x.asset === asset) ?? data.selected_asset;
+  const visibleAssets = useMemo(() => { const ordered = [selected, ...data.crypto_options.filter((x) => x.asset !== selected.asset)]; return ordered.slice(0, 8); }, [data.crypto_options, selected]);
   const liveRate = Number(selected.rate_usd ?? 0);
+  const rawCoverage = Number(data.live_earnings.starter_coverage_days ?? 0);
+  const coverageLabel = Number.isFinite(rawCoverage) && rawCoverage > 0 && rawCoverage < 100000 ? `${num(rawCoverage, 1)} days` : 'Capacity guarded';
   const dailyClaim = data.streak.days.find((d) => d.status === 'ready');
   const activity = data.recent_transactions.slice(0, 4);
 
@@ -107,10 +126,25 @@ export function HomeCommandCenter({ initialData }: { initialData: HomeSnapshot }
         </div>
         <div className={styles.heroVisual} aria-hidden="true">
           <div className={styles.spaceGlow} />
-          <div className={styles.miningCube}><div className={styles.cubeTop} /><div className={styles.cubeFront}><span>N</span></div><div className={styles.cubeSide} /><div className={styles.cubeBase} /></div>
+          <div className={styles.heroCoreGrid} />
+          <div className={`${styles.coreOrbit} ${styles.coreOrbitOne}`} />
+          <div className={`${styles.coreOrbit} ${styles.coreOrbitTwo}`} />
+          <div className={styles.coreOrb}>
+            <div className={styles.coreOrbInner}>
+              <svg className={styles.coreLogo} viewBox="0 0 180 180" role="presentation">
+                <defs>
+                  <linearGradient id="coreN" x1="0" y1="0" x2="1" y2="1"><stop stopColor="#f8ffff"/><stop offset=".42" stopColor="#60eaff"/><stop offset="1" stopColor="#9a55ff"/></linearGradient>
+                  <linearGradient id="coreEdge" x1="0" y1="0" x2="1" y2="1"><stop stopColor="#34efff"/><stop offset="1" stopColor="#873dff"/></linearGradient>
+                  <filter id="coreGlow"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+                </defs>
+                <circle cx="90" cy="90" r="72" fill="rgba(4,16,31,.86)" stroke="url(#coreEdge)" strokeWidth="2"/>
+                <circle cx="90" cy="90" r="57" fill="none" stroke="rgba(91,230,255,.22)" strokeWidth="1" strokeDasharray="3 7"/>
+                <path d="M54 126V54h18l36 48V54h18v72h-18L72 79v47H54Z" fill="url(#coreN)" filter="url(#coreGlow)"/>
+              </svg>
+            </div>
+          </div>
           <div className={styles.verticalWordmark}>NEXTGEN</div>
           <div className={styles.powerText}>POWER<br />CONNECTS<br /><strong>PEOPLE</strong></div>
-          <div className={styles.ringOuter} /><div className={styles.ringInner} />
         </div>
       </section>
 
@@ -129,15 +163,15 @@ export function HomeCommandCenter({ initialData }: { initialData: HomeSnapshot }
           <span className={styles.liveRates}><i /> Live Rates <RefreshCw size={13} /></span>
         </div>
         <div className={styles.assetRail}>
-          {data.crypto_options.slice(0, 8).map((opt) => { const active = opt.asset === asset; return <button key={opt.asset} type="button" className={`${styles.assetButton} ${active ? styles.assetSelected : ''}`} onClick={() => void load(opt.asset)}><span className={styles.assetIcon}>{opt.asset === 'USDT' ? '₮' : opt.asset.slice(0, 1)}</span><b>{opt.asset}</b><small>{opt.display_name}</small></button>; })}
+          {visibleAssets.map((opt) => { const active = opt.asset === asset; return <button key={opt.asset} type="button" className={`${styles.assetButton} ${active ? styles.assetSelected : ''}`} onClick={() => void load(opt.asset)} disabled={loading && active}><span className={styles.assetIcon}><CryptoLogo asset={opt.asset} /></span><b>{opt.asset}</b><small>{opt.display_name}</small></button>; })}
           <Link href="/more" className={styles.assetButton}><span className={styles.assetIcon}>+</span><b>More</b><small>Assets</small></Link>
         </div>
-        <div className={styles.assetSelectedBar}><div><span>Selected:</span> {selected.display_name}</div><div><span>Live Rate:</span> ${liveRate ? num(liveRate, 8) : '—'}</div><span className={styles.activeBadge}>{selected.status === 'ACTIVE' ? 'ACTIVE' : clean(selected.status)}</span><button className={styles.changeAsset} onClick={() => void load(asset)} disabled={loading}><RefreshCw size={15} />Change Asset</button></div>
+        <div className={styles.assetSelectedBar}><div><span>Selected:</span> {selected.display_name}</div><div><span>Live Rate:</span> ${liveRate ? num(liveRate, 8) : '—'}</div><span className={styles.activeBadge}>{selected.status === 'ACTIVE' ? 'ACTIVE' : clean(selected.status)}</span><button className={styles.changeAsset} onClick={() => void load(asset)} disabled={loading}><RefreshCw size={15} />Refresh Rate</button></div>
       </section>
 
       <section className={styles.threeCol}>
         <div className={`${styles.panel} ${styles.earningsPanel}`}>
-          <div className={styles.panelHeader}><div><div className={styles.sectionKicker}>EARNINGS SIGNAL</div><h2>Mining Output</h2></div><button className={styles.periodBtn}>7 Days <ChevronRight size={14} /></button></div>
+          <div className={styles.panelHeader}><div><div className={styles.sectionKicker}>EARNINGS SIGNAL</div><h2>Mining Output</h2></div><span className={styles.periodBtn} aria-label="Earnings period">7 Days</span></div>
           <div className={styles.chartWrap}><svg viewBox="0 0 680 220" preserveAspectRatio="none" className={styles.chartSvg} aria-label="Earnings chart"><defs><linearGradient id="earningsArea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="currentColor" stopOpacity=".22" /><stop offset="1" stopColor="currentColor" stopOpacity="0" /></linearGradient></defs>{[20,65,110,155,200].map((y) => <line key={y} x1="22" x2="658" y1={y} y2={y} className={styles.chartGrid} />)}<path d={`${chart} L658,198 L22,198 Z`} fill="url(#earningsArea)" className={styles.chartArea} /><path d={chart} className={styles.chartLine} /></svg><div className={styles.axis}><span>09-07</span><span>09-08</span><span>09-09</span><span>09-10</span><span>09-11</span><span>09-12</span><span>09-13</span></div></div>
           <div className={styles.chartMessage}><History size={18} /><div><b>No settled mining payout yet.</b><small>Live accrual remains separate from settled history.</small></div></div>
         </div>
@@ -157,11 +191,11 @@ export function HomeCommandCenter({ initialData }: { initialData: HomeSnapshot }
 
       <section className={styles.lowerGrid}>
         <div className={styles.panel}><div className={styles.panelHeader}><div><div className={styles.sectionKicker}>DAILY PULSE</div><h2>Check-in</h2></div><CalendarCheck2 size={18} /></div><div className={styles.pulseStats}><div><small>Current Streak</small><strong>{data.streak.current} <em>days</em></strong></div><div><small>Best Streak</small><strong>{data.streak.best} <em>days</em></strong></div><div><small>Base Check-in</small><strong>{num(data.streak.base_reward_diamond, 0)} <em>💎</em></strong></div></div><div className={styles.streakRail}>{data.streak.days.slice(0, 7).map((day) => <div key={day.day} className={`${styles.dayCell} ${styles[day.status]}`}><b>D{day.day}</b><span>{num(day.reward_diamond, 0)}</span></div>)}</div><button className={styles.primaryWide} onClick={() => void checkIn()} disabled={checkingIn || data.streak.today_claimed}><CalendarCheck2 size={16} />{data.streak.today_claimed ? 'CHECK-IN CLAIMED' : checkingIn ? 'CLAIMING…' : `Claim Daily Check-in${dailyClaim ? ` · ${num(dailyClaim.reward_diamond, 0)} 💎` : ''}`}</button></div>
-        <div className={styles.panel}><div className={styles.panelHeader}><div><div className={styles.sectionKicker}>LIVE EARNINGS</div><h2>Current Accrual</h2></div><Gauge size={18} /></div><div className={styles.accrualValue}>{crypto(liveDisplay)} <span>{asset}</span></div><p className={styles.muted}>${money(data.live_earnings.estimated_usd)} USD server snapshot · {activeNow ? 'live visualization active' : 'paused'}</p><div className={styles.accrualGrid}><div><small>PER HOUR</small><b>${money(data.live_earnings.hourly_usd)}</b></div><div><small>TODAY</small><b>${money(data.live_earnings.daily_usd)}</b></div><div><small>30D EST.</small><b>${money(data.live_earnings.thirty_day_usd)}</b></div></div><div className={styles.capacityLine}><span>Capacity multiplier</span><b>{Number(data.live_earnings.capacity_multiplier ?? 1).toFixed(4)}×</b></div><div className={styles.capacityLine}><span>Starter coverage</span><b>{num(data.live_earnings.starter_coverage_days, 1)} days</b></div></div>
+        <div className={styles.panel}><div className={styles.panelHeader}><div><div className={styles.sectionKicker}>LIVE EARNINGS</div><h2>Current Accrual</h2></div><Gauge size={18} /></div><div className={styles.accrualValue}>{crypto(liveDisplay)} <span>{asset}</span></div><p className={styles.muted}>${money(data.live_earnings.estimated_usd)} USD server snapshot · {activeNow ? 'live visualization active' : 'paused'}</p><div className={styles.accrualGrid}><div><small>PER HOUR</small><b>${money(data.live_earnings.hourly_usd)}</b></div><div><small>TODAY</small><b>${money(data.live_earnings.daily_usd)}</b></div><div><small>30D EST.</small><b>${money(data.live_earnings.thirty_day_usd)}</b></div></div><div className={styles.capacityLine}><span>Capacity multiplier</span><b>{Number(data.live_earnings.capacity_multiplier ?? 1).toFixed(4)}×</b></div><div className={styles.capacityLine}><span>Starter coverage</span><b>{coverageLabel}</b></div></div>
         <div className={styles.panel}><div className={styles.panelHeader}><div><div className={styles.sectionKicker}>SYSTEM</div><h2>Network Snapshot</h2></div><CircleDollarSign size={18} /></div><div className={styles.networkGrid}><div><small>Pool</small><b>{asset}</b></div><div><small>Baseline</small><b>{num(data.pool?.network_baseline_hashrate)} H/s</b></div><div><small>Reserve</small><b>{data.pool?.reserve_status ?? 'NOT PREPARED'}</b></div><div><small>Engine</small><b>{data.engine}</b></div></div><div className={styles.networkFooter}><ShieldCheck size={15} /> Server-side settlement · fail-closed controls</div></div>
       </section>
 
-      <section className={styles.bottomBanner}><div><div className={styles.sectionKicker}>NEXTGEN MINER</div><h2>A STRONGER TOMORROW</h2><p>Build your miners. Strengthen your core. Grow with the network.</p></div><div className={styles.bannerStats}><div><b>12</b><small>Miner Families</small></div><div><b>∞</b><small>Global Network</small></div><div><b>24/7</b><small>Server Operations</small></div><div><b>100%</b><small>Transparent</small></div></div></section>
+      <section className={styles.bottomBanner}><div><div className={styles.sectionKicker}>NEXTGEN MINER</div><h2>A STRONGER TOMORROW</h2><p>Build your miners. Strengthen your core. Grow with the network.</p></div><div className={styles.bannerStats}><div><b>12</b><small>Miner Families</small></div><div><b>LIVE</b><small>Global Network</small></div><div><b>24/7</b><small>Server Operations</small></div><div><b>LIVE</b><small>Platform Data</small></div></div></section>
       <div className={styles.mobileHint}><Bell size={14} /> Home is synchronized every 15 seconds from the production snapshot.</div>
     </div>
   );
