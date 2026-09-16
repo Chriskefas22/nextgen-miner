@@ -1,0 +1,68 @@
+/* CP20.2.1 — Home Premium Visual Polish
+   Scope: .home-shell only. Does not touch the frozen public landing page. */
+
+.home-shell .content{padding-bottom:108px}
+
+/* Holographic core */
+.home-shell .heroVisual{isolation:isolate}
+.home-shell .miningCube{width:240px;height:240px;transform:rotate(-6deg);filter:drop-shadow(0 0 22px rgba(36,232,255,.18)) drop-shadow(0 0 52px rgba(139,61,255,.18));z-index:3}
+.home-shell .cubeTop,.home-shell .cubeSide,.home-shell .cubeBase{display:none}
+.home-shell .cubeFront{left:18px;top:18px;width:204px;height:204px;clip-path:polygon(21% 1%,79% 1%,99% 21%,99% 79%,79% 99%,21% 99%,1% 79%,1% 21%);border:1px solid rgba(112,230,255,.62);border-radius:34px;background:radial-gradient(circle at 36% 26%,rgba(54,146,205,.34),rgba(7,22,42,.92) 54%,rgba(57,30,103,.78));box-shadow:inset 0 0 50px rgba(41,227,255,.11),inset 0 -26px 55px rgba(122,56,255,.12),0 0 0 1px rgba(86,190,255,.08)}
+.home-shell .cubeFront:before{content:"";position:absolute;inset:15px;border:1px solid rgba(57,230,255,.23);border-radius:25px;box-shadow:inset 0 0 30px rgba(50,211,255,.045)}
+.home-shell .cubeFront:after{content:"";position:absolute;left:22px;right:22px;top:50%;height:1px;background:linear-gradient(90deg,transparent,rgba(102,240,255,.68),transparent);box-shadow:0 0 15px rgba(60,227,255,.55)}
+.home-shell .cubeFront span{position:relative;z-index:2;font-family:Orbitron,sans-serif;font-size:104px;line-height:1;color:#f7ffff;text-shadow:0 0 8px rgba(255,255,255,.98),0 0 18px rgba(65,235,255,.98),0 0 46px rgba(133,66,255,.8);transform:translateY(-3px)}
+.home-shell .ringOuter{width:394px;height:142px;border-color:rgba(49,225,255,.26);box-shadow:0 0 34px rgba(48,191,255,.08)}
+.home-shell .ringInner{width:308px;height:108px;border-color:rgba(154,77,255,.24)}
+.home-shell .spaceGlow{width:480px;height:480px;opacity:.86}
+
+/* Asset tiles */
+.home-shell .assetButton{transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease,background .18s ease}
+.home-shell .assetButton:hover{transform:translateY(-2px)}
+.home-shell .assetButton .assetIcon{background:#061622;border:1px solid rgba(76,166,210,.22);box-shadow:inset 0 0 16px rgba(35,201,239,.06),0 0 14px rgba(18,85,140,.08)}
+.home-shell .assetButton .assetIcon svg{display:block;width:28px;height:28px}
+.home-shell .assetSelected{border-color:rgba(53,243,180,.52);background:linear-gradient(145deg,rgba(7,28,34,.98),rgba(5,17,28,.98));box-shadow:inset 0 0 24px rgba(53,243,180,.06),0 0 22px rgba(53,243,180,.07)}
+.home-shell .assetSelected .assetIcon{box-shadow:0 0 18px rgba(53,243,180,.18),inset 0 0 18px rgba(53,243,180,.08)}
+.home-shell .assetRail{grid-template-columns:repeat(9,minmax(0,1fr))}
+.home-shell .assetButton small{min-height:12px}
+
+/* Replace misleading/infinite-looking placeholder metrics with explicit guarded state. */
+.home-shell .capacityLine:first-of-type b{font-size:0}
+.home-shell .capacityLine:first-of-type b:after{content:"—";font-size:11px;color:#dff8ff}
+.home-shell .capacityLine:last-of-type b{font-size:0}
+.home-shell .capacityLine:last-of-type b:after{content:"GUARDED";font-size:11px;color:#55efba}
+.home-shell .bannerStats>div:nth-child(2) b,.home-shell .bannerStats>div:nth-child(4) b{font-size:0}
+.home-shell .bannerStats>div:nth-child(2) b:after{content:"LIVE";font-size:11px;color:#55efba}
+.home-shell .bannerStats>div:nth-child(4) b:after{content:"LIVE";font-size:11px;color:#55efba}
+
+/* Navigation drawer controls: remove native white button rendering. */
+.home-shell .home-sidebar .sidebar-head button{
+  display:grid!important;place-items:center;width:36px;height:36px;padding:0;margin:0;
+  appearance:none;-webkit-appearance:none;border-radius:11px;
+  border:1px solid rgba(48,143,187,.34);
+  background:linear-gradient(145deg,#081d31,#04101c);
+  color:#9ec8d8;box-shadow:inset 0 0 16px rgba(51,201,239,.05),0 0 14px rgba(30,114,159,.06);
+  font:600 18px/1 Arial,sans-serif;cursor:pointer;
+}
+.home-shell .home-sidebar .sidebar-head button:hover{color:#f0fdff;border-color:rgba(62,223,255,.62);box-shadow:0 0 18px rgba(54,213,255,.13)}
+.home-shell .home-sidebar .nav-item{appearance:none;-webkit-appearance:none;background:transparent;border:1px solid transparent;color:#9bb2c2;border-radius:11px;text-align:left;cursor:pointer}
+.home-shell .home-sidebar .nav-item:hover{background:linear-gradient(90deg,rgba(17,118,189,.14),rgba(125,54,255,.1));border-color:rgba(53,142,195,.22);color:#fff}
+.home-shell .home-sidebar .nav-item:disabled{opacity:.72;background:rgba(5,16,28,.72);border-color:rgba(48,100,134,.18);color:#89a5b7}
+.home-shell .home-sidebar .nav-item:disabled svg{color:#81a4b6}
+
+/* Keep the fixed rail from obscuring lower Home content. */
+@media(max-width:760px){
+  .home-shell .content{padding:12px 11px 132px}
+  .home-shell .heroVisual{min-height:390px}
+  .home-shell .miningCube{width:220px;height:220px}
+  .home-shell .cubeFront{left:17px;top:17px;width:186px;height:186px;border-radius:30px}
+  .home-shell .cubeFront span{font-size:92px}
+  .home-shell .ringOuter{width:346px;height:124px}
+  .home-shell .ringInner{width:284px;height:98px}
+  .home-shell .assetRail{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .home-shell .assetButton{min-height:118px}
+  .home-shell .assetButton .assetIcon{width:48px;height:48px}
+  .home-shell .assetButton .assetIcon svg{width:31px;height:31px}
+  .home-shell .assetSelectedBar{gap:10px;align-items:stretch}
+  .home-shell .assetSelectedBar>*{max-width:100%}
+  .home-shell .changeAsset{margin-left:0;width:100%;justify-content:center}
+}
