@@ -4,7 +4,7 @@ import Link from 'next/link';
 import {
   Activity, ArrowRight, Bell, CalendarCheck2, ChevronRight, CircleDollarSign,
   Coins, Cuboid, Gauge, HeartPulse, History, RefreshCw, ShieldCheck, Sparkles,
-  SwapHorizontal, Zap,
+  Zap,
 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
@@ -132,7 +132,7 @@ export function HomeCommandCenter({ initialData }: { initialData: HomeSnapshot }
           {data.crypto_options.slice(0, 8).map((opt) => { const active = opt.asset === asset; return <button key={opt.asset} type="button" className={`${styles.assetButton} ${active ? styles.assetSelected : ''}`} onClick={() => void load(opt.asset)}><span className={styles.assetIcon}>{opt.asset === 'USDT' ? '₮' : opt.asset.slice(0, 1)}</span><b>{opt.asset}</b><small>{opt.display_name}</small></button>; })}
           <Link href="/more" className={styles.assetButton}><span className={styles.assetIcon}>+</span><b>More</b><small>Assets</small></Link>
         </div>
-        <div className={styles.assetSelectedBar}><div><span>Selected:</span> {selected.display_name}</div><div><span>Live Rate:</span> ${liveRate ? num(liveRate, 8) : '—'}</div><span className={styles.activeBadge}>{selected.status === 'ACTIVE' ? 'ACTIVE' : clean(selected.status)}</span><button className={styles.changeAsset} onClick={() => void load(asset)} disabled={loading}><SwapHorizontal size={15} />Change Asset</button></div>
+        <div className={styles.assetSelectedBar}><div><span>Selected:</span> {selected.display_name}</div><div><span>Live Rate:</span> ${liveRate ? num(liveRate, 8) : '—'}</div><span className={styles.activeBadge}>{selected.status === 'ACTIVE' ? 'ACTIVE' : clean(selected.status)}</span><button className={styles.changeAsset} onClick={() => void load(asset)} disabled={loading}><RefreshCw size={15} />Change Asset</button></div>
       </section>
 
       <section className={styles.threeCol}>
