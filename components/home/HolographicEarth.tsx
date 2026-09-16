@@ -27,16 +27,17 @@ const DEG = Math.PI / 180;
 const TAU = Math.PI * 2;
 
 const REGIONS: Region[] = [
-  { lat: 42, lon: -102, label: 'AMERICAS', color: 0x48eaff, className: 'cyan', left: '15%', top: '48%' },
-  { lat: 49, lon: 14, label: 'EUROPE', color: 0xa66bff, className: 'violet', left: '34%', top: '25%' },
-  { lat: 19, lon: 104, label: 'ASIA', color: 0x48eaff, className: 'cyan', left: '70%', top: '34%' },
-  { lat: -6, lon: 24, label: 'AFRICA', color: 0xa66bff, className: 'violet', left: '44%', top: '61%' },
-  { lat: -29, lon: 135, label: 'AUSTRALIA', color: 0x48eaff, className: 'cyan', left: '70%', top: '67%' },
+  { lat: 28, lon: -92, label: 'AMERICAS', color: 0x45eaff, className: 'cyan', left: '17%', top: '45%' },
+  { lat: 48, lon: 10, label: 'EUROPE', color: 0x9e62ff, className: 'violet', left: '39%', top: '18%' },
+  { lat: 23, lon: 102, label: 'ASIA', color: 0x45eaff, className: 'cyan', left: '78%', top: '39%' },
+  { lat: -7, lon: 22, label: 'AFRICA', color: 0x9e62ff, className: 'violet', left: '68%', top: '66%' },
+  { lat: -27, lon: 133, label: 'AUSTRALIA', color: 0x45eaff, className: 'cyan', left: '78%', top: '77%' },
 ];
 
 function latLonToVector3(latitude: number, longitude: number, radius: number) {
   const phi = (90 - latitude) * DEG;
   const theta = (longitude + 180) * DEG;
+
   return new THREE.Vector3(
     -radius * Math.sin(phi) * Math.cos(theta),
     radius * Math.cos(phi),
@@ -50,10 +51,10 @@ function makeArcPoints(a: THREE.Vector3, b: THREE.Vector3, radius: number) {
   const end = b.clone().normalize();
   const angle = start.angleTo(end);
 
-  for (let i = 0; i <= 40; i += 1) {
-    const t = i / 40;
+  for (let i = 0; i <= 56; i += 1) {
+    const t = i / 56;
     const point = start.clone().lerp(end, t).normalize();
-    const lift = Math.sin(Math.PI * t) * (0.045 + angle * 0.05);
+    const lift = Math.sin(Math.PI * t) * (0.07 + angle * 0.055);
     points.push(point.multiplyScalar(radius + lift));
   }
 
@@ -74,8 +75,10 @@ function createEarthMaterial() {
       void main() {
         vUv = uv;
         vNormal = normalize(normalMatrix * normal);
+
         vec4 world = modelMatrix * vec4(position, 1.0);
         vWorldPosition = world.xyz;
+
         gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
       }
     `,
@@ -91,56 +94,69 @@ function createEarthMaterial() {
 
       void main() {
         vec3 tex = texture2D(uTexture, vUv).rgb;
-        float luminance = dot(tex, vec3(0.299, 0.587, 0.114));
+        float lum = dot(tex, vec3(0.299, 0.587, 0.114));
 
+        // Earth land detection. The source image is reused directly from
+        // the frozen Landing visual, then given the stronger holographic
+        // treatment visible in the Home blueprint.
         float landSignal = max(
           tex.r - tex.b * 0.78,
           tex.g - tex.b * 0.68
         );
-        float land = smoothstep(0.018, 0.105, landSignal);
-        float coast = smoothstep(0.018, 0.032, landSignal) *
-          (1.0 - smoothstep(0.060, 0.105, landSignal));
+
+        float land = smoothstep(0.012, 0.095, landSignal);
+        float coast = smoothstep(0.012, 0.030, landSignal) *
+          (1.0 - smoothstep(0.052, 0.095, landSignal));
 
         vec3 ocean = mix(
-          vec3(0.003, 0.018, 0.042),
-          vec3(0.012, 0.12, 0.205),
-          smoothstep(0.10, 0.72, luminance)
+          vec3(0.0015, 0.009, 0.026),
+          vec3(0.012, 0.115, 0.225),
+          smoothstep(0.08, 0.76, lum)
         );
 
         vec3 landColor = mix(
-          vec3(0.045, 0.34, 0.58),
-          vec3(0.18, 0.76, 0.94),
-          smoothstep(0.23, 0.84, luminance)
+          vec3(0.025, 0.235, 0.50),
+          vec3(0.18, 0.78, 1.00),
+          smoothstep(0.16, 0.82, lum)
         );
 
         vec3 color = mix(ocean, landColor, land);
-        color += vec3(0.12, 0.58, 0.98) * coast * 0.70;
 
-        // Very restrained city-light suggestion from bright texture pixels.
-        float city = smoothstep(0.68, 0.94, luminance) * land;
-        color += vec3(0.92, 0.80, 0.42) * city * 0.16;
+        // Electric coastal contour.
+        color += vec3(0.10, 0.66, 1.0) * coast * 0.88;
 
-        // Fine scan texture.
-        float scan = 0.968 + 0.032 * sin(vUv.y * 190.0 + uTime * 1.5);
+        // Small warm city-light response, intentionally restrained.
+        float city = smoothstep(0.70, 0.96, lum) * land;
+        color += vec3(1.0, 0.76, 0.32) * city * 0.20;
+
+        // Horizontal scan + moving holographic sweep.
+        float scan = 0.965 + 0.035 * sin(vUv.y * 210.0 + uTime * 1.35);
+        float sweep = 0.5 + 0.5 * sin(vUv.x * 6.28318 - uTime * 0.20);
+
         color *= scan;
+        color += vec3(0.02, 0.18, 0.42) * sweep * 0.035;
 
-        // Holographic rim.
+        // Cyan atmospheric rim.
         vec3 viewDir = normalize(cameraPosition - vWorldPosition);
-        float fresnel = pow(
+        float rim = pow(
           1.0 - max(dot(normalize(vNormal), viewDir), 0.0),
-          2.30
+          2.05
         );
-        color += vec3(0.015, 0.45, 1.0) * fresnel * 1.18;
 
-        float sweep = 0.5 + 0.5 * sin(vUv.x * 6.28318 - uTime * 0.22);
-        color += vec3(0.02, 0.18, 0.42) * sweep * 0.045;
+        color += vec3(0.012, 0.44, 1.0) * rim * 1.34;
 
-        gl_FragColor = vec4(color, 0.98);
+        // Slight central energy bias.
+        float centerGlow = exp(
+          -length(vWorldPosition.xy) * 1.7
+        );
+        color += vec3(0.02, 0.14, 0.25) * centerGlow;
+
+        gl_FragColor = vec4(color, 0.985);
       }
     `,
-    transparent: false,
-    depthWrite: true,
     side: THREE.FrontSide,
+    depthWrite: true,
+    transparent: false,
   });
 }
 
@@ -148,7 +164,7 @@ function createAtmosphereMaterial(color: number, opacity: number) {
   return new THREE.ShaderMaterial({
     uniforms: {
       uColor: { value: new THREE.Color(color) },
-      uPower: { value: 2.15 },
+      uPower: { value: 2.10 },
       uOpacity: { value: opacity },
     },
     vertexShader: `
@@ -159,6 +175,7 @@ function createAtmosphereMaterial(color: number, opacity: number) {
         vec4 world = modelMatrix * vec4(position, 1.0);
         vWorldPosition = world.xyz;
         vNormal = normalize(normalMatrix * normal);
+
         gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
       }
     `,
@@ -175,8 +192,13 @@ function createAtmosphereMaterial(color: number, opacity: number) {
       void main() {
         vec3 normal = normalize(vNormal);
         vec3 viewDir = normalize(cameraPosition - vWorldPosition);
-        float rim = pow(1.0 - max(dot(normal, viewDir), 0.0), uPower);
-        float shell = smoothstep(0.06, 0.95, rim);
+
+        float rim = pow(
+          1.0 - max(dot(normal, viewDir), 0.0),
+          uPower
+        );
+
+        float shell = smoothstep(0.02, 0.92, rim);
         gl_FragColor = vec4(uColor, shell * uOpacity);
       }
     `,
@@ -189,14 +211,17 @@ function createAtmosphereMaterial(color: number, opacity: number) {
 
 function makeLine(points: THREE.Vector3[], color: number, opacity: number) {
   const geometry = new THREE.BufferGeometry().setFromPoints(points);
-  const material = new THREE.LineBasicMaterial({
-    color,
-    transparent: true,
-    opacity,
-    depthWrite: false,
-    blending: THREE.AdditiveBlending,
-  });
-  return new THREE.Line(geometry, material);
+
+  return new THREE.Line(
+    geometry,
+    new THREE.LineBasicMaterial({
+      color,
+      transparent: true,
+      opacity,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+    }),
+  );
 }
 
 function makeStarField(count: number) {
@@ -206,7 +231,7 @@ function makeStarField(count: number) {
     const theta = Math.random() * TAU;
     const z = THREE.MathUtils.randFloatSpread(2);
     const xy = Math.sqrt(Math.max(0, 1 - z * z));
-    const radius = THREE.MathUtils.randFloat(4.8, 8.0);
+    const radius = THREE.MathUtils.randFloat(5.1, 9.0);
 
     positions[i * 3] = radius * xy * Math.cos(theta);
     positions[i * 3 + 1] = radius * z;
@@ -214,16 +239,19 @@ function makeStarField(count: number) {
   }
 
   const geometry = new THREE.BufferGeometry();
-  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  geometry.setAttribute(
+    'position',
+    new THREE.BufferAttribute(positions, 3),
+  );
 
   return new THREE.Points(
     geometry,
     new THREE.PointsMaterial({
-      color: 0x258dff,
-      size: 0.016,
+      color: 0x2379ff,
+      size: 0.013,
       sizeAttenuation: true,
       transparent: true,
-      opacity: 0.38,
+      opacity: 0.35,
       depthWrite: false,
       blending: THREE.AdditiveBlending,
     }),
@@ -231,22 +259,34 @@ function makeStarField(count: number) {
 }
 
 function createFallbackTexture() {
-  const data = new Uint8Array([6, 34, 68, 255]);
-  const texture = new THREE.DataTexture(data, 1, 1, THREE.RGBAFormat);
+  const data = new Uint8Array([6, 28, 54, 255]);
+  const texture = new THREE.DataTexture(
+    data,
+    1,
+    1,
+    THREE.RGBAFormat,
+  );
+
   texture.colorSpace = THREE.SRGBColorSpace;
   texture.needsUpdate = true;
+
   return texture;
 }
 
 function disposeMaterial(material: THREE.Material | THREE.Material[]) {
   if (Array.isArray(material)) {
     material.forEach((item) => item.dispose());
-  } else {
-    material.dispose();
+    return;
   }
+
+  material.dispose();
 }
 
-export function HolographicEarth({ metrics }: { metrics: HomeEarthMetrics }) {
+export function HolographicEarth({
+  metrics,
+}: {
+  metrics: HomeEarthMetrics;
+}) {
   const hostRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const metricsRef = useRef(metrics);
@@ -269,12 +309,13 @@ export function HolographicEarth({ metrics }: { metrics: HomeEarthMetrics }) {
     let last = performance.now();
     let started = performance.now();
 
-    const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const motionQuery = window.matchMedia(
+      '(prefers-reduced-motion: reduce)',
+    );
+
     reduced = motionQuery.matches;
 
     try {
-      // IMPORTANT: use the proven Landing pattern — let Three create its own
-      // context. Do not manually create a WebGL context and pass it back.
       renderer = new THREE.WebGLRenderer({
         canvas,
         alpha: true,
@@ -284,39 +325,41 @@ export function HolographicEarth({ metrics }: { metrics: HomeEarthMetrics }) {
       });
 
       renderer.setClearColor(0x000000, 0);
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, mobile ? 1.20 : 1.50));
+      renderer.setPixelRatio(
+        Math.min(
+          window.devicePixelRatio || 1,
+          mobile ? 1.25 : 1.55,
+        ),
+      );
       renderer.outputColorSpace = THREE.SRGBColorSpace;
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
-      renderer.toneMappingExposure = 1.04;
+      renderer.toneMappingExposure = 1.06;
 
       const scene = new THREE.Scene();
-      const camera = new THREE.PerspectiveCamera(mobile ? 33 : 30, 1, 0.1, 30);
-      camera.position.set(0, 0.02, mobile ? 5.60 : 5.45);
+      const camera = new THREE.PerspectiveCamera(30, 1, 0.1, 30);
 
       const root = new THREE.Group();
-      root.rotation.x = THREE.MathUtils.degToRad(-4);
-      root.position.y = mobile ? 0.02 : 0.10;
+      root.rotation.x = THREE.MathUtils.degToRad(-3);
+      root.position.y = 0.04;
       scene.add(root);
 
-      scene.add(new THREE.AmbientLight(0x39bfff, 1.20));
+      scene.add(new THREE.AmbientLight(0x39bfff, 1.28));
 
-      const key = new THREE.DirectionalLight(0xbff5ff, 2.35);
-      key.position.set(-4, 3, 5);
+      const key = new THREE.DirectionalLight(0xc8f7ff, 2.45);
+      key.position.set(-4, 4, 6);
       scene.add(key);
 
-      const fill = new THREE.DirectionalLight(0x714cff, 0.72);
-      fill.position.set(3, -1, -3);
+      const fill = new THREE.DirectionalLight(0x7548ff, 0.74);
+      fill.position.set(3, -2, -3);
       scene.add(fill);
 
-      const back = new THREE.PointLight(0x39e7ff, 1.75, 10);
-      back.position.set(0, 0.8, -2);
+      const back = new THREE.PointLight(0x27dcff, 1.95, 11);
+      back.position.set(0, 0.7, -2.0);
       root.add(back);
 
-      const stars = makeStarField(mobile ? 85 : 180);
-      scene.add(stars);
+      scene.add(makeStarField(mobile ? 100 : 220));
 
       const earthSystem = new THREE.Group();
-      earthSystem.scale.setScalar(mobile ? 0.82 : 0.93);
       root.add(earthSystem);
 
       const earthMaterial = createEarthMaterial();
@@ -337,82 +380,91 @@ export function HolographicEarth({ metrics }: { metrics: HomeEarthMetrics }) {
         },
         undefined,
         () => {
-          // Keep the valid fallback texture and the WebGL scene alive.
-          console.warn('[HomeEarth] Earth texture failed to load; using fallback texture.');
+          console.warn(
+            '[HomeEarth] Earth texture failed to load; using fallback texture.',
+          );
         },
       );
 
       const earth = new THREE.Mesh(
         new THREE.SphereGeometry(
           1,
-          mobile ? 64 : 96,
-          mobile ? 40 : 64,
+          mobile ? 72 : 112,
+          mobile ? 48 : 76,
         ),
         earthMaterial,
       );
-      earth.rotation.y = Math.PI;
+
+      // Match the supplied blueprint orientation: Europe/Africa centered,
+      // Americas on the left, Asia on the right.
+      earth.rotation.y = 0;
       earthSystem.add(earth);
 
       const grid = new THREE.Mesh(
         new THREE.SphereGeometry(
-          1.013,
-          mobile ? 40 : 64,
-          mobile ? 26 : 40,
+          1.012,
+          mobile ? 44 : 72,
+          mobile ? 28 : 46,
         ),
         new THREE.MeshBasicMaterial({
-          color: 0x55eaff,
+          color: 0x54eaff,
           wireframe: true,
           transparent: true,
-          opacity: 0.045,
+          opacity: 0.052,
           depthWrite: false,
           blending: THREE.AdditiveBlending,
         }),
       );
+
       earthSystem.add(grid);
 
       const atmosphere = new THREE.Mesh(
         new THREE.SphereGeometry(
-          1.075,
-          mobile ? 48 : 72,
-          mobile ? 32 : 48,
+          1.065,
+          mobile ? 52 : 80,
+          mobile ? 34 : 52,
         ),
-        createAtmosphereMaterial(0x32e5ff, 0.46),
+        createAtmosphereMaterial(0x35e9ff, 0.54),
       );
+
       earthSystem.add(atmosphere);
 
       const violetAtmosphere = new THREE.Mesh(
         new THREE.SphereGeometry(
-          1.038,
-          mobile ? 40 : 60,
-          mobile ? 26 : 38,
+          1.045,
+          mobile ? 44 : 68,
+          mobile ? 30 : 44,
         ),
-        createAtmosphereMaterial(0x8a4fff, 0.085),
+        createAtmosphereMaterial(0x9858ff, 0.11),
       );
+
       earthSystem.add(violetAtmosphere);
 
       const nodeVectors = REGIONS.map((region) =>
-        latLonToVector3(region.lat, region.lon, 1.028),
+        latLonToVector3(region.lat, region.lon, 1.026),
       );
 
       const nodeGroup = new THREE.Group();
       earthSystem.add(nodeGroup);
 
       const nodes: THREE.Mesh[] = [];
+
       REGIONS.forEach((region, index) => {
         const node = new THREE.Mesh(
           new THREE.SphereGeometry(
-            index === 2 ? 0.034 : 0.026,
-            mobile ? 8 : 10,
-            mobile ? 8 : 10,
+            index === 1 ? 0.035 : 0.028,
+            mobile ? 9 : 12,
+            mobile ? 9 : 12,
           ),
           new THREE.MeshBasicMaterial({
             color: region.color,
             transparent: true,
-            opacity: 0.92,
+            opacity: 0.96,
             depthWrite: false,
             blending: THREE.AdditiveBlending,
           }),
         );
+
         node.position.copy(nodeVectors[index]);
         nodeGroup.add(node);
         nodes.push(node);
@@ -421,21 +473,22 @@ export function HolographicEarth({ metrics }: { metrics: HomeEarthMetrics }) {
       const routes = new THREE.Group();
       earthSystem.add(routes);
 
-      const pairs = [
+      const pairs: [number, number][] = [
         [0, 1],
         [1, 2],
         [2, 4],
         [4, 3],
         [3, 0],
         [1, 3],
+        [0, 2],
       ];
 
       pairs.forEach(([a, b], index) => {
         routes.add(
           makeLine(
-            makeArcPoints(nodeVectors[a], nodeVectors[b], 1.038),
-            index % 2 === 0 ? 0x45eaff : 0x9657ff,
-            index % 2 === 0 ? 0.22 : 0.15,
+            makeArcPoints(nodeVectors[a], nodeVectors[b], 1.037),
+            index % 3 === 0 ? 0x49eaff : 0x9661ff,
+            index % 3 === 0 ? 0.28 : 0.18,
           ),
         );
       });
@@ -444,85 +497,99 @@ export function HolographicEarth({ metrics }: { metrics: HomeEarthMetrics }) {
       root.add(orbitalGroup);
 
       const orbitOne = new THREE.Mesh(
-        new THREE.TorusGeometry(1.34, 0.007, 5, 144),
+        new THREE.TorusGeometry(1.37, 0.007, 5, 168),
         new THREE.MeshBasicMaterial({
-          color: 0x47eaff,
+          color: 0x46eaff,
           transparent: true,
-          opacity: 0.28,
+          opacity: 0.38,
           depthWrite: false,
           blending: THREE.AdditiveBlending,
         }),
       );
-      orbitOne.scale.y = 0.32;
-      orbitOne.rotation.x = THREE.MathUtils.degToRad(65);
-      orbitOne.rotation.z = THREE.MathUtils.degToRad(13);
+      orbitOne.scale.y = 0.33;
+      orbitOne.rotation.x = THREE.MathUtils.degToRad(64);
+      orbitOne.rotation.z = THREE.MathUtils.degToRad(11);
       orbitalGroup.add(orbitOne);
 
       const orbitTwo = new THREE.Mesh(
-        new THREE.TorusGeometry(1.46, 0.0055, 5, 144),
+        new THREE.TorusGeometry(1.49, 0.0055, 5, 168),
         new THREE.MeshBasicMaterial({
-          color: 0x9b55ff,
+          color: 0xa25aff,
           transparent: true,
-          opacity: 0.23,
+          opacity: 0.29,
           depthWrite: false,
           blending: THREE.AdditiveBlending,
         }),
       );
       orbitTwo.scale.y = 0.28;
       orbitTwo.rotation.x = THREE.MathUtils.degToRad(63);
-      orbitTwo.rotation.z = THREE.MathUtils.degToRad(-31);
+      orbitTwo.rotation.z = THREE.MathUtils.degToRad(-30);
       orbitalGroup.add(orbitTwo);
 
       const orbitThree = new THREE.Mesh(
-        new THREE.TorusGeometry(1.18, 0.004, 4, 128),
+        new THREE.TorusGeometry(1.18, 0.004, 4, 150),
         new THREE.MeshBasicMaterial({
-          color: 0x2dd7ff,
+          color: 0x24d9ff,
           transparent: true,
-          opacity: 0.15,
+          opacity: 0.20,
           depthWrite: false,
           blending: THREE.AdditiveBlending,
         }),
       );
-      orbitThree.scale.y = 0.20;
+      orbitThree.scale.y = 0.19;
       orbitThree.rotation.x = THREE.MathUtils.degToRad(56);
-      orbitThree.rotation.z = THREE.MathUtils.degToRad(72);
+      orbitThree.rotation.z = THREE.MathUtils.degToRad(71);
       orbitalGroup.add(orbitThree);
 
       const platform = new THREE.Group();
-      platform.position.y = -1.10;
+      platform.position.y = -1.15;
+      platform.scale.setScalar(mobile ? 0.76 : 0.92);
       root.add(platform);
 
       const base = new THREE.Mesh(
-        new THREE.CylinderGeometry(1.00, 1.08, 0.13, 72),
+        new THREE.CylinderGeometry(1.0, 1.11, 0.12, 80),
         new THREE.MeshStandardMaterial({
-          color: 0x05101c,
-          metalness: 0.88,
-          roughness: 0.20,
-          emissive: 0x04132a,
-          emissiveIntensity: 0.28,
+          color: 0x04101b,
+          metalness: 0.92,
+          roughness: 0.17,
+          emissive: 0x07182c,
+          emissiveIntensity: 0.40,
         }),
       );
       platform.add(base);
 
-      const tier = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.82, 0.93, 0.10, 72),
+      const tierOne = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.82, 0.94, 0.105, 80),
         new THREE.MeshStandardMaterial({
           color: 0x071321,
-          metalness: 0.92,
-          roughness: 0.15,
-          emissive: 0x0c0b2a,
+          metalness: 0.94,
+          roughness: 0.13,
+          emissive: 0x100b30,
           emissiveIntensity: 0.34,
         }),
       );
-      tier.position.y = 0.095;
-      platform.add(tier);
+      tierOne.position.y = 0.088;
+      platform.add(tierOne);
+
+      const tierTwo = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.65, 0.77, 0.07, 80),
+        new THREE.MeshStandardMaterial({
+          color: 0x081523,
+          metalness: 0.96,
+          roughness: 0.12,
+          emissive: 0x071c38,
+          emissiveIntensity: 0.30,
+        }),
+      );
+      tierTwo.position.y = 0.16;
+      platform.add(tierTwo);
 
       const platformRing = new THREE.Mesh(
-        new THREE.TorusGeometry(0.94, 0.009, 5, 128),
+        new THREE.TorusGeometry(0.94, 0.009, 5, 144),
         new THREE.MeshBasicMaterial({
-          color: 0x42eaff,
+          color: 0x48eaff,
           transparent: true,
-          opacity: 0.56,
+          opacity: 0.62,
           depthWrite: false,
           blending: THREE.AdditiveBlending,
         }),
@@ -530,32 +597,46 @@ export function HolographicEarth({ metrics }: { metrics: HomeEarthMetrics }) {
       platformRing.position.y = 0.075;
       platform.add(platformRing);
 
-      const violetRing = new THREE.Mesh(
-        new THREE.TorusGeometry(0.70, 0.0055, 5, 112),
+      const platformViolet = new THREE.Mesh(
+        new THREE.TorusGeometry(0.68, 0.006, 5, 132),
         new THREE.MeshBasicMaterial({
-          color: 0x9e59ff,
+          color: 0xa35aff,
           transparent: true,
-          opacity: 0.48,
+          opacity: 0.52,
           depthWrite: false,
           blending: THREE.AdditiveBlending,
         }),
       );
-      violetRing.position.y = 0.14;
-      platform.add(violetRing);
+      platformViolet.position.y = 0.155;
+      platform.add(platformViolet);
 
       const resize = () => {
         mobile = window.innerWidth < 760;
+
         const width = Math.max(1, host.clientWidth);
         const height = Math.max(1, host.clientHeight);
 
         camera.aspect = width / height;
-        camera.fov = mobile ? 33 : 30;
-        camera.position.z = mobile ? 5.60 : 5.45;
+        camera.fov = mobile ? 30 : 27;
+        camera.position.set(
+          0,
+          mobile ? 0.02 : 0.04,
+          mobile ? 5.00 : 5.18,
+        );
         camera.updateProjectionMatrix();
 
+        earthSystem.scale.setScalar(mobile ? 0.95 : 1.06);
+        root.position.y = mobile ? 0.02 : 0.05;
+        platform.position.y = mobile ? -1.13 : -1.15;
+        platform.scale.setScalar(mobile ? 0.73 : 0.92);
+
         renderer?.setPixelRatio(
-          Math.min(window.devicePixelRatio || 1, mobile ? 1.20 : 1.50),
+          Math.min(
+            window.devicePixelRatio || 1,
+            mobile ? 1.25 : 1.55,
+          ),
         );
+
         renderer?.setSize(width, height, false);
       };
 
@@ -574,11 +655,13 @@ export function HolographicEarth({ metrics }: { metrics: HomeEarthMetrics }) {
         }
 
         const rect = host.getBoundingClientRect();
+
         pointerX = THREE.MathUtils.clamp(
           (event.clientX - rect.left) / Math.max(rect.width, 1) - 0.5,
           -0.5,
           0.5,
         );
+
         pointerY = THREE.MathUtils.clamp(
           (event.clientY - rect.top) / Math.max(rect.height, 1) - 0.5,
           -0.5,
@@ -592,6 +675,7 @@ export function HolographicEarth({ metrics }: { metrics: HomeEarthMetrics }) {
       };
 
       resize();
+
       const observer = new ResizeObserver(resize);
       observer.observe(host);
 
@@ -613,67 +697,75 @@ export function HolographicEarth({ metrics }: { metrics: HomeEarthMetrics }) {
           host.dataset.asset = current.asset.toUpperCase();
 
           if (!reduced) {
-            earthSystem.rotation.y += delta * 0.18;
+            earthSystem.rotation.y += delta * 0.080;
+            orbitalGroup.rotation.y -= delta * 0.045;
+            orbitalGroup.rotation.z += delta * 0.016;
 
-            orbitalGroup.rotation.y -= delta * 0.055;
-            orbitalGroup.rotation.z += delta * 0.018;
+            const stars = scene.children.find(
+              (child) => child instanceof THREE.Points,
+            );
+            if (stars) {
+              stars.rotation.y += delta * 0.007;
+              stars.rotation.x = Math.sin(elapsed * 0.12) * 0.012;
+            }
 
-            stars.rotation.y += delta * 0.009;
-            stars.rotation.x = Math.sin(elapsed * 0.10) * 0.014;
-
-            const pulse = 0.5 + 0.5 * Math.sin(elapsed * 2.0);
+            const pulse = 0.5 + 0.5 * Math.sin(elapsed * 2.15);
 
             nodes.forEach((node, index) => {
               node.scale.setScalar(
-                0.86 + pulse * 0.17 + (index === 2 ? 0.04 : 0),
+                0.86 + pulse * 0.18 + (index === 1 ? 0.06 : 0),
               );
 
-              const material = node.material as THREE.MeshBasicMaterial;
-              material.opacity = 0.62 + pulse * 0.28;
+              (
+                node.material as THREE.MeshBasicMaterial
+              ).opacity = 0.62 + pulse * 0.34;
             });
 
             routes.children.forEach((child, index) => {
-              const line = child as THREE.Line;
-              if (line.material && !Array.isArray(line.material)) {
-                (line.material as THREE.LineBasicMaterial).opacity =
-                  index % 2 === 0
-                    ? 0.16 + pulse * 0.07
-                    : 0.11 + pulse * 0.05;
+              if (
+                child instanceof THREE.Line &&
+                !Array.isArray(child.material)
+              ) {
+                (
+                  child.material as THREE.LineBasicMaterial
+                ).opacity =
+                  index % 3 === 0
+                    ? 0.18 + pulse * 0.10
+                    : 0.11 + pulse * 0.07;
               }
             });
 
-            platform.rotation.y += delta * 0.014;
-            orbitOne.rotation.z += delta * 0.065;
-            orbitTwo.rotation.z -= delta * 0.045;
-            orbitThree.rotation.z += delta * 0.035;
+            platform.rotation.y += delta * 0.009;
+            orbitOne.rotation.z += delta * 0.042;
+            orbitTwo.rotation.z -= delta * 0.031;
+            orbitThree.rotation.z += delta * 0.027;
 
-            atmosphere.scale.setScalar(1 + pulse * 0.009);
-            violetAtmosphere.scale.setScalar(1.002 + pulse * 0.012);
+            (
+              atmosphere.material as THREE.ShaderMaterial
+            ).uniforms.uOpacity.value =
+              0.51 + pulse * 0.045;
+
+            atmosphere.scale.setScalar(1 + pulse * 0.010);
+            violetAtmosphere.scale.setScalar(1.002 + pulse * 0.010);
 
             root.rotation.y = THREE.MathUtils.lerp(
               root.rotation.y,
-              pointerX * 0.035,
-              0.05,
+              pointerX * 0.040,
+              0.045,
             );
 
             root.rotation.x = THREE.MathUtils.lerp(
               root.rotation.x,
-              THREE.MathUtils.degToRad(-4) - pointerY * 0.026,
-              0.05,
+              THREE.MathUtils.degToRad(-3) - pointerY * 0.028,
+              0.045,
             );
           }
 
           earthMaterial.uniforms.uTime.value = elapsed;
-          (
-            atmosphere.material as THREE.ShaderMaterial
-          ).uniforms.uOpacity.value =
-            0.45 + Math.sin(elapsed * 1.1) * 0.03;
 
           renderer.render(scene, camera);
           frame = window.requestAnimationFrame(render);
         } catch (error) {
-          // Keep Home usable. Leave the last rendered frame intact and stop
-          // only this visual loop rather than crashing the dashboard.
           console.error('[HomeEarth render]', error);
           window.cancelAnimationFrame(frame);
         }
@@ -691,6 +783,7 @@ export function HolographicEarth({ metrics }: { metrics: HomeEarthMetrics }) {
 
         scene.traverse((object) => {
           const item = object as THREE.Mesh | THREE.Line | THREE.Points;
+
           if ('geometry' in item && item.geometry) {
             item.geometry.dispose();
           }
@@ -706,6 +799,7 @@ export function HolographicEarth({ metrics }: { metrics: HomeEarthMetrics }) {
       };
     } catch (error) {
       console.error('[HomeEarth init]', error);
+
       return () => {
         disposed = true;
         window.cancelAnimationFrame(frame);
@@ -723,12 +817,21 @@ export function HolographicEarth({ metrics }: { metrics: HomeEarthMetrics }) {
       aria-label="Interactive holographic Earth"
     >
       <div className={styles.ambient} aria-hidden="true" />
+      <div className={styles.gridGlow} aria-hidden="true" />
       <div className={styles.scanlines} aria-hidden="true" />
-      <canvas ref={canvasRef} className={styles.canvas} aria-hidden="true" />
+
+      <canvas
+        ref={canvasRef}
+        className={styles.canvas}
+        aria-hidden="true"
+      />
 
       <div className={styles.topRail} aria-hidden="true">
         <span>GLOBAL MINING NETWORK</span>
-        <b><i />{live ? 'LIVE' : 'PAUSED'}</b>
+        <b>
+          <i />
+          {live ? 'LIVE' : 'PAUSED'}
+        </b>
       </div>
 
       <div className={styles.centerTitle} aria-hidden="true">
@@ -743,16 +846,25 @@ export function HolographicEarth({ metrics }: { metrics: HomeEarthMetrics }) {
 
       <div className={`${styles.metric} ${styles.hash}`} aria-hidden="true">
         <span>GLOBAL HASHRATE</span>
-        <strong>{metrics.activeHashrate}<em> H/s</em></strong>
+        <strong>
+          {metrics.activeHashrate}
+          <em> H/s</em>
+        </strong>
       </div>
 
-      <div className={`${styles.metric} ${styles.miners}`} aria-hidden="true">
+      <div
+        className={`${styles.metric} ${styles.miners}`}
+        aria-hidden="true"
+      >
         <span>ACTIVE MINERS</span>
         <strong>{metrics.activeMiners}</strong>
       </div>
 
-      <div className={`${styles.metric} ${styles.output}`} aria-hidden="true">
-        <span>LIVE OUTPUT</span>
+      <div
+        className={`${styles.metric} ${styles.output}`}
+        aria-hidden="true"
+      >
+        <span>LIVE MINING OUTPUT</span>
         <strong>${metrics.dailyOutputUsd}</strong>
       </div>
 
@@ -766,11 +878,21 @@ export function HolographicEarth({ metrics }: { metrics: HomeEarthMetrics }) {
           }}
           aria-hidden="true"
         >
-          <i style={{ backgroundColor: `#${region.color.toString(16).padStart(6, '0')}` }} />
+          <i
+            style={{
+              backgroundColor: `#${region.color
+                .toString(16)
+                .padStart(6, '0')}`,
+            }}
+          />
           <b>{region.label}</b>
           <small>NETWORK NODE</small>
         </div>
       ))}
+
+      <div className={styles.coreBadge} aria-hidden="true">
+        <span>N</span>
+      </div>
 
       <div className={styles.asset} aria-hidden="true">
         <span>MINING ASSET</span>
