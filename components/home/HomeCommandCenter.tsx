@@ -8,6 +8,7 @@ import {
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import styles from './HomeCommandCenter.module.css';
+import { HolographicEarth } from './HolographicEarth';
 
 export type HomeSnapshot = {
   engine: string; today_utc: string; asset: string; diamond_balance: number | string; reserved_diamond: number | string;
@@ -123,28 +124,7 @@ export function HomeCommandCenter({ initialData }: { initialData: HomeSnapshot }
             <div><span className={styles.chipIcon}><Gauge size={15} /></span><div><b>Economy Stable</b><small>Live Data</small></div></div>
           </div>
         </div>
-        <div className={styles.heroVisual} aria-hidden="true">
-          <div className={styles.spaceGlow} />
-          <div className={styles.heroCoreGrid} />
-          <div className={`${styles.coreOrbit} ${styles.coreOrbitOne}`} />
-          <div className={`${styles.coreOrbit} ${styles.coreOrbitTwo}`} />
-          <div className={styles.coreOrb}>
-            <div className={styles.coreOrbInner}>
-              <svg className={styles.coreLogo} viewBox="0 0 180 180" role="presentation">
-                <defs>
-                  <linearGradient id="coreN" x1="0" y1="0" x2="1" y2="1"><stop stopColor="#f8ffff"/><stop offset=".42" stopColor="#60eaff"/><stop offset="1" stopColor="#9a55ff"/></linearGradient>
-                  <linearGradient id="coreEdge" x1="0" y1="0" x2="1" y2="1"><stop stopColor="#34efff"/><stop offset="1" stopColor="#873dff"/></linearGradient>
-                  <filter id="coreGlow"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-                </defs>
-                <circle cx="90" cy="90" r="72" fill="rgba(4,16,31,.86)" stroke="url(#coreEdge)" strokeWidth="2"/>
-                <circle cx="90" cy="90" r="57" fill="none" stroke="rgba(91,230,255,.22)" strokeWidth="1" strokeDasharray="3 7"/>
-                <path d="M54 126V54h18l36 48V54h18v72h-18L72 79v47H54Z" fill="url(#coreN)" filter="url(#coreGlow)"/>
-              </svg>
-            </div>
-          </div>
-          <div className={styles.verticalWordmark}>NEXTGEN</div>
-          <div className={styles.powerText}>POWER<br />CONNECTS<br /><strong>PEOPLE</strong></div>
-        </div>
+        <div className={styles.heroVisual} aria-hidden="true"><HolographicEarth /></div>
       </section>
 
       {message ? <section className={styles.notice}><ShieldCheck size={16} />{message}</section> : null}
