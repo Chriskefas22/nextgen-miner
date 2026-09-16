@@ -1668,29 +1668,27 @@ export function HolographicEarth({
               0.065 +
               pulse * 0.018;
 
+            const ring0 =
+              surfaceRings.children[0] as THREE.Line;
+            const ring1 =
+              surfaceRings.children[1] as THREE.Line;
+            const ring2 =
+              surfaceRings.children[2] as THREE.Line;
+
             (
-              surfaceRings.children[
-                0
-              ]
-                .material as THREE.LineBasicMaterial
+              ring0.material as THREE.LineBasicMaterial
             ).opacity =
               0.082 +
               pulse * 0.020;
 
             (
-              surfaceRings.children[
-                1
-              ]
-                .material as THREE.LineBasicMaterial
+              ring1.material as THREE.LineBasicMaterial
             ).opacity =
               0.060 +
               pulse * 0.018;
 
             (
-              surfaceRings.children[
-                2
-              ]
-                .material as THREE.LineBasicMaterial
+              ring2.material as THREE.LineBasicMaterial
             ).opacity =
               0.044 +
               pulse * 0.012;
