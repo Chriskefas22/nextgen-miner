@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import styles from './HolographicEarth.module.css';
 
@@ -12,37 +12,131 @@ export type HomeEarthMetrics = {
   dailyOutputUsd: string;
 };
 
+type RegionKey =
+  | 'americas'
+  | 'europe'
+  | 'asia'
+  | 'africa'
+  | 'australia';
+
 type Region = {
-  key: 'americas' | 'europe' | 'asia' | 'africa' | 'australia';
+  key: RegionKey;
   lat: number;
   lon: number;
   label: string;
   color: number;
+  pulsePhase: number;
+  offsetX: number;
+  offsetY: number;
 };
 
-type RegionRuntime = {
-  anchor: THREE.Object3D;
-  dot: THREE.Mesh;
-  active: boolean;
+type CityLight = {
+  lat: number;
+  lon: number;
+  size: number;
+  opacity: number;
+  phase: number;
 };
 
-const EARTH_TEXTURE = '/assets/landing/earth-equirectangular.webp';
+const EARTH_TEXTURE =
+  '/assets/landing/earth-equirectangular.webp';
+
 const DEG = Math.PI / 180;
 const TAU = Math.PI * 2;
 
-/*
- * Region coordinates are intentional and stable. They are not random.
- * The same 3D anchors drive:
- *  1) the surface node,
- *  2) the connector line,
- *  3) the HTML label projection.
- */
 const REGIONS: Region[] = [
-  { key: 'americas', lat: 26, lon: -92, label: 'AMERICAS', color: 0x47eaff },
-  { key: 'europe', lat: 49, lon: 12, label: 'EUROPE', color: 0xa763ff },
-  { key: 'asia', lat: 28, lon: 103, label: 'ASIA', color: 0x47eaff },
-  { key: 'africa', lat: -5, lon: 24, label: 'AFRICA', color: 0xa763ff },
-  { key: 'australia', lat: -27, lon: 134, label: 'AUSTRALIA', color: 0x47eaff },
+  {
+    key: 'americas',
+    lat: 25,
+    lon: -92,
+    label: 'AMERICAS',
+    color: 0x47eaff,
+    pulsePhase: 0.2,
+    offsetX: -4,
+    offsetY: 1,
+  },
+  {
+    key: 'europe',
+    lat: 49,
+    lon: 12,
+    label: 'EUROPE',
+    color: 0xa763ff,
+    pulsePhase: 1.1,
+    offsetX: 1,
+    offsetY: -6,
+  },
+  {
+    key: 'asia',
+    lat: 27,
+    lon: 103,
+    label: 'ASIA',
+    color: 0x47eaff,
+    pulsePhase: 2.1,
+    offsetX: 5,
+    offsetY: 0,
+  },
+  {
+    key: 'africa',
+    lat: -5,
+    lon: 24,
+    label: 'AFRICA',
+    color: 0xa763ff,
+    pulsePhase: 2.9,
+    offsetX: 5,
+    offsetY: 5,
+  },
+  {
+    key: 'australia',
+    lat: -27,
+    lon: 134,
+    label: 'AUSTRALIA',
+    color: 0x47eaff,
+    pulsePhase: 3.8,
+    offsetX: 7,
+    offsetY: 6,
+  },
+];
+
+/*
+ * Deterministic city/network lights.
+ * These are clustered around the five operating regions instead of
+ * being randomly scattered around the whole Earth.
+ */
+const CITY_LIGHTS: CityLight[] = [
+  // Americas
+  { lat: 40, lon: -74, size: 0.035, opacity: 0.46, phase: 0.2 },
+  { lat: 34, lon: -118, size: 0.030, opacity: 0.34, phase: 1.2 },
+  { lat: 29, lon: -95, size: 0.026, opacity: 0.30, phase: 2.3 },
+  { lat: 19, lon: -99, size: 0.024, opacity: 0.28, phase: 3.2 },
+  { lat: -23, lon: -46, size: 0.032, opacity: 0.40, phase: 4.0 },
+  { lat: -34, lon: 151, size: 0.020, opacity: 0.22, phase: 4.7 },
+
+  // Europe
+  { lat: 51.5, lon: -0.1, size: 0.035, opacity: 0.46, phase: 0.6 },
+  { lat: 48.8, lon: 2.3, size: 0.030, opacity: 0.42, phase: 1.7 },
+  { lat: 52.5, lon: 13.4, size: 0.028, opacity: 0.38, phase: 2.7 },
+  { lat: 41.9, lon: 12.5, size: 0.024, opacity: 0.30, phase: 3.7 },
+  { lat: 40.4, lon: -3.7, size: 0.023, opacity: 0.28, phase: 4.8 },
+
+  // Asia
+  { lat: 35.7, lon: 139.7, size: 0.036, opacity: 0.54, phase: 0.5 },
+  { lat: 31.2, lon: 121.5, size: 0.033, opacity: 0.50, phase: 1.6 },
+  { lat: 22.3, lon: 114.2, size: 0.029, opacity: 0.44, phase: 2.5 },
+  { lat: 28.6, lon: 77.2, size: 0.027, opacity: 0.36, phase: 3.4 },
+  { lat: 1.3, lon: 103.8, size: 0.025, opacity: 0.32, phase: 4.4 },
+  { lat: 13.8, lon: 100.5, size: 0.023, opacity: 0.27, phase: 5.2 },
+
+  // Africa
+  { lat: 30.0, lon: 31.2, size: 0.026, opacity: 0.28, phase: 0.9 },
+  { lat: -1.3, lon: 36.8, size: 0.023, opacity: 0.24, phase: 2.0 },
+  { lat: -26.2, lon: 28.0, size: 0.028, opacity: 0.32, phase: 3.1 },
+  { lat: 6.5, lon: 3.4, size: 0.026, opacity: 0.29, phase: 4.1 },
+
+  // Australia
+  { lat: -33.9, lon: 151.2, size: 0.030, opacity: 0.35, phase: 1.0 },
+  { lat: -37.8, lon: 144.9, size: 0.027, opacity: 0.31, phase: 2.2 },
+  { lat: -27.5, lon: 153.0, size: 0.024, opacity: 0.28, phase: 3.5 },
+  { lat: -31.9, lon: 115.9, size: 0.022, opacity: 0.24, phase: 4.6 },
 ];
 
 function latLonToVector3(
@@ -54,47 +148,93 @@ function latLonToVector3(
   const theta = (longitude + 180) * DEG;
 
   return new THREE.Vector3(
-    -radius * Math.sin(phi) * Math.cos(theta),
+    -radius *
+      Math.sin(phi) *
+      Math.cos(theta),
     radius * Math.cos(phi),
-    radius * Math.sin(phi) * Math.sin(theta),
+    radius *
+      Math.sin(phi) *
+      Math.sin(theta),
   );
 }
 
 function makeGlowTexture() {
-  const canvas = document.createElement('canvas');
+  const canvas =
+    document.createElement('canvas');
+
   canvas.width = 64;
   canvas.height = 64;
 
-  const context = canvas.getContext('2d');
-  if (!context) return null;
+  const context =
+    canvas.getContext('2d');
 
-  const gradient = context.createRadialGradient(
-    32,
-    32,
-    1,
-    32,
-    32,
-    32,
+  if (!context) {
+    return null;
+  }
+
+  const gradient =
+    context.createRadialGradient(
+      32,
+      32,
+      1,
+      32,
+      32,
+      32,
+    );
+
+  gradient.addColorStop(
+    0,
+    'rgba(255,255,255,1)',
   );
 
-  gradient.addColorStop(0, 'rgba(225,255,255,1)');
-  gradient.addColorStop(0.10, 'rgba(71,234,255,.95)');
-  gradient.addColorStop(0.32, 'rgba(71,204,255,.38)');
-  gradient.addColorStop(1, 'rgba(0,0,0,0)');
+  gradient.addColorStop(
+    0.09,
+    'rgba(91,238,255,.95)',
+  );
+
+  gradient.addColorStop(
+    0.28,
+    'rgba(91,205,255,.40)',
+  );
+
+  gradient.addColorStop(
+    0.62,
+    'rgba(120,112,255,.08)',
+  );
+
+  gradient.addColorStop(
+    1,
+    'rgba(0,0,0,0)',
+  );
 
   context.fillStyle = gradient;
-  context.fillRect(0, 0, 64, 64);
+  context.fillRect(
+    0,
+    0,
+    64,
+    64,
+  );
 
-  const texture = new THREE.CanvasTexture(canvas);
-  texture.colorSpace = THREE.SRGBColorSpace;
+  const texture =
+    new THREE.CanvasTexture(
+      canvas,
+    );
+
+  texture.colorSpace =
+    THREE.SRGBColorSpace;
+
   return texture;
 }
 
 function createEarthMaterial() {
   return new THREE.ShaderMaterial({
     uniforms: {
-      uTexture: { value: null },
-      uTime: { value: 0 },
+      uTexture: {
+        value: null,
+      },
+      uTime: {
+        value: 0,
+      },
     },
 
     vertexShader: `
@@ -105,11 +245,23 @@ function createEarthMaterial() {
       void main() {
         vUv = uv;
 
-        vec4 worldPosition = modelMatrix * vec4(position, 1.0);
-        vWorldPosition = worldPosition.xyz;
-        vWorldNormal = normalize(mat3(modelMatrix) * normal);
+        vec4 worldPosition =
+          modelMatrix *
+          vec4(position, 1.0);
 
-        gl_Position = projectionMatrix * viewMatrix * worldPosition;
+        vWorldPosition =
+          worldPosition.xyz;
+
+        vWorldNormal =
+          normalize(
+            mat3(modelMatrix) *
+            normal
+          );
+
+        gl_Position =
+          projectionMatrix *
+          viewMatrix *
+          worldPosition;
       }
     `,
 
@@ -124,106 +276,166 @@ function createEarthMaterial() {
       varying vec3 vWorldPosition;
 
       void main() {
-        vec3 tex = texture2D(uTexture, vUv).rgb;
+        vec3 tex =
+          texture2D(
+            uTexture,
+            vUv
+          ).rgb;
 
-        float lum = dot(
-          tex,
-          vec3(0.299, 0.587, 0.114)
-        );
-
-        float landSignal = max(
-          tex.r - tex.b * 0.78,
-          tex.g - tex.b * 0.68
-        );
-
-        float land = smoothstep(
-          0.012,
-          0.095,
-          landSignal
-        );
-
-        float coast = smoothstep(
-          0.012,
-          0.030,
-          landSignal
-        ) * (
-          1.0 - smoothstep(
-            0.052,
-            0.095,
-            landSignal
-          )
-        );
-
-        vec3 ocean = mix(
-          vec3(0.001, 0.008, 0.020),
-          vec3(0.008, 0.082, 0.175),
-          smoothstep(0.05, 0.76, lum)
-        );
-
-        vec3 landColor = mix(
-          vec3(0.018, 0.22, 0.46),
-          vec3(0.075, 0.62, 0.88),
-          smoothstep(0.18, 0.82, lum)
-        );
-
-        vec3 color = mix(
-          ocean,
-          landColor,
-          land
-        );
-
-        color += vec3(0.035, 0.36, 0.84)
-          * coast
-          * 0.62;
-
-        float city = smoothstep(
-          0.73,
-          0.97,
-          lum
-        ) * land;
-
-        color += vec3(
-          0.86,
-          0.72,
-          0.42
-        ) * city * 0.12;
-
-        float scan = 0.982 +
-          0.018 * sin(
-            vUv.y * 180.0 +
-            uTime * 1.15
+        float lum =
+          dot(
+            tex,
+            vec3(
+              0.299,
+              0.587,
+              0.114
+            )
           );
 
-        color *= scan;
+        float landSignal =
+          max(
+            tex.r -
+              tex.b *
+              0.78,
+            tex.g -
+              tex.b *
+              0.68
+          );
 
-        vec3 viewDir = normalize(
-          cameraPosition -
-          vWorldPosition
-        );
+        float land =
+          smoothstep(
+            0.012,
+            0.095,
+            landSignal
+          );
 
-        float facing = max(
-          dot(
-            normalize(vWorldNormal),
-            viewDir
-          ),
-          0.0
-        );
+        float coast =
+          smoothstep(
+            0.012,
+            0.030,
+            landSignal
+          ) *
+          (
+            1.0 -
+            smoothstep(
+              0.052,
+              0.095,
+              landSignal
+            )
+          );
 
-        float rim = pow(
-          1.0 - facing,
-          2.38
-        );
+        /*
+         * Blue hologram base.
+         * Deliberately not photorealistic.
+         */
+        vec3 ocean =
+          mix(
+            vec3(
+              0.001,
+              0.006,
+              0.018
+            ),
+            vec3(
+              0.007,
+              0.070,
+              0.158
+            ),
+            smoothstep(
+              0.05,
+              0.78,
+              lum
+            )
+          );
 
-        color += vec3(
-          0.008,
-          0.30,
-          0.86
-        ) * rim * 0.90;
+        vec3 landColor =
+          mix(
+            vec3(
+              0.014,
+              0.20,
+              0.42
+            ),
+            vec3(
+              0.065,
+              0.58,
+              0.86
+            ),
+            smoothstep(
+              0.18,
+              0.82,
+              lum
+            )
+          );
 
-        gl_FragColor = vec4(
-          color,
-          0.985
-        );
+        vec3 color =
+          mix(
+            ocean,
+            landColor,
+            land
+          );
+
+        color +=
+          vec3(
+            0.022,
+            0.31,
+            0.78
+          ) *
+          coast *
+          0.60;
+
+        /*
+         * Subtle scan modulation.
+         */
+        color *=
+          0.985 +
+          0.015 *
+          sin(
+            vUv.y *
+              188.0 +
+            uTime *
+              1.20
+          );
+
+        /*
+         * Fine holographic rim.
+         */
+        vec3 viewDir =
+          normalize(
+            cameraPosition -
+            vWorldPosition
+          );
+
+        float facing =
+          max(
+            dot(
+              normalize(
+                vWorldNormal
+              ),
+              viewDir
+            ),
+            0.0
+          );
+
+        float rim =
+          pow(
+            1.0 -
+              facing,
+            2.55
+          );
+
+        color +=
+          vec3(
+            0.008,
+            0.30,
+            0.88
+          ) *
+          rim *
+          0.88;
+
+        gl_FragColor =
+          vec4(
+            color,
+            0.985
+          );
       }
     `,
 
@@ -240,7 +452,8 @@ function createAtmosphereMaterial(
   return new THREE.ShaderMaterial({
     uniforms: {
       uColor: {
-        value: new THREE.Color(color),
+        value:
+          new THREE.Color(color),
       },
       uOpacity: {
         value: opacity,
@@ -253,13 +466,16 @@ function createAtmosphereMaterial(
 
       void main() {
         vec4 worldPosition =
-          modelMatrix * vec4(position, 1.0);
+          modelMatrix *
+          vec4(position, 1.0);
 
-        vWorldPosition = worldPosition.xyz;
+        vWorldPosition =
+          worldPosition.xyz;
 
         vWorldNormal =
           normalize(
-            mat3(modelMatrix) * normal
+            mat3(modelMatrix) *
+            normal
           );
 
         gl_Position =
@@ -279,33 +495,42 @@ function createAtmosphereMaterial(
       varying vec3 vWorldPosition;
 
       void main() {
-        vec3 normal = normalize(
-          vWorldNormal
-        );
+        vec3 normal =
+          normalize(
+            vWorldNormal
+          );
 
-        vec3 viewDir = normalize(
-          cameraPosition -
-          vWorldPosition
-        );
+        vec3 viewDir =
+          normalize(
+            cameraPosition -
+            vWorldPosition
+          );
 
-        float rim = pow(
-          1.0 - max(
-            dot(normal, viewDir),
-            0.0
-          ),
-          2.4
-        );
+        float rim =
+          pow(
+            1.0 -
+              max(
+                dot(
+                  normal,
+                  viewDir
+                ),
+                0.0
+              ),
+            2.45
+          );
 
-        float shell = smoothstep(
-          0.025,
-          0.84,
-          rim
-        );
+        float shell =
+          smoothstep(
+            0.02,
+            0.84,
+            rim
+          );
 
-        gl_FragColor = vec4(
-          uColor,
-          shell * uOpacity
-        );
+        gl_FragColor =
+          vec4(
+            uColor,
+            shell * uOpacity
+          );
       }
     `,
 
@@ -322,23 +547,41 @@ function createSurfaceRing(
   longitudeOffset: number,
   color: number,
   opacity: number,
-  segments = 180,
+  segments = 144,
 ) {
-  const points: THREE.Vector3[] = [];
-  const lat = latitude * DEG;
-  const y = Math.sin(lat) * radius;
-  const ringRadius = Math.cos(lat) * radius;
+  const points: THREE.Vector3[] =
+    [];
 
-  for (let i = 0; i <= segments; i += 1) {
-    const lon =
-      (i / segments) * TAU +
+  const lat =
+    latitude * DEG;
+
+  const y =
+    Math.sin(lat) * radius;
+
+  const ringRadius =
+    Math.cos(lat) * radius;
+
+  for (
+    let i = 0;
+    i <= segments;
+    i += 1
+  ) {
+    const longitude =
+      (i / segments) *
+        TAU +
       longitudeOffset;
 
     points.push(
       new THREE.Vector3(
-        ringRadius * Math.cos(lon),
+        ringRadius *
+          Math.cos(
+            longitude,
+          ),
         y,
-        ringRadius * Math.sin(lon),
+        ringRadius *
+          Math.sin(
+            longitude,
+          ),
       ),
     );
   }
@@ -354,7 +597,8 @@ function createSurfaceRing(
       transparent: true,
       opacity,
       depthWrite: false,
-      blending: THREE.AdditiveBlending,
+      blending:
+        THREE.AdditiveBlending,
     });
 
   return new THREE.Line(
@@ -363,33 +607,36 @@ function createSurfaceRing(
   );
 }
 
-function createGreatCircle(
+function createOrbitBand(
   radius: number,
-  tiltX: number,
-  tiltY: number,
-  tiltZ: number,
+  rotation: THREE.Euler,
   color: number,
   opacity: number,
-  segments = 180,
+  segments = 160,
 ) {
-  const points: THREE.Vector3[] = [];
+  const points: THREE.Vector3[] =
+    [];
 
-  for (let i = 0; i <= segments; i += 1) {
+  for (
+    let i = 0;
+    i <= segments;
+    i += 1
+  ) {
     const angle =
-      (i / segments) * TAU;
+      (i / segments) *
+      TAU;
 
-    const point = new THREE.Vector3(
-      Math.cos(angle) * radius,
-      Math.sin(angle) * radius,
-      0,
-    );
+    const point =
+      new THREE.Vector3(
+        Math.cos(angle) *
+          radius,
+        Math.sin(angle) *
+          radius,
+        0,
+      );
 
     point.applyEuler(
-      new THREE.Euler(
-        tiltX,
-        tiltY,
-        tiltZ,
-      ),
+      rotation,
     );
 
     points.push(point);
@@ -406,7 +653,8 @@ function createGreatCircle(
       transparent: true,
       opacity,
       depthWrite: false,
-      blending: THREE.AdditiveBlending,
+      blending:
+        THREE.AdditiveBlending,
     });
 
   return new THREE.LineLoop(
@@ -415,11 +663,250 @@ function createGreatCircle(
   );
 }
 
-function makeStarField(
+function createConnector(
+  from: THREE.Vector3,
+  to: THREE.Vector3,
+  color: number,
+) {
+  const direction =
+    from
+      .clone()
+      .add(to)
+      .normalize();
+
+  const middle =
+    direction.multiplyScalar(
+      1.037,
+    );
+
+  const curve =
+    new THREE.QuadraticBezierCurve3(
+      from,
+      middle,
+      to,
+    );
+
+  const geometry =
+    new THREE.BufferGeometry().setFromPoints(
+      curve.getPoints(24),
+    );
+
+  const material =
+    new THREE.LineBasicMaterial({
+      color,
+      transparent: true,
+      opacity: 0.18,
+      depthWrite: false,
+      blending:
+        THREE.AdditiveBlending,
+    });
+
+  return new THREE.Line(
+    geometry,
+    material,
+  );
+}
+
+function createRegionCluster(
+  region: Region,
+  mobile: boolean,
+  glowTexture: THREE.Texture | null,
+) {
+  const group =
+    new THREE.Group();
+
+  const primaryPosition =
+    latLonToVector3(
+      region.lat,
+      region.lon,
+      1.018,
+    );
+
+  const secondaryOffsets =
+    mobile
+      ? [
+          [-1.7, 1.0],
+          [1.6, -1.0],
+        ]
+      : [
+          [-2.4, 1.5],
+          [1.9, -1.1],
+          [-1.1, -1.8],
+        ];
+
+  const primary =
+    new THREE.Mesh(
+      new THREE.SphereGeometry(
+        0.020,
+        7,
+        7,
+      ),
+      new THREE.MeshBasicMaterial({
+        color:
+          region.color,
+        transparent: true,
+        opacity: 0.80,
+        depthWrite: false,
+        blending:
+          THREE.AdditiveBlending,
+      }),
+    );
+
+  primary.position.copy(
+    primaryPosition,
+  );
+
+  group.add(primary);
+
+  secondaryOffsets.forEach(
+    ([latDelta, lonDelta]) => {
+      const position =
+        latLonToVector3(
+          region.lat +
+            latDelta,
+          region.lon +
+            lonDelta,
+          1.019,
+        );
+
+      const point =
+        glowTexture
+          ? new THREE.Sprite(
+              new THREE.SpriteMaterial({
+                map: glowTexture,
+                color:
+                  region.color,
+                transparent: true,
+                opacity: 0.42,
+                depthWrite: false,
+                blending:
+                  THREE.AdditiveBlending,
+              }),
+            )
+          : new THREE.Mesh(
+              new THREE.SphereGeometry(
+                0.012,
+                6,
+                6,
+              ),
+              new THREE.MeshBasicMaterial({
+                color:
+                  region.color,
+                transparent: true,
+                opacity: 0.42,
+                depthWrite: false,
+                blending:
+                  THREE.AdditiveBlending,
+              }),
+            );
+
+      if (
+        point instanceof
+        THREE.Sprite
+      ) {
+        point.scale.set(
+          0.06,
+          0.06,
+          1,
+        );
+      }
+
+      point.position.copy(
+        position,
+      );
+
+      group.add(point);
+
+      group.add(
+        createConnector(
+          primaryPosition,
+          position,
+          region.color,
+        ),
+      );
+    },
+  );
+
+  return {
+    group,
+    primary,
+  };
+}
+
+function createCityLights(
+  mobile: boolean,
+  glowTexture: THREE.Texture | null,
+) {
+  const group =
+    new THREE.Group();
+
+  const source =
+    mobile
+      ? CITY_LIGHTS.filter(
+          (_, index) =>
+            index % 2 === 0,
+        )
+      : CITY_LIGHTS;
+
+  source.forEach(
+    (city) => {
+      const position =
+        latLonToVector3(
+          city.lat,
+          city.lon,
+          1.024,
+        );
+
+      if (glowTexture) {
+        const sprite =
+          new THREE.Sprite(
+            new THREE.SpriteMaterial({
+              map: glowTexture,
+              color: 0xffe9a6,
+              transparent: true,
+              opacity:
+                city.opacity,
+              depthWrite: false,
+              blending:
+                THREE.AdditiveBlending,
+            }),
+          );
+
+        const size =
+          city.size * 2.1;
+
+        sprite.scale.set(
+          size,
+          size,
+          1,
+        );
+
+        sprite.position.copy(
+          position,
+        );
+
+        sprite.userData = {
+          baseOpacity:
+            city.opacity,
+          phase:
+            city.phase,
+        };
+
+        group.add(sprite);
+      }
+    },
+  );
+
+  return group;
+}
+
+function makeStars(
   count: number,
 ) {
   const positions =
-    new Float32Array(count * 3);
+    new Float32Array(
+      count * 3,
+    );
 
   for (
     let i = 0;
@@ -447,15 +934,21 @@ function makeStarField(
         8.8,
       );
 
-    positions[i * 3] =
+    positions[
+      i * 3
+    ] =
       radius *
       xy *
       Math.cos(theta);
 
-    positions[i * 3 + 1] =
+    positions[
+      i * 3 + 1
+    ] =
       radius * z;
 
-    positions[i * 3 + 2] =
+    positions[
+      i * 3 + 2
+    ] =
       radius *
       xy *
       Math.sin(theta);
@@ -475,123 +968,16 @@ function makeStarField(
   return new THREE.Points(
     geometry,
     new THREE.PointsMaterial({
-      color: 0x5eb2ff,
-      size: 0.010,
+      color: 0x5caeff,
+      size: 0.009,
       sizeAttenuation: true,
-      transparent: true,
-      opacity: 0.22,
-      depthWrite: false,
-      blending: THREE.AdditiveBlending,
-    }),
-  );
-}
-
-function makeConnectorCurve(
-  from: THREE.Vector3,
-  to: THREE.Vector3,
-  lift = 0.08,
-) {
-  const middle = from
-    .clone()
-    .add(to)
-    .multiplyScalar(0.5);
-
-  middle.normalize()
-    .multiplyScalar(
-      Math.max(
-        from.length(),
-        to.length(),
-      ) + lift,
-    );
-
-  const curve =
-    new THREE.QuadraticBezierCurve3(
-      from,
-      middle,
-      to,
-    );
-
-  const geometry =
-    new THREE.BufferGeometry().setFromPoints(
-      curve.getPoints(30),
-    );
-
-  const material =
-    new THREE.LineBasicMaterial({
-      color: 0x59e7ff,
       transparent: true,
       opacity: 0.20,
       depthWrite: false,
-      blending: THREE.AdditiveBlending,
-    });
-
-  return new THREE.Line(
-    geometry,
-    material,
-  );
-}
-
-function makeRegionNode(
-  position: THREE.Vector3,
-  color: number,
-) {
-  const group =
-    new THREE.Group();
-
-  const outer = new THREE.Mesh(
-    new THREE.RingGeometry(
-      0.032,
-      0.046,
-      28,
-    ),
-    new THREE.MeshBasicMaterial({
-      color,
-      transparent: true,
-      opacity: 0.35,
-      side: THREE.DoubleSide,
-      depthWrite: false,
-      blending: THREE.AdditiveBlending,
+      blending:
+        THREE.AdditiveBlending,
     }),
   );
-
-  const inner = new THREE.Mesh(
-    new THREE.SphereGeometry(
-      0.018,
-      8,
-      8,
-    ),
-    new THREE.MeshBasicMaterial({
-      color,
-      transparent: true,
-      opacity: 0.85,
-      depthWrite: false,
-      blending: THREE.AdditiveBlending,
-    }),
-  );
-
-  outer.rotation.set(
-    Math.PI / 2,
-    0,
-    0,
-  );
-
-  inner.position.copy(
-    position,
-  );
-
-  outer.position.copy(
-    position,
-  );
-
-  group.add(
-    outer,
-    inner,
-  );
-
-  return {
-    group,
-    dot: inner,
-  };
 }
 
 function disposeObject(
@@ -660,6 +1046,15 @@ export function HolographicEarth({
   metricsRef.current =
     metrics;
 
+  /*
+   * Keep markup stable. Region labels are projected
+   * from the same 3D anchors that drive the surface nodes.
+   */
+  const regionList = useMemo(
+    () => REGIONS,
+    [],
+  );
+
   useEffect(() => {
     const host =
       hostRef.current;
@@ -677,6 +1072,7 @@ export function HolographicEarth({
 
     let animationFrame = 0;
     let disposed = false;
+
     let mobile =
       window.innerWidth < 760;
 
@@ -692,7 +1088,6 @@ export function HolographicEarth({
 
     let lastPointerX = 0;
     let lastPointerY = 0;
-
     let angularVelocity = 0;
 
     let rotationY =
@@ -743,7 +1138,7 @@ export function HolographicEarth({
         THREE.ACESFilmicToneMapping;
 
       renderer.toneMappingExposure =
-        1.05;
+        1.02;
 
       const scene =
         new THREE.Scene();
@@ -758,30 +1153,38 @@ export function HolographicEarth({
 
       camera.position.set(
         0,
-        0.02,
-        mobile ? 4.32 : 4.0,
+        0.01,
+        mobile ? 4.28 : 3.96,
       );
 
       /*
-       * SINGLE MASTER TRANSFORM.
-       * Earth, atmosphere, subtle grid, nodes,
-       * surface rings and region anchors are all
-       * children of synchronizedSystem.
+       * MASTER 3D SYSTEM
+       *
+       * Everything that belongs to Earth lives under this single group:
+       * Earth + atmosphere + grid + region nodes + city lights +
+       * surface rings + subtle orbit + connector lines.
        */
-      const synchronizedSystem =
+      const master3DSystem =
         new THREE.Group();
 
-      synchronizedSystem.rotation.x =
+      master3DSystem.rotation.x =
         rotationX;
 
       scene.add(
-        synchronizedSystem,
+        master3DSystem,
+      );
+
+      const lights =
+        new THREE.Group();
+
+      master3DSystem.add(
+        lights,
       );
 
       const key =
         new THREE.DirectionalLight(
-          0xcffaff,
-          2.25,
+          0xd6fbff,
+          2.15,
         );
 
       key.position.set(
@@ -794,8 +1197,8 @@ export function HolographicEarth({
 
       const fill =
         new THREE.DirectionalLight(
-          0x7956ff,
-          0.42,
+          0x7150ff,
+          0.34,
         );
 
       fill.position.set(
@@ -808,17 +1211,26 @@ export function HolographicEarth({
 
       scene.add(
         new THREE.AmbientLight(
-          0x3dbbff,
-          0.86,
+          0x38b5ff,
+          0.82,
         ),
       );
 
-      const stars =
-        makeStarField(
-          mobile ? 70 : 125,
-        );
+      scene.add(
+        makeStars(
+          mobile ? 70 : 120,
+        ),
+      );
 
-      scene.add(stars);
+      const synchronizedSystem =
+        new THREE.Group();
+
+      master3DSystem.add(
+        synchronizedSystem,
+      );
+
+      const glowTexture =
+        makeGlowTexture();
 
       const earthMaterial =
         createEarthMaterial();
@@ -827,8 +1239,8 @@ export function HolographicEarth({
         new THREE.DataTexture(
           new Uint8Array([
             4,
-            19,
-            42,
+            18,
+            40,
             255,
           ]),
           1,
@@ -864,8 +1276,7 @@ export function HolographicEarth({
                 mobile ? 2 : 4,
               );
 
-            earthMaterial
-              .uniforms.uTexture.value =
+            earthMaterial.uniforms.uTexture.value =
               texture;
 
             texture.needsUpdate =
@@ -879,6 +1290,9 @@ export function HolographicEarth({
           },
         );
 
+      /*
+       * EARTH
+       */
       const earth =
         new THREE.Mesh(
           new THREE.SphereGeometry(
@@ -896,6 +1310,20 @@ export function HolographicEarth({
         earth,
       );
 
+      /*
+       * Subtle grid.
+       */
+      const gridMaterial =
+        new THREE.MeshBasicMaterial({
+          color: 0x5adfff,
+          wireframe: true,
+          transparent: true,
+          opacity: 0.012,
+          depthWrite: false,
+          blending:
+            THREE.AdditiveBlending,
+        });
+
       const earthGrid =
         new THREE.Mesh(
           new THREE.SphereGeometry(
@@ -903,17 +1331,7 @@ export function HolographicEarth({
             mobile ? 32 : 48,
             mobile ? 22 : 30,
           ),
-          new THREE.MeshBasicMaterial(
-            {
-              color: 0x5bdfff,
-              wireframe: true,
-              transparent: true,
-              opacity: 0.014,
-              depthWrite: false,
-              blending:
-                THREE.AdditiveBlending,
-            },
-          ),
+          gridMaterial,
         );
 
       earthGrid.position.y =
@@ -923,43 +1341,44 @@ export function HolographicEarth({
         earthGrid,
       );
 
-      const glow =
+      /*
+       * Rim/atmosphere shells.
+       */
+      const earthGlow =
         new THREE.Mesh(
           new THREE.SphereGeometry(
             1.038,
             mobile ? 38 : 56,
             mobile ? 26 : 36,
           ),
-          new THREE.MeshBasicMaterial(
-            {
-              color: 0x17c9ff,
-              transparent: true,
-              opacity: 0.046,
-              side: THREE.BackSide,
-              depthWrite: false,
-              blending:
-                THREE.AdditiveBlending,
-            },
-          ),
+          new THREE.MeshBasicMaterial({
+            color: 0x15c7ff,
+            transparent: true,
+            opacity: 0.042,
+            side: THREE.BackSide,
+            depthWrite: false,
+            blending:
+              THREE.AdditiveBlending,
+          }),
         );
 
-      glow.position.y =
+      earthGlow.position.y =
         0.10;
 
       synchronizedSystem.add(
-        glow,
+        earthGlow,
       );
 
       const atmosphere =
         new THREE.Mesh(
           new THREE.SphereGeometry(
-            1.062,
+            1.060,
             mobile ? 42 : 62,
             mobile ? 28 : 40,
           ),
           createAtmosphereMaterial(
             0x35e9ff,
-            0.40,
+            0.39,
           ),
         );
 
@@ -979,7 +1398,7 @@ export function HolographicEarth({
           ),
           createAtmosphereMaterial(
             0xa763ff,
-            0.08,
+            0.070,
           ),
         );
 
@@ -991,10 +1410,8 @@ export function HolographicEarth({
       );
 
       /*
-       * Surface rings are real 3D lines just above
-       * the Earth. No large off-globe TorusGeometry,
-       * so nothing can create the old "trails through
-       * the bottom" effect.
+       * SurfaceRings: only three tight latitude rings.
+       * They hug the Earth and cannot create the old long bottom trails.
        */
       const surfaceRings =
         new THREE.Group();
@@ -1006,177 +1423,460 @@ export function HolographicEarth({
         surfaceRings,
       );
 
-      surfaceRings.add(
+      const ringA =
         createSurfaceRing(
-          1.018,
-          30,
-          0.20,
+          1.014,
+          32,
+          0.15,
           0x47eaff,
-          0.10,
-          mobile ? 128 : 180,
-        ),
-      );
+          0.080,
+          mobile ? 120 : 144,
+        );
 
-      surfaceRings.add(
+      const ringB =
         createSurfaceRing(
-          1.018,
-          -8,
-          -0.48,
+          1.014,
+          -5,
+          -0.42,
           0xa763ff,
-          0.075,
-          mobile ? 128 : 180,
-        ),
-      );
+          0.058,
+          mobile ? 120 : 144,
+        );
+
+      const ringC =
+        createSurfaceRing(
+          1.014,
+          -28,
+          0.08,
+          0x47eaff,
+          0.042,
+          mobile ? 120 : 144,
+        );
 
       surfaceRings.add(
-        createSurfaceRing(
-          1.018,
-          -33,
-          0.12,
-          0x47eaff,
-          0.055,
-          mobile ? 128 : 180,
-        ),
+        ringA,
+        ringB,
+        ringC,
       );
 
       /*
-       * Only two subtle great-circle bands.
-       * They wrap the globe and are never projected
-       * as long vertical rays.
+       * SubtleOrbit: two very low-opacity great-circle bands,
+       * kept close to the globe.
        */
-      const orbitBands =
+      const subtleOrbit =
         new THREE.Group();
 
       synchronizedSystem.add(
-        orbitBands,
+        subtleOrbit,
       );
 
       const orbitA =
-        createGreatCircle(
-          1.055,
-          THREE.MathUtils.degToRad(
-            63,
+        createOrbitBand(
+          1.045,
+          new THREE.Euler(
+            THREE.MathUtils.degToRad(
+              61,
+            ),
+            THREE.MathUtils.degToRad(
+              7,
+            ),
+            THREE.MathUtils.degToRad(
+              -14,
+            ),
           ),
-          THREE.MathUtils.degToRad(
-            8,
-          ),
-          THREE.MathUtils.degToRad(
-            -12,
-          ),
-          0x46e8ff,
-          0.105,
-          mobile ? 128 : 180,
+          0x52eaff,
+          0.060,
+          mobile ? 112 : 160,
         );
 
       const orbitB =
-        createGreatCircle(
-          1.07,
-          THREE.MathUtils.degToRad(
-            -54,
-          ),
-          THREE.MathUtils.degToRad(
-            20,
-          ),
-          THREE.MathUtils.degToRad(
-            24,
+        createOrbitBand(
+          1.060,
+          new THREE.Euler(
+            THREE.MathUtils.degToRad(
+              -52,
+            ),
+            THREE.MathUtils.degToRad(
+              18,
+            ),
+            THREE.MathUtils.degToRad(
+              22,
+            ),
           ),
           0xa763ff,
-          0.075,
-          mobile ? 128 : 180,
+          0.042,
+          mobile ? 112 : 160,
         );
 
-      orbitBands.add(
+      subtleOrbit.add(
         orbitA,
         orbitB,
       );
 
       /*
-       * Region network is controlled by the five real
-       * regions, not by random points. Each region gets
-       * one surface node + one nearby connector line.
+       * SurfaceNetwork
        */
-      const regionRoot =
+      const surfaceNetwork =
         new THREE.Group();
 
-      regionRoot.position.y =
-        0.10;
-
       synchronizedSystem.add(
-        regionRoot,
+        surfaceNetwork,
       );
 
       const regionRuntime =
         new Map<
-          Region['key'],
-          RegionRuntime
+          RegionKey,
+          {
+            anchor: THREE.Object3D;
+            primary: THREE.Mesh;
+          }
         >();
-
-      const center =
-        new THREE.Vector3(
-          0,
-          0.10,
-          0,
-        );
 
       REGIONS.forEach(
         (region) => {
-          const surfacePosition =
-            latLonToVector3(
-              region.lat,
-              region.lon,
-              1.024,
-            );
-
-          const node =
-            makeRegionNode(
-              surfacePosition,
-              region.color,
-            );
-
           const anchor =
             new THREE.Object3D();
 
           anchor.position.copy(
-            surfacePosition,
+            latLonToVector3(
+              region.lat,
+              region.lon,
+              1.018,
+            ),
           );
 
-          regionRoot.add(
+          surfaceNetwork.add(
             anchor,
           );
 
-          regionRoot.add(
-            node.group,
-          );
-
-          const connector =
-            makeConnectorCurve(
-              surfacePosition,
-              surfacePosition
-                .clone()
-                .normalize()
-                .multiplyScalar(
-                  1.075,
-                ),
-              0.035,
+          const cluster =
+            createRegionCluster(
+              region,
+              mobile,
+              glowTexture,
             );
 
-          connector.position.y =
-            0;
-
-          regionRoot.add(
-            connector,
+          surfaceNetwork.add(
+            cluster.group,
           );
 
           regionRuntime.set(
             region.key,
             {
               anchor,
-              dot: node.dot,
-              active: true,
+              primary:
+                cluster.primary,
             },
           );
         },
       );
+
+      /*
+       * Living city lights.
+       */
+      const cityLights =
+        createCityLights(
+          mobile,
+          glowTexture,
+        );
+
+      cityLights.position.y =
+        0.10;
+
+      synchronizedSystem.add(
+        cityLights,
+      );
+
+      /*
+       * Core energy halo:
+       * a tiny ring around the center, not a big blocking card.
+       */
+      const coreHalo =
+        new THREE.Mesh(
+          new THREE.RingGeometry(
+            0.12,
+            0.125,
+            mobile ? 36 : 56,
+          ),
+          new THREE.MeshBasicMaterial({
+            color: 0x56ebff,
+            transparent: true,
+            opacity: 0.18,
+            side: THREE.DoubleSide,
+            depthWrite: false,
+            blending:
+              THREE.AdditiveBlending,
+          }),
+        );
+
+      coreHalo.position.set(
+        0,
+        0.105,
+        1.025,
+      );
+
+      synchronizedSystem.add(
+        coreHalo,
+      );
+
+      const regionProjection =
+        (
+          now: number,
+        ) => {
+          const earthCenter =
+            synchronizedSystem.localToWorld(
+              new THREE.Vector3(
+                0,
+                0.10,
+                0,
+              ),
+            );
+
+          REGIONS.forEach(
+            (
+              region,
+              index,
+            ) => {
+              const runtime =
+                regionRuntime.get(
+                  region.key,
+                );
+
+              const element =
+                regionRefs.current[
+                  index
+                ];
+
+              if (
+                !runtime ||
+                !element
+              ) {
+                return;
+              }
+
+              const world =
+                runtime.anchor.getWorldPosition(
+                  new THREE.Vector3(),
+                );
+
+              const normal =
+                world
+                  .clone()
+                  .sub(
+                    earthCenter,
+                  )
+                  .normalize();
+
+              const toCamera =
+                camera.position
+                  .clone()
+                  .sub(world)
+                  .normalize();
+
+              /*
+               * True surface depth:
+               * backside -> 0
+               * side     -> low alpha
+               * front    -> full alpha
+               */
+              const depth =
+                normal.dot(
+                  toCamera,
+                );
+
+              const projected =
+                world
+                  .clone()
+                  .project(camera);
+
+              const x =
+                (projected.x * 0.5 +
+                  0.5) *
+                100;
+
+              const y =
+                (-projected.y * 0.5 +
+                  0.5) *
+                100;
+
+              const insideViewport =
+                projected.z < 1 &&
+                x > -10 &&
+                x < 110 &&
+                y > 4 &&
+                y < 96;
+
+              const frontAlpha =
+                THREE.MathUtils.clamp(
+                  (depth - 0.085) /
+                    0.24,
+                  0,
+                  1,
+                );
+
+              /*
+               * Safe zones prevent labels from occupying the HUD rails.
+               */
+              const topBlocked =
+                y <
+                (mobile
+                  ? 17
+                  : 13);
+
+              const bottomBlocked =
+                y >
+                (mobile
+                  ? 84
+                  : 86);
+
+              const leftPanelBlocked =
+                mobile
+                  ? false
+                  : x < 12 &&
+                    y > 33 &&
+                    y < 70;
+
+              const rightPanelBlocked =
+                mobile
+                  ? false
+                  : x > 88 &&
+                    y > 29 &&
+                    y < 74;
+
+              const hidden =
+                !insideViewport ||
+                frontAlpha <= 0.015 ||
+                topBlocked ||
+                bottomBlocked ||
+                leftPanelBlocked ||
+                rightPanelBlocked;
+
+              const labelAlpha =
+                hidden
+                  ? 0
+                  : 0.30 +
+                    frontAlpha *
+                      0.70;
+
+              element.style.left =
+                `${x}%`;
+
+              element.style.top =
+                `${y}%`;
+
+              element.style.opacity =
+                labelAlpha.toFixed(3);
+
+              element.style.visibility =
+                labelAlpha > 0.015
+                  ? 'visible'
+                  : 'hidden';
+
+              /*
+               * Slightly compress labels as they approach
+               * the silhouette so they feel projected onto the globe.
+               */
+              const scale =
+                0.90 +
+                frontAlpha *
+                  0.10;
+
+              element.style.transform =
+                `translate(-50%, -50%) scale(${scale.toFixed(
+                  3,
+                )})`;
+
+              const pulse =
+                0.88 +
+                0.12 *
+                  (
+                    0.5 +
+                    0.5 *
+                      Math.sin(
+                        now *
+                          0.0022 +
+                          region.pulsePhase,
+                      )
+                  );
+
+              element.style.setProperty(
+                '--region-pulse',
+                pulse.toFixed(
+                  3,
+                ),
+              );
+
+              runtime.primary.scale.setScalar(
+                0.86 +
+                  (
+                    pulse -
+                    0.88
+                  ) *
+                    1.85,
+              );
+
+              (
+                runtime.primary.material as THREE.MeshBasicMaterial
+              ).opacity =
+                0.46 +
+                (
+                  pulse -
+                  0.88
+                ) *
+                  1.5;
+            },
+          );
+        };
+
+      const animateCityLights =
+        (now: number) => {
+          cityLights.children.forEach(
+            (child) => {
+              const sprite =
+                child as THREE.Sprite;
+
+              if (
+                !sprite.material
+              ) {
+                return;
+              }
+
+              const material =
+                sprite.material as THREE.SpriteMaterial;
+
+              const baseOpacity =
+                Number(
+                  sprite.userData
+                    .baseOpacity ??
+                    0.25,
+                );
+
+              const phase =
+                Number(
+                  sprite.userData
+                    .phase ??
+                    0,
+                );
+
+              const flicker =
+                0.77 +
+                0.23 *
+                  (
+                    0.5 +
+                    0.5 *
+                      Math.sin(
+                        now *
+                          0.0015 +
+                          phase,
+                      )
+                  );
+
+              material.opacity =
+                baseOpacity *
+                flicker;
+            },
+          );
+        };
 
       const resize =
         () => {
@@ -1185,7 +1885,8 @@ export function HolographicEarth({
           }
 
           mobile =
-            window.innerWidth < 760;
+            window.innerWidth <
+            760;
 
           const rect =
             host.getBoundingClientRect();
@@ -1212,8 +1913,8 @@ export function HolographicEarth({
 
           camera.position.z =
             mobile
-              ? 4.32
-              : 4.0;
+              ? 4.28
+              : 3.96;
 
           camera.updateProjectionMatrix();
 
@@ -1234,11 +1935,11 @@ export function HolographicEarth({
           );
         };
 
-      const pointerDown =
+      const onPointerDown =
         (event: PointerEvent) => {
           if (
             event.pointerType ===
-            'mouse' &&
+              'mouse' &&
             event.button !== 0
           ) {
             return;
@@ -1261,11 +1962,11 @@ export function HolographicEarth({
               event.pointerId,
             );
           } catch {
-            // Pointer capture is optional.
+            // Optional browser feature.
           }
         };
 
-      const pointerMove =
+      const onPointerMove =
         (event: PointerEvent) => {
           if (
             !dragging ||
@@ -1295,12 +1996,12 @@ export function HolographicEarth({
           targetRotationX =
             THREE.MathUtils.clamp(
               targetRotationX +
-                dy * 0.0021,
+                dy * 0.0020,
               THREE.MathUtils.degToRad(
-                -18,
+                -17,
               ),
               THREE.MathUtils.degToRad(
-                18,
+                17,
               ),
             );
 
@@ -1308,7 +2009,7 @@ export function HolographicEarth({
             dx * 0.0009;
         };
 
-      const pointerUp =
+      const onPointerUp =
         (event: PointerEvent) => {
           if (
             pointerId !==
@@ -1331,18 +2032,16 @@ export function HolographicEarth({
 
       const onWheel =
         (event: WheelEvent) => {
-          const next =
-            camera.position.z +
-            event.deltaY * 0.0013;
-
           camera.position.z =
             THREE.MathUtils.clamp(
-              next,
+              camera.position.z +
+                event.deltaY *
+                  0.0012,
               mobile
-                ? 3.68
+                ? 3.70
                 : 3.45,
               mobile
-                ? 4.85
+                ? 4.82
                 : 4.70,
             );
 
@@ -1356,216 +2055,6 @@ export function HolographicEarth({
           reducedMotion =
             event.matches;
         };
-
-      const projectRegions =
-        (now: number) => {
-          const status =
-            metricsRef.current
-              .status;
-
-          REGIONS.forEach(
-            (
-              region,
-              index,
-            ) => {
-              const runtime =
-                regionRuntime.get(
-                  region.key,
-                );
-
-              const element =
-                regionRefs.current[
-                  index
-                ];
-
-              if (
-                !runtime ||
-                !element
-              ) {
-                return;
-              }
-
-              const world =
-                runtime.anchor
-                  .getWorldPosition(
-                    new THREE.Vector3(),
-                  );
-
-              const normal =
-                world
-                  .clone()
-                  .sub(
-                    synchronizedSystem.getWorldPosition(
-                      new THREE.Vector3(),
-                    ),
-                  )
-                  .normalize();
-
-              const toCamera =
-                camera.position
-                  .clone()
-                  .sub(world)
-                  .normalize();
-
-              /*
-               * Positive means the anchor faces the
-               * camera. Back-side labels fade out.
-               */
-              const depth =
-                normal.dot(
-                  toCamera,
-                );
-
-              const projected =
-                world.clone().project(
-                  camera,
-                );
-
-              const x =
-                (projected.x * 0.5 + 0.5) *
-                100;
-
-              const y =
-                (-projected.y * 0.5 + 0.5) *
-                100;
-
-              const safe =
-                x > -8 &&
-                x < 108 &&
-                y > 13 &&
-                y < 88;
-
-              const visible =
-                depth > 0.10 &&
-                projected.z < 1 &&
-                safe;
-
-              const alpha =
-                visible
-                  ? Math.min(
-                      1,
-                      Math.max(
-                        0,
-                        (depth - 0.10) /
-                          0.22,
-                      ),
-                    )
-                  : 0;
-
-              /*
-               * HUD guard zones. Region labels are not
-               * allowed to occupy the top/bottom rails.
-               */
-              const topHudBlocked =
-                y < (mobile ? 18 : 14);
-
-              const bottomHudBlocked =
-                y > (mobile ? 82 : 84);
-
-              const hiddenByHud =
-                topHudBlocked ||
-                bottomHudBlocked;
-
-              element.style.left =
-                `${x}%`;
-
-              element.style.top =
-                `${y}%`;
-
-              element.style.opacity =
-                hiddenByHud
-                  ? '0'
-                  : alpha.toFixed(3);
-
-              element.style.visibility =
-                hiddenByHud ||
-                alpha <= 0.01
-                  ? 'hidden'
-                  : 'visible';
-
-              const pulse =
-                0.88 +
-                Math.sin(
-                  now * 0.0024 +
-                    index *
-                      1.13,
-                ) *
-                  0.12;
-
-              element.style.setProperty(
-                '--region-pulse',
-                pulse.toFixed(3),
-              );
-
-              runtime.dot.scale.setScalar(
-                0.86 +
-                  (pulse - 0.88) *
-                    1.8,
-              );
-
-              (
-                runtime.dot
-                  .material as THREE.MeshBasicMaterial
-              ).opacity =
-                0.48 +
-                (pulse - 0.88) *
-                  1.35;
-
-              /*
-               * Visual status remains truthful:
-               * PAUSED is a softer presentation, not a
-               * fake "online" state.
-               */
-              element.dataset.status =
-                status.toLowerCase();
-            },
-          );
-        };
-
-      resize();
-
-      const observer =
-        new ResizeObserver(
-          resize,
-        );
-
-      observer.observe(host);
-
-      window.addEventListener(
-        'resize',
-        resize,
-      );
-
-      canvas.addEventListener(
-        'pointerdown',
-        pointerDown,
-      );
-
-      canvas.addEventListener(
-        'pointermove',
-        pointerMove,
-      );
-
-      canvas.addEventListener(
-        'pointerup',
-        pointerUp,
-      );
-
-      canvas.addEventListener(
-        'pointercancel',
-        pointerUp,
-      );
-
-      canvas.addEventListener(
-        'wheel',
-        onWheel,
-        { passive: true },
-      );
-
-      motionQuery.addEventListener(
-        'change',
-        onMotionChange,
-      );
 
       const render =
         (now: number) => {
@@ -1591,9 +2080,11 @@ export function HolographicEarth({
             ) {
               targetRotationY +=
                 delta *
-                (mobile
-                  ? 0.050
-                  : 0.036);
+                (
+                  mobile
+                    ? 0.048
+                    : 0.034
+                );
             }
 
             if (
@@ -1629,72 +2120,86 @@ export function HolographicEarth({
               targetRotationX,
               1 -
                 Math.pow(
-                  0.0012,
+                  0.0010,
                   delta,
                 ),
             );
 
-          synchronizedSystem.rotation.y =
+          /*
+           * THE ONE MASTER ROTATION.
+           * No individual Earth rotation loop exists.
+           */
+          master3DSystem.rotation.y =
             rotationY;
 
-          synchronizedSystem.rotation.x =
+          master3DSystem.rotation.x =
             rotationX;
 
           earthMaterial.uniforms.uTime.value =
             now * 0.001;
 
-          if (!reducedMotion) {
-            stars.rotation.y +=
-              delta * 0.0035;
-
-            const pulse =
+          /*
+           * Core halo breathes with the network.
+           */
+          if (
+            !reducedMotion
+          ) {
+            const corePulse =
               0.5 +
               0.5 *
                 Math.sin(
-                  now * 0.0019,
+                  now *
+                    0.0018,
                 );
 
             (
-              atmosphere
-                .material as THREE.ShaderMaterial
-            ).uniforms.uOpacity.value =
-              0.37 +
-              pulse * 0.045;
-
-            (
-              violetAtmosphere
-                .material as THREE.ShaderMaterial
-            ).uniforms.uOpacity.value =
-              0.065 +
-              pulse * 0.018;
-
-            const ring0 =
-              surfaceRings.children[0] as THREE.Line;
-            const ring1 =
-              surfaceRings.children[1] as THREE.Line;
-            const ring2 =
-              surfaceRings.children[2] as THREE.Line;
-
-            (
-              ring0.material as THREE.LineBasicMaterial
+              coreHalo.material as THREE.MeshBasicMaterial
             ).opacity =
-              0.082 +
-              pulse * 0.020;
+              0.13 +
+              corePulse *
+                0.08;
+
+            /*
+             * Atmosphere remains restrained.
+             */
+            (
+              atmosphere.material as THREE.ShaderMaterial
+            ).uniforms.uOpacity.value =
+              0.365 +
+              corePulse *
+                0.035;
 
             (
-              ring1.material as THREE.LineBasicMaterial
-            ).opacity =
+              violetAtmosphere.material as THREE.ShaderMaterial
+            ).uniforms.uOpacity.value =
               0.060 +
-              pulse * 0.018;
+              corePulse *
+                0.014;
 
             (
-              ring2.material as THREE.LineBasicMaterial
+              ringA.material as THREE.LineBasicMaterial
             ).opacity =
-              0.044 +
-              pulse * 0.012;
+              0.073 +
+              corePulse *
+                0.014;
+
+            (
+              ringB.material as THREE.LineBasicMaterial
+            ).opacity =
+              0.052 +
+              corePulse *
+                0.012;
+
+            (
+              ringC.material as THREE.LineBasicMaterial
+            ).opacity =
+              0.039 +
+              corePulse *
+                0.008;
           }
 
-          projectRegions(now);
+          animateCityLights(now);
+          regionProjection(now);
 
           renderer.render(
             scene,
@@ -1706,6 +2211,53 @@ export function HolographicEarth({
               render,
             );
         };
+
+      resize();
+
+      const resizeObserver =
+        new ResizeObserver(
+          resize,
+        );
+
+      resizeObserver.observe(
+        host,
+      );
+
+      window.addEventListener(
+        'resize',
+        resize,
+      );
+
+      canvas.addEventListener(
+        'pointerdown',
+        onPointerDown,
+      );
+
+      canvas.addEventListener(
+        'pointermove',
+        onPointerMove,
+      );
+
+      canvas.addEventListener(
+        'pointerup',
+        onPointerUp,
+      );
+
+      canvas.addEventListener(
+        'pointercancel',
+        onPointerUp,
+      );
+
+      canvas.addEventListener(
+        'wheel',
+        onWheel,
+        { passive: true },
+      );
+
+      motionQuery.addEventListener(
+        'change',
+        onMotionChange,
+      );
 
       animationFrame =
         window.requestAnimationFrame(
@@ -1719,7 +2271,7 @@ export function HolographicEarth({
           animationFrame,
         );
 
-        observer.disconnect();
+        resizeObserver.disconnect();
 
         window.removeEventListener(
           'resize',
@@ -1728,22 +2280,22 @@ export function HolographicEarth({
 
         canvas.removeEventListener(
           'pointerdown',
-          pointerDown,
+          onPointerDown,
         );
 
         canvas.removeEventListener(
           'pointermove',
-          pointerMove,
+          onPointerMove,
         );
 
         canvas.removeEventListener(
           'pointerup',
-          pointerUp,
+          onPointerUp,
         );
 
         canvas.removeEventListener(
           'pointercancel',
-          pointerUp,
+          onPointerUp,
         );
 
         canvas.removeEventListener(
@@ -1756,10 +2308,13 @@ export function HolographicEarth({
           onMotionChange,
         );
 
-        disposeObject(scene);
+        disposeObject(
+          scene,
+        );
 
         earthTexture.dispose();
         fallbackTexture.dispose();
+        glowTexture?.dispose();
 
         renderer?.dispose();
         renderer = null;
@@ -1796,6 +2351,7 @@ export function HolographicEarth({
           ? 'true'
           : 'false'
       }
+      aria-label="Interactive holographic global mining network Earth"
     >
       <canvas
         ref={canvasRef}
@@ -1890,7 +2446,7 @@ export function HolographicEarth({
         className={styles.regionLayer}
         aria-hidden="true"
       >
-        {REGIONS.map(
+        {regionList.map(
           (
             region,
             index,

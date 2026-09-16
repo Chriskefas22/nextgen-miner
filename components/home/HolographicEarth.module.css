@@ -1,35 +1,33 @@
 .host {
   --cyan: #47eaff;
   --violet: #a763ff;
-  --text: #ddecff;
-  --muted: #7895c2;
 
   position: relative;
   width: 100%;
-  min-height: clamp(470px, 70vw, 820px);
+  min-height: clamp(470px, 69vw, 820px);
   overflow: hidden;
   isolation: isolate;
-  border: 1px solid rgba(62, 163, 255, 0.30);
+  border: 1px solid rgba(62, 163, 255, 0.28);
   border-radius: 28px;
   background:
     radial-gradient(
-      circle at 50% 50%,
-      rgba(14, 91, 172, 0.12),
-      transparent 32%
+      circle at 50% 52%,
+      rgba(14, 93, 177, 0.10),
+      transparent 31%
     ),
     radial-gradient(
-      circle at 18% 74%,
-      rgba(99, 66, 255, 0.05),
-      transparent 24%
+      circle at 78% 30%,
+      rgba(112, 82, 255, 0.04),
+      transparent 23%
     ),
     linear-gradient(
       145deg,
-      rgba(2, 17, 38, 0.985),
-      rgba(2, 8, 22, 0.99)
+      rgba(2, 17, 37, 0.985),
+      rgba(2, 8, 21, 0.995)
     );
   box-shadow:
-    inset 0 0 50px rgba(28, 179, 255, 0.045),
-    0 18px 54px rgba(0, 0, 0, 0.22);
+    inset 0 0 54px rgba(28, 179, 255, 0.04),
+    0 18px 52px rgba(0, 0, 0, 0.24);
   touch-action: none;
   contain: layout paint;
 }
@@ -48,9 +46,77 @@
   cursor: grabbing;
 }
 
+.regionLayer {
+  position: absolute;
+  inset: 0;
+  z-index: 9;
+  pointer-events: none;
+}
+
+.region {
+  --region-pulse: 1;
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transform: translate(-50%, -50%);
+  transform-origin: center;
+  white-space: nowrap;
+  visibility: hidden;
+  opacity: 0;
+  transition:
+    opacity 130ms ease,
+    visibility 130ms ease,
+    transform 130ms ease;
+  filter:
+    drop-shadow(
+      0 0 7px rgba(71, 234, 255, 0.24)
+    );
+}
+
+.region[data-status="paused"] {
+  filter:
+    drop-shadow(
+      0 0 5px rgba(104, 138, 190, 0.16)
+    );
+}
+
+.regionDot {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 7px;
+  border-radius: 50%;
+  background:
+    radial-gradient(
+      circle,
+      #f3ffff 0 20%,
+      var(--cyan) 28% 58%,
+      transparent 76%
+    );
+  box-shadow:
+    0 0 6px rgba(71, 234, 255, 0.72),
+    0 0 14px rgba(71, 234, 255, 0.22);
+  transform: scale(var(--region-pulse));
+}
+
+.regionLabel {
+  padding: 5px 9px;
+  border: 1px solid rgba(80, 177, 255, 0.20);
+  border-radius: 999px;
+  background: rgba(3, 16, 34, 0.50);
+  color: #dcedff;
+  font-size: clamp(8px, 0.88vw, 11px);
+  font-weight: 800;
+  letter-spacing: 0.075em;
+  line-height: 1;
+  backdrop-filter: blur(7px);
+  box-shadow:
+    inset 0 0 12px rgba(53, 208, 255, 0.025),
+    0 0 13px rgba(26, 155, 255, 0.05);
+}
+
 .topHud,
 .centerHud,
-.regionLayer,
 .coreHud,
 .liveBadge,
 .scanline,
@@ -60,10 +126,10 @@
 
 .topHud {
   position: absolute;
-  top: 20px;
+  top: 19px;
   left: 22px;
   right: 22px;
-  z-index: 10;
+  z-index: 11;
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
@@ -75,7 +141,7 @@
 .coreTitle,
 .liveTitle {
   display: block;
-  font-size: clamp(9px, 1.05vw, 12px);
+  font-size: clamp(9px, 1.04vw, 12px);
   font-weight: 800;
   letter-spacing: 0.19em;
 }
@@ -83,7 +149,7 @@
 .eyebrow,
 .centerTitle,
 .coreTitle {
-  color: #9cb8ff;
+  color: #98b6ff;
 }
 
 .subline,
@@ -92,37 +158,37 @@
 .liveSubline {
   display: block;
   margin-top: 5px;
-  color: #6c88b5;
+  color: #6b87b4;
   font-size: clamp(8px, 0.82vw, 10px);
-  letter-spacing: 0.12em;
+  letter-spacing: 0.11em;
 }
 
 .operational {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  color: #43ecb0;
-  font-size: clamp(10px, 1.1vw, 13px);
+  color: #4beeb2;
+  font-size: clamp(10px, 1.08vw, 13px);
   font-weight: 800;
-  letter-spacing: 0.14em;
-  text-shadow: 0 0 12px rgba(67, 236, 176, 0.25);
+  letter-spacing: 0.13em;
+  text-shadow: 0 0 11px rgba(75, 238, 178, 0.22);
 }
 
 .statusDot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #43ecb0;
+  background: #4beeb2;
   box-shadow:
-    0 0 7px rgba(67, 236, 176, 0.85),
-    0 0 16px rgba(67, 236, 176, 0.30);
+    0 0 7px rgba(75, 238, 178, 0.8),
+    0 0 15px rgba(75, 238, 178, 0.24);
 }
 
 .centerHud {
   position: absolute;
-  top: clamp(74px, 9.5vw, 110px);
+  top: clamp(71px, 9vw, 106px);
   left: 50%;
-  z-index: 8;
+  z-index: 10;
   transform: translateX(-50%);
   text-align: center;
   white-space: nowrap;
@@ -130,130 +196,74 @@
 
 .centerTitle {
   color: var(--cyan);
-  font-size: clamp(12px, 1.65vw, 20px);
+  font-size: clamp(11px, 1.55vw, 19px);
   letter-spacing: 0.18em;
-  text-shadow: 0 0 12px rgba(71, 234, 255, 0.32);
+  text-shadow: 0 0 12px rgba(71, 234, 255, 0.28);
 }
 
 .centerSubline {
-  color: #6682b7;
-  font-size: clamp(7px, 0.78vw, 9px);
-  letter-spacing: 0.17em;
-}
-
-.regionLayer {
-  position: absolute;
-  inset: 0;
-  z-index: 9;
-}
-
-.region {
-  --region-pulse: 1;
-  position: absolute;
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  transform: translate(-50%, -50%);
-  white-space: nowrap;
-  opacity: 0;
-  visibility: hidden;
-  transition:
-    opacity 140ms ease,
-    visibility 140ms ease;
-}
-
-.regionDot {
-  width: 8px;
-  height: 8px;
-  flex: 0 0 8px;
-  border-radius: 50%;
-  background:
-    radial-gradient(
-      circle,
-      #e7ffff 0 18%,
-      var(--cyan) 26% 55%,
-      transparent 72%
-    );
-  box-shadow:
-    0 0 7px rgba(71, 234, 255, 0.78),
-    0 0 16px rgba(71, 234, 255, 0.25);
-  transform: scale(var(--region-pulse));
-}
-
-.regionLabel {
-  padding: 6px 10px;
-  border: 1px solid rgba(80, 177, 255, 0.24);
-  border-radius: 999px;
-  background: rgba(3, 16, 35, 0.58);
-  color: #dcedff;
-  font-size: clamp(8px, 0.9vw, 11px);
-  font-weight: 800;
-  letter-spacing: 0.075em;
-  line-height: 1;
-  backdrop-filter: blur(7px);
-  box-shadow:
-    inset 0 0 12px rgba(53, 208, 255, 0.035),
-    0 0 14px rgba(26, 155, 255, 0.06);
+  color: #617db0;
+  font-size: clamp(7px, 0.75vw, 9px);
+  letter-spacing: 0.16em;
 }
 
 .coreHud {
   position: absolute;
-  left: 24px;
-  bottom: 20px;
-  z-index: 10;
+  left: 23px;
+  bottom: 19px;
+  z-index: 11;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 9px;
 }
 
 .coreBadge {
   display: grid;
-  width: clamp(32px, 4vw, 48px);
-  height: clamp(32px, 4vw, 48px);
+  width: clamp(31px, 3.9vw, 46px);
+  height: clamp(31px, 3.9vw, 46px);
   place-items: center;
-  color: #defcff;
-  border: 1px solid rgba(71, 234, 255, 0.24);
-  border-radius: 14px;
-  background: rgba(8, 27, 51, 0.34);
+  color: #e2fbff;
+  border: 1px solid rgba(71, 234, 255, 0.20);
+  border-radius: 13px;
+  background: rgba(8, 27, 51, 0.28);
   box-shadow:
-    inset 0 0 18px rgba(71, 234, 255, 0.05),
-    0 0 20px rgba(71, 234, 255, 0.08);
-  font-size: clamp(23px, 3vw, 33px);
+    inset 0 0 16px rgba(71, 234, 255, 0.035),
+    0 0 18px rgba(71, 234, 255, 0.055);
+  font-size: clamp(22px, 2.8vw, 32px);
   font-weight: 900;
   line-height: 1;
-  text-shadow:
-    0 0 10px rgba(71, 234, 255, 0.65),
-    0 0 26px rgba(71, 234, 255, 0.20);
+  text-shadow: 0 0 10px rgba(71, 234, 255, 0.58);
 }
 
 .coreTitle {
   color: var(--cyan);
-  font-size: clamp(9px, 1vw, 12px);
+  font-size: clamp(9px, 0.96vw, 12px);
 }
 
 .coreSubline {
-  max-width: 220px;
+  max-width: 190px;
+  font-size: clamp(7px, 0.75vw, 9px);
   line-height: 1.35;
 }
 
 .liveBadge {
   position: absolute;
   right: 22px;
-  bottom: 20px;
-  z-index: 10;
-  min-width: clamp(130px, 15vw, 182px);
-  padding: 11px 13px;
-  border: 1px solid rgba(69, 188, 255, 0.27);
-  border-radius: 17px;
-  background: rgba(3, 16, 34, 0.54);
+  bottom: 19px;
+  z-index: 11;
+  min-width: clamp(126px, 15vw, 178px);
+  padding: 10px 12px;
+  border: 1px solid rgba(69, 188, 255, 0.24);
+  border-radius: 16px;
+  background: rgba(3, 16, 34, 0.48);
   box-shadow:
-    inset 0 0 18px rgba(75, 222, 255, 0.035),
-    0 0 18px rgba(26, 160, 255, 0.06);
+    inset 0 0 17px rgba(75, 222, 255, 0.03),
+    0 0 17px rgba(26, 160, 255, 0.05);
   backdrop-filter: blur(8px);
 }
 
 .liveTitle {
-  color: #86affd;
+  color: #82aaff;
   font-size: 8px;
 }
 
@@ -270,24 +280,24 @@
   height: 6px;
   border-radius: 50%;
   background: var(--cyan);
-  box-shadow: 0 0 8px rgba(71, 234, 255, 0.62);
+  box-shadow: 0 0 8px rgba(71, 234, 255, 0.58);
   animation: livePulse 1.9s ease-in-out infinite;
 }
 
 .liveDots i:nth-child(2) {
-  animation-delay: 160ms;
+  animation-delay: 150ms;
 }
 
 .liveDots i:nth-child(3) {
-  animation-delay: 320ms;
+  animation-delay: 300ms;
 }
 
 .liveDots i:nth-child(4) {
-  animation-delay: 480ms;
+  animation-delay: 450ms;
 }
 
 .liveDots i:nth-child(5) {
-  animation-delay: 640ms;
+  animation-delay: 600ms;
 }
 
 .liveSubline {
@@ -297,12 +307,12 @@
 .scanline {
   position: absolute;
   inset: 0;
-  z-index: 7;
+  z-index: 8;
   background: linear-gradient(
     to bottom,
     transparent 0%,
     transparent 48%,
-    rgba(90, 223, 255, 0.018) 50%,
+    rgba(90, 223, 255, 0.016) 50%,
     transparent 52%,
     transparent 100%
   );
@@ -312,9 +322,9 @@
 
 .corner {
   position: absolute;
-  z-index: 12;
-  width: 32px;
-  height: 32px;
+  z-index: 13;
+  width: 31px;
+  height: 31px;
 }
 
 .corner::before,
@@ -322,17 +332,17 @@
   content: '';
   position: absolute;
   display: block;
-  background: rgba(225, 244, 255, 0.92);
-  box-shadow: 0 0 6px rgba(196, 239, 255, 0.35);
+  background: rgba(226, 245, 255, 0.90);
+  box-shadow: 0 0 6px rgba(196, 239, 255, 0.30);
 }
 
 .corner::before {
   width: 2px;
-  height: 32px;
+  height: 31px;
 }
 
 .corner::after {
-  width: 32px;
+  width: 31px;
   height: 2px;
 }
 
@@ -361,11 +371,11 @@
 
 @keyframes scan {
   0% {
-    transform: translateY(-7%);
+    transform: translateY(-6%);
   }
 
   100% {
-    transform: translateY(7%);
+    transform: translateY(6%);
   }
 }
 
@@ -384,18 +394,18 @@
 
 @media (max-width: 760px) {
   .host {
-    min-height: clamp(470px, 108vw, 610px);
+    min-height: clamp(470px, 106vw, 610px);
     border-radius: 23px;
   }
 
   .topHud {
-    top: 17px;
+    top: 16px;
     left: 18px;
     right: 18px;
   }
 
   .centerHud {
-    top: 68px;
+    top: 65px;
   }
 
   .regionLabel {
@@ -411,20 +421,19 @@
 
   .coreHud {
     left: 18px;
-    bottom: 17px;
+    bottom: 16px;
   }
 
   .coreSubline {
-    max-width: 145px;
-    font-size: 7px;
+    max-width: 130px;
   }
 
   .liveBadge {
     right: 18px;
-    bottom: 17px;
-    min-width: 118px;
-    padding: 10px 11px;
-    border-radius: 15px;
+    bottom: 16px;
+    min-width: 110px;
+    padding: 9px 10px;
+    border-radius: 14px;
   }
 
   .liveDots {
@@ -437,38 +446,38 @@
   }
 
   .corner {
-    width: 26px;
-    height: 26px;
+    width: 25px;
+    height: 25px;
   }
 
   .corner::before {
-    height: 26px;
+    height: 25px;
   }
 
   .corner::after {
-    width: 26px;
+    width: 25px;
   }
 }
 
 @media (max-width: 430px) {
   .host {
-    min-height: 485px;
+    min-height: 480px;
   }
 
   .centerHud {
-    top: 66px;
+    top: 63px;
   }
 
   .operational {
     font-size: 9px;
   }
 
-  .liveBadge {
-    min-width: 108px;
+  .coreSubline {
+    max-width: 112px;
   }
 
-  .coreSubline {
-    max-width: 120px;
+  .liveBadge {
+    min-width: 102px;
   }
 }
 
