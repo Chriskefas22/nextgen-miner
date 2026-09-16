@@ -66,3 +66,45 @@
   .home-shell .assetSelectedBar>*{max-width:100%}
   .home-shell .changeAsset{margin-left:0;width:100%;justify-content:center}
 }
+
+
+/* CP20.2.2 — Hero Core / Asset Identity / Simplified System */
+.home-shell .heroVisual{min-height:460px;position:relative;isolation:isolate}
+.home-shell .heroCoreGrid{position:absolute;inset:9% 6%;border-radius:32px;background:radial-gradient(circle at 50% 48%,rgba(35,225,255,.11),transparent 28%),linear-gradient(145deg,rgba(10,25,45,.25),rgba(35,15,73,.20));opacity:.9}
+.home-shell .heroCoreGrid:before,.home-shell .heroCoreGrid:after{content:"";position:absolute;inset:14%;border:1px solid rgba(63,211,255,.08);clip-path:polygon(15% 0,85% 0,100% 15%,100% 85%,85% 100%,15% 100%,0 85%,0 15%)}
+.home-shell .heroCoreGrid:after{inset:27%;border-color:rgba(147,82,255,.10);transform:rotate(45deg)}
+.home-shell .coreOrbit{position:absolute;left:50%;top:50%;border:1px solid rgba(72,222,255,.26);border-radius:50%;pointer-events:none}
+.home-shell .coreOrbitOne{width:410px;height:150px;transform:translate(-50%,-50%) rotate(-18deg);box-shadow:0 0 28px rgba(36,210,255,.07)}
+.home-shell .coreOrbitTwo{width:330px;height:118px;transform:translate(-50%,-50%) rotate(59deg);border-color:rgba(155,77,255,.30);box-shadow:0 0 30px rgba(126,60,255,.08)}
+.home-shell .coreOrbit:before{content:"";position:absolute;width:7px;height:7px;left:12%;top:50%;border-radius:50%;background:#3eeaff;box-shadow:0 0 14px rgba(62,234,255,.9)}
+.home-shell .coreOrbitTwo:before{left:auto;right:10%;background:#a565ff;box-shadow:0 0 14px rgba(165,101,255,.8)}
+.home-shell .coreOrb{position:absolute;left:50%;top:50%;width:262px;height:262px;transform:translate(-50%,-50%);display:grid;place-items:center;border-radius:50%;background:radial-gradient(circle at 36% 29%,rgba(43,181,231,.26),rgba(6,20,38,.95) 54%,rgba(43,21,76,.78));border:1px solid rgba(81,224,255,.52);box-shadow:inset 0 0 55px rgba(56,222,255,.12),inset 0 -20px 48px rgba(144,72,255,.12),0 0 48px rgba(39,190,255,.13),0 0 90px rgba(129,60,255,.10)}
+.home-shell .coreOrb:before{content:"";position:absolute;inset:16px;border-radius:50%;border:1px solid rgba(94,225,255,.16);box-shadow:inset 0 0 26px rgba(35,206,255,.06)}
+.home-shell .coreOrb:after{content:"";position:absolute;left:14%;right:14%;top:50%;height:1px;background:linear-gradient(90deg,transparent,rgba(90,235,255,.7),transparent);box-shadow:0 0 18px rgba(51,226,255,.65)}
+.home-shell .coreOrbInner{position:relative;z-index:2;width:208px;height:208px;display:grid;place-items:center;border-radius:50%;background:radial-gradient(circle at 50% 45%,rgba(40,90,154,.18),rgba(3,11,23,.22));border:1px solid rgba(77,181,245,.18);box-shadow:inset 0 0 30px rgba(41,222,255,.05)}
+.home-shell .coreLogo{width:166px;height:166px;filter:drop-shadow(0 0 9px rgba(74,236,255,.28)) drop-shadow(0 0 26px rgba(135,75,255,.18))}
+.home-shell .verticalWordmark{right:7%;top:54%;font-size:12px;letter-spacing:.42em;color:rgba(167,231,255,.74);text-shadow:0 0 14px rgba(85,216,255,.15)}
+.home-shell .powerText{right:8%;bottom:11%;font-size:11px;line-height:1.35;letter-spacing:.19em;color:#91adbf;text-shadow:0 0 12px rgba(120,180,210,.10)}
+.home-shell .powerText strong{color:#eefbff}
+.home-shell .assetRail .assetButton .assetIcon{background:transparent!important;border:0!important;box-shadow:none!important;width:42px;height:42px}
+.home-shell .assetRail .assetButton .assetIcon svg{width:38px;height:38px;filter:drop-shadow(0 0 8px rgba(78,216,255,.10))}
+.home-shell .assetSelected .assetIcon{background:transparent!important;box-shadow:none!important}
+.home-shell .assetSelected .assetIcon svg{filter:drop-shadow(0 0 8px rgba(81,242,189,.22))}
+.home-shell .assetRail .assetButton:hover .assetIcon svg{transform:scale(1.05)}
+.home-shell .assetButton .assetIcon svg{transition:transform .18s ease,filter .18s ease}
+.home-shell .lowerGrid{grid-template-columns:repeat(2,minmax(0,1fr))}
+
+@media(max-width:760px){
+ .home-shell .heroVisual{min-height:365px}
+ .home-shell .heroCoreGrid{inset:10% 3%}
+ .home-shell .coreOrb{width:220px;height:220px}
+ .home-shell .coreOrbInner{width:174px;height:174px}
+ .home-shell .coreLogo{width:140px;height:140px}
+ .home-shell .coreOrbitOne{width:330px;height:120px}
+ .home-shell .coreOrbitTwo{width:278px;height:98px}
+ .home-shell .verticalWordmark{right:4%;top:55%;font-size:10px}
+ .home-shell .powerText{right:5%;bottom:8%;font-size:9px}
+ .home-shell .assetRail .assetButton .assetIcon{width:52px;height:52px}
+ .home-shell .assetRail .assetButton .assetIcon svg{width:44px;height:44px}
+ .home-shell .lowerGrid{grid-template-columns:1fr}
+}
