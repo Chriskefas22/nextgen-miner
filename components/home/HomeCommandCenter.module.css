@@ -893,106 +893,6 @@
   display: block;
 }
 
-/*
- * The actual bottom navigation lives in components/layout/BottomNav.tsx.
- * Style the real class here instead of guessing .bottomNav/.mobileBottomNav.
- */
-:global(.home-bottom-nav) {
-  position: fixed;
-  left: 50%;
-  right: auto;
-  bottom: max(
-    14px,
-    env(safe-area-inset-bottom, 0px)
-  );
-  z-index: 1200;
-  width: min(
-    760px,
-    calc(100vw - 36px)
-  );
-  min-height: 68px;
-  transform: translateX(-50%);
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  align-items: center;
-  gap: 6px;
-  padding: 8px;
-  border: 1px solid rgba(56, 139, 189, 0.27);
-  border-radius: 20px;
-  background: rgba(3, 10, 18, 0.84);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  box-shadow:
-    0 18px 42px rgba(0, 0, 0, 0.34),
-    inset 0 0 24px rgba(51, 191, 255, 0.025);
-}
-
-:global(.home-bottom-nav a) {
-  min-width: 0;
-  min-height: 54px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 3px;
-  padding: 7px 5px;
-  border-radius: 13px;
-  color: #8ea8bb;
-  text-decoration: none;
-  font-size: 9px;
-  font-weight: 800;
-  transition:
-    background 160ms ease,
-    color 160ms ease,
-    transform 160ms ease;
-}
-
-:global(.home-bottom-nav a.active) {
-  background:
-    linear-gradient(
-      135deg,
-      rgba(36, 232, 255, 0.10),
-      rgba(139, 61, 255, 0.13)
-    );
-  color: #eaffff;
-}
-
-:global(.home-bottom-nav a:hover) {
-  color: #dffcff;
-  transform: translateY(-1px);
-}
-
-:global(.home-bottom-nav .home-n-core) {
-  position: relative;
-  min-height: 60px;
-  align-self: center;
-  border-radius: 50%;
-  color: #fff;
-  background:
-    radial-gradient(
-      circle at 35% 28%,
-      #63f2ff 0%,
-      #3967ff 46%,
-      #7436ff 100%
-    );
-  border: 2px solid rgba(151, 229, 255, 0.55);
-  box-shadow:
-    0 0 18px rgba(61, 226, 255, 0.22),
-    0 0 28px rgba(105, 64, 255, 0.20);
-  transform: translateY(-11px);
-}
-
-:global(.home-bottom-nav .home-n-core:hover) {
-  transform: translateY(-12px) scale(1.02);
-}
-
-:global(.home-bottom-nav .home-n-core span) {
-  font: 900 29px Orbitron;
-  line-height: 1;
-  text-shadow:
-    0 0 12px rgba(255, 255, 255, 0.46),
-    0 0 22px rgba(71, 234, 255, 0.22);
-}
 
 @media (max-width: 1100px) {
   .hero {
@@ -1213,5 +1113,63 @@
 
   .home-bottom-nav a {
     transition: none;
+  }
+}
+
+
+/* CP20.8 — content spacing and dock clearance */
+.page {
+  padding-bottom: calc(
+    122px + env(safe-area-inset-bottom, 0px)
+  );
+}
+
+.hero {
+  align-items: stretch;
+}
+
+.heroVisual {
+  align-self: stretch;
+}
+
+@media (max-width: 1100px) {
+  .heroCopy {
+    padding-bottom: 6px;
+  }
+
+  .heroVisual {
+    min-height: 520px;
+  }
+}
+
+@media (max-width: 760px) {
+  .page {
+    padding-bottom: calc(
+      116px + env(safe-area-inset-bottom, 0px)
+    );
+  }
+
+  .heroCopy {
+    padding: 17px 15px 2px;
+  }
+
+  .statusChips {
+    margin-top: 10px;
+  }
+
+  .statusChips > div {
+    min-height: 50px;
+  }
+
+  .heroVisual {
+    min-height: 470px;
+  }
+
+  .statsRow {
+    gap: 8px;
+  }
+
+  .statCard {
+    min-height: 78px;
   }
 }

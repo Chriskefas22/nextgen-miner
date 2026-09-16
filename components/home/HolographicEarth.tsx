@@ -180,15 +180,20 @@ function latLonToVector3(
   const cosLat =
     Math.cos(lat);
 
+  /*
+   * Three.js SphereGeometry maps the equirectangular U coordinate around
+   * the Y axis with theta=0 at the -X direction. This mapping keeps
+   * geographic longitude, texture longitude and 3D projection in sync.
+   */
   return new THREE.Vector3(
     radius *
       cosLat *
-      Math.sin(lon),
+      Math.cos(lon),
     radius *
       Math.sin(lat),
-    radius *
+    -radius *
       cosLat *
-      Math.cos(lon),
+      Math.sin(lon),
   );
 }
 
@@ -1019,9 +1024,9 @@ function createCityLightGroup(
             transparent:
               true,
             opacity:
-              0.18 +
+              0.22 +
               city.intensity *
-                0.28,
+                0.34,
             depthWrite:
               false,
             depthTest:
@@ -1049,9 +1054,9 @@ function createCityLightGroup(
 
       sprite.userData = {
         baseOpacity:
-          0.18 +
+          0.22 +
           city.intensity *
-            0.28,
+            0.34,
         phase:
           city.phase +
           index * 0.093,
@@ -2019,15 +2024,15 @@ export function HolographicEarth({
                 y <
                 (
                   mobile
-                    ? 17
-                    : 13
+                    ? 20
+                    : 14
                 );
 
               const bottomHud =
                 y >
                 (
                   mobile
-                    ? 85
+                    ? 82
                     : 87
                 );
 
