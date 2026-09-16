@@ -652,6 +652,7 @@ function createOrbitBand(
       color,
       transparent: true,
       opacity,
+      depthTest: false,
       depthWrite: false,
       blending:
         THREE.AdditiveBlending,
@@ -840,13 +841,7 @@ function createCityLights(
   const group =
     new THREE.Group();
 
-  const source =
-    mobile
-      ? CITY_LIGHTS.filter(
-          (_, index) =>
-            index % 2 === 0,
-        )
-      : CITY_LIGHTS;
+  const source = CITY_LIGHTS;
 
   source.forEach(
     (city) => {
@@ -862,10 +857,12 @@ function createCityLights(
           new THREE.Sprite(
             new THREE.SpriteMaterial({
               map: glowTexture,
-              color: 0xffe9a6,
+              color: 0xffeab0,
               transparent: true,
-              opacity:
-                city.opacity,
+              opacity: Math.min(
+                0.92,
+                city.opacity * (mobile ? 2.0 : 1.7),
+              ),
               depthWrite: false,
               blending:
                 THREE.AdditiveBlending,
@@ -873,7 +870,7 @@ function createCityLights(
           );
 
         const size =
-          city.size * 2.1;
+          city.size * (mobile ? 3.0 : 3.35);
 
         sprite.scale.set(
           size,
@@ -886,8 +883,10 @@ function createCityLights(
         );
 
         sprite.userData = {
-          baseOpacity:
-            city.opacity,
+          baseOpacity: Math.min(
+            0.92,
+            city.opacity * (mobile ? 2.0 : 1.7),
+          ),
           phase:
             city.phase,
         };
@@ -1154,7 +1153,7 @@ export function HolographicEarth({
       camera.position.set(
         0,
         0.01,
-        mobile ? 4.28 : 3.96,
+        mobile ? 4.55 : 4.18,
       );
 
       /*
@@ -1169,6 +1168,10 @@ export function HolographicEarth({
 
       master3DSystem.rotation.x =
         rotationX;
+
+      master3DSystem.scale.setScalar(
+        mobile ? 0.88 : 0.94,
+      );
 
       scene.add(
         master3DSystem,
@@ -1372,7 +1375,7 @@ export function HolographicEarth({
       const atmosphere =
         new THREE.Mesh(
           new THREE.SphereGeometry(
-            1.060,
+            1.135,
             mobile ? 42 : 62,
             mobile ? 28 : 40,
           ),
@@ -1472,20 +1475,20 @@ export function HolographicEarth({
 
       const orbitA =
         createOrbitBand(
-          1.045,
+          1.115,
           new THREE.Euler(
             THREE.MathUtils.degToRad(
-              61,
+              50,
             ),
             THREE.MathUtils.degToRad(
-              7,
+              10,
             ),
             THREE.MathUtils.degToRad(
-              -14,
+              -8,
             ),
           ),
           0x52eaff,
-          0.060,
+          0.13,
           mobile ? 112 : 160,
         );
 
@@ -1494,17 +1497,17 @@ export function HolographicEarth({
           1.060,
           new THREE.Euler(
             THREE.MathUtils.degToRad(
-              -52,
+              -40,
             ),
             THREE.MathUtils.degToRad(
               18,
             ),
             THREE.MathUtils.degToRad(
-              22,
+              14,
             ),
           ),
           0xa763ff,
-          0.042,
+          0.085,
           mobile ? 112 : 160,
         );
 
@@ -1913,8 +1916,12 @@ export function HolographicEarth({
 
           camera.position.z =
             mobile
-              ? 4.28
-              : 3.96;
+              ? 4.55
+              : 4.18;
+
+          master3DSystem.scale.setScalar(
+            mobile ? 0.88 : 0.94,
+          );
 
           camera.updateProjectionMatrix();
 
@@ -2179,23 +2186,23 @@ export function HolographicEarth({
             (
               ringA.material as THREE.LineBasicMaterial
             ).opacity =
-              0.073 +
+              0.082 +
               corePulse *
-                0.014;
+                0.016;
 
             (
               ringB.material as THREE.LineBasicMaterial
             ).opacity =
-              0.052 +
+              0.058 +
               corePulse *
                 0.012;
 
             (
               ringC.material as THREE.LineBasicMaterial
             ).opacity =
-              0.039 +
+              0.044 +
               corePulse *
-                0.008;
+                0.009;
           }
 
           animateCityLights(now);
