@@ -491,3 +491,44 @@
     transition: none;
   }
 }
+
+
+/* CP20.6 visual refinement: living-earth composition */
+.host {
+  min-height: clamp(460px, 67vw, 800px);
+}
+
+.centerHud {
+  top: clamp(68px, 8.6vw, 102px);
+}
+
+.topHud {
+  top: 18px;
+}
+
+@media (max-width: 760px) {
+  .host {
+    min-height: clamp(455px, 103vw, 590px);
+  }
+
+  .topHud {
+    top: 15px;
+  }
+
+  .centerHud {
+    top: 61px;
+  }
+
+  .regionLabel {
+    background: rgba(3, 16, 34, 0.44);
+    border-color: rgba(80, 177, 255, 0.17);
+  }
+
+  .liveBadge {
+    bottom: 15px;
+  }
+
+  .coreHud {
+    bottom: 15px;
+  }
+}

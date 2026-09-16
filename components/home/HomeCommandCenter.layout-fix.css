@@ -1,0 +1,88 @@
+/*
+ * CP20.6 — Home layout hardening
+ *
+ * Apply this block to the END of:
+ * components/home/HomeCommandCenter.module.css
+ *
+ * It does not change Supabase/API logic.
+ */
+
+/* Prevent the fixed dock from covering the last Home cards. */
+.page {
+  padding-bottom: calc(
+    116px + env(safe-area-inset-bottom, 0px)
+  );
+}
+
+@media (max-width: 760px) {
+  .page {
+    padding-bottom: calc(
+      128px + env(safe-area-inset-bottom, 0px)
+    );
+  }
+}
+
+/* Status cards remain two columns on desktop and cleanly stack on phones. */
+.statusChips {
+  align-items: stretch;
+}
+
+@media (max-width: 760px) {
+  .statusChips {
+    grid-template-columns: 1fr;
+    gap: 9px;
+    margin-top: 16px;
+  }
+
+  .statusChips > div {
+    min-height: 64px;
+    padding: 11px 12px;
+  }
+}
+
+/* Give the Earth hero breathing room below before the next metric panel. */
+.heroVisual {
+  min-height: 470px;
+}
+
+@media (max-width: 760px) {
+  .heroVisual {
+    min-height: 0;
+  }
+}
+
+/*
+ * Fixed navigation compatibility:
+ * support the common names already used by this project.
+ * The dock gets its own stacking layer and respects the device safe area.
+ */
+.bottomNav,
+.bottom-nav,
+.mobileBottomNav,
+.mobile-bottom-nav {
+  position: fixed !important;
+  left: 12px;
+  right: 12px;
+  bottom: env(safe-area-inset-bottom, 0px);
+  z-index: 1200;
+  margin: 0 auto;
+  max-width: 980px;
+}
+
+@media (max-width: 760px) {
+  .bottomNav,
+  .bottom-nav,
+  .mobileBottomNav,
+  .mobile-bottom-nav {
+    left: 10px;
+    right: 10px;
+    bottom: env(safe-area-inset-bottom, 0px);
+  }
+}
+
+/* Do not let charts/cards disappear behind the dock. */
+.page :last-child {
+  scroll-margin-bottom: calc(
+    132px + env(safe-area-inset-bottom, 0px)
+  );
+}
