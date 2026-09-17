@@ -9,3 +9,82 @@
   .home-shell .bottom-nav a{height:54px!important;min-height:54px!important;margin:0!important;min-width:0}
   .home-shell .home-n-core{width:60px!important;height:60px!important;min-height:60px!important;margin:auto!important;transform:translateY(-13px)!important}
 }
+
+
+/* CP21.1 — canonical mobile Home dock. */
+@media (max-width: 760px){
+  .home-shell .content{
+    padding-bottom:calc(96px + env(safe-area-inset-bottom,0px)) !important;
+  }
+
+  .home-shell .ng-bottom-dock{
+    position:fixed !important;
+    inset:auto auto max(10px,env(safe-area-inset-bottom,0px)) 50% !important;
+    width:min(720px,calc(100vw - 24px)) !important;
+    height:68px !important;
+    min-height:68px !important;
+    max-height:68px !important;
+    transform:translateX(-50%) !important;
+    padding:5px 8px !important;
+    box-sizing:border-box !important;
+    display:grid !important;
+    grid-template-columns:repeat(5,minmax(0,1fr)) !important;
+    align-items:center !important;
+    gap:4px !important;
+    z-index:1000 !important;
+    border-radius:20px !important;
+    overflow:visible !important;
+    border:1px solid rgba(66,125,171,.25) !important;
+    background:rgba(3,10,19,.92) !important;
+    backdrop-filter:blur(18px) !important;
+    -webkit-backdrop-filter:blur(18px) !important;
+    box-shadow:0 12px 36px rgba(0,0,0,.45) !important;
+  }
+
+  .home-shell .ng-bottom-dock > a{
+    min-width:0 !important;
+    width:auto !important;
+    height:54px !important;
+    min-height:54px !important;
+    max-height:54px !important;
+    margin:0 !important;
+  }
+
+  .home-shell .ng-bottom-dock > .home-n-core{
+    width:58px !important;
+    height:58px !important;
+    min-height:58px !important;
+    max-height:58px !important;
+    margin:auto !important;
+    transform:translateY(-10px) !important;
+  }
+
+  .home-shell .ng-bottom-dock > .home-n-core span{
+    font:900 25px/1 Orbitron !important;
+  }
+
+  .home-shell .ng-bottom-dock > a{
+    display:flex !important;
+    flex-direction:column !important;
+    align-items:center !important;
+    justify-content:center !important;
+    gap:3px !important;
+    color:#7591a5 !important;
+    font-size:8px !important;
+    font-weight:900 !important;
+    text-decoration:none !important;
+  }
+
+  .home-shell .ng-bottom-dock > a.active{
+    color:#fff !important;
+    background:linear-gradient(135deg,rgba(36,232,255,.10),rgba(139,61,255,.13)) !important;
+    border-radius:11px !important;
+  }
+
+  .home-shell .ng-bottom-dock > .home-n-core{
+    color:#fff !important;
+    background:linear-gradient(145deg,#276dff,#8e37ff) !important;
+    border:1px solid rgba(133,158,255,.65) !important;
+    box-shadow:0 0 24px rgba(78,88,255,.25),0 0 0 5px rgba(78,88,255,.05) !important;
+  }
+}
