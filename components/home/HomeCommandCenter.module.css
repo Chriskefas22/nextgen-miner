@@ -1117,11 +1117,70 @@
 }
 
 
-/* CP20.8 — content spacing and dock clearance */
+/* CP21.0 — fixed bottom-dock clearance */
 .page {
   padding-bottom: calc(
-    122px + env(safe-area-inset-bottom, 0px)
+    156px + env(safe-area-inset-bottom, 0px)
   );
+}
+
+@media (max-width: 760px) {
+  .page {
+    padding-bottom: calc(
+      156px + env(safe-area-inset-bottom, 0px)
+    );
+  }
+
+  .statusChips {
+    gap: 9px;
+    margin-top: 13px;
+  }
+
+  .heroVisual {
+    padding-bottom: 8px;
+  }
+
+  .bottomBanner {
+    margin-bottom: 8px;
+  }
+
+  :global(.home-bottom-nav),
+  :global(.home-shell .bottom-nav) {
+    position: fixed !important;
+    left: 50% !important;
+    right: auto !important;
+    bottom: max(10px, env(safe-area-inset-bottom, 0px)) !important;
+    width: min(720px, calc(100vw - 24px)) !important;
+    min-height: 70px !important;
+    height: 70px !important;
+    transform: translateX(-50%) !important;
+    box-sizing: border-box;
+    padding: 6px 8px !important;
+    display: grid !important;
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+    align-items: center;
+    gap: 4px;
+    z-index: 1000 !important;
+    border-radius: 22px !important;
+    overflow: visible !important;
+  }
+
+  :global(.home-bottom-nav a),
+  :global(.home-shell .bottom-nav a) {
+    min-width: 0;
+    min-height: 54px !important;
+    height: 54px !important;
+    margin: 0 !important;
+  }
+
+  :global(.home-bottom-nav .home-n-core),
+  :global(.home-shell .home-n-core) {
+    width: 60px !important;
+    height: 60px !important;
+    min-height: 60px !important;
+    margin: auto !important;
+    transform: translateY(-13px) !important;
+  }
 }
 
 .hero {

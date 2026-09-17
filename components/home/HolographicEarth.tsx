@@ -60,8 +60,8 @@ const TAU = Math.PI * 2;
 const REGIONS: Region[] = [
   {
     key: 'americas',
-    lat: 23,
-    lon: -92,
+    lat: 39,
+    lon: -98,
     label: 'AMERICAS',
     color: 0x47eaff,
     phase: 0.20,
@@ -69,30 +69,30 @@ const REGIONS: Region[] = [
   {
     key: 'europe',
     lat: 50,
-    lon: 12,
+    lon: 15,
     label: 'EUROPE',
     color: 0xa763ff,
     phase: 1.10,
   },
   {
     key: 'asia',
-    lat: 28,
-    lon: 103,
+    lat: 35,
+    lon: 105,
     label: 'ASIA',
     color: 0x47eaff,
     phase: 2.10,
   },
   {
     key: 'africa',
-    lat: -5,
-    lon: 24,
+    lat: 5,
+    lon: 20,
     label: 'AFRICA',
     color: 0xa763ff,
     phase: 2.90,
   },
   {
     key: 'australia',
-    lat: -28,
+    lat: -25,
     lon: 134,
     label: 'AUSTRALIA',
     color: 0x47eaff,
@@ -155,6 +155,59 @@ const CITY_LIGHTS: CityLight[] = [
   { region: 'australia', lat: -27.47, lon: 153.03, intensity: 0.64, size: 0.030, phase: 2.20 },
   { region: 'australia', lat: -31.95, lon: 115.86, intensity: 0.56, size: 0.028, phase: 2.95 },
   { region: 'australia', lat: -34.93, lon: 138.60, intensity: 0.48, size: 0.025, phase: 3.70 },
+
+  // Additional land-based network lights for a denser living surface
+  { region: 'americas', lat: 45.50, lon: -73.57, intensity: 0.58, size: 0.025, phase: 0.40 },
+  { region: 'americas', lat: 43.65, lon: -79.38, intensity: 0.72, size: 0.029, phase: 1.10 },
+  { region: 'americas', lat: 38.91, lon: -77.04, intensity: 0.61, size: 0.026, phase: 1.80 },
+  { region: 'americas', lat: 32.78, lon: -96.80, intensity: 0.56, size: 0.025, phase: 2.50 },
+  { region: 'americas', lat: 33.45, lon: -112.07, intensity: 0.48, size: 0.024, phase: 3.10 },
+  { region: 'americas', lat: 49.28, lon: -123.12, intensity: 0.44, size: 0.023, phase: 3.80 },
+  { region: 'americas', lat: 21.16, lon: -86.85, intensity: 0.42, size: 0.022, phase: 4.50 },
+  { region: 'americas', lat: -22.91, lon: -43.17, intensity: 0.76, size: 0.032, phase: 5.10 },
+  { region: 'americas', lat: -15.79, lon: -47.88, intensity: 0.50, size: 0.024, phase: 5.70 },
+  { region: 'americas', lat: -33.45, lon: -70.67, intensity: 0.48, size: 0.024, phase: 6.20 },
+
+  { region: 'europe', lat: 55.68, lon: 12.57, intensity: 0.43, size: 0.023, phase: 0.20 },
+  { region: 'europe', lat: 48.21, lon: 16.37, intensity: 0.48, size: 0.024, phase: 0.90 },
+  { region: 'europe', lat: 50.45, lon: 30.52, intensity: 0.46, size: 0.023, phase: 1.60 },
+  { region: 'europe', lat: 38.72, lon: -9.14, intensity: 0.40, size: 0.022, phase: 2.30 },
+  { region: 'europe', lat: 37.98, lon: 23.73, intensity: 0.44, size: 0.023, phase: 3.00 },
+  { region: 'europe', lat: 45.46, lon: 9.19, intensity: 0.55, size: 0.025, phase: 3.70 },
+  { region: 'europe', lat: 48.14, lon: 11.58, intensity: 0.50, size: 0.024, phase: 4.40 },
+  { region: 'europe', lat: 59.91, lon: 10.75, intensity: 0.38, size: 0.021, phase: 5.10 },
+  { region: 'europe', lat: 41.39, lon: 2.17, intensity: 0.52, size: 0.024, phase: 5.80 },
+
+  { region: 'asia', lat: 34.69, lon: 135.50, intensity: 0.78, size: 0.034, phase: 0.15 },
+  { region: 'asia', lat: 35.18, lon: 129.08, intensity: 0.56, size: 0.027, phase: 0.85 },
+  { region: 'asia', lat: 30.27, lon: 120.15, intensity: 0.62, size: 0.029, phase: 1.55 },
+  { region: 'asia', lat: 23.13, lon: 113.26, intensity: 0.75, size: 0.032, phase: 2.25 },
+  { region: 'asia', lat: 22.54, lon: 114.06, intensity: 0.70, size: 0.030, phase: 2.95 },
+  { region: 'asia', lat: 30.57, lon: 104.07, intensity: 0.58, size: 0.027, phase: 3.65 },
+  { region: 'asia', lat: 34.26, lon: 108.94, intensity: 0.53, size: 0.026, phase: 4.35 },
+  { region: 'asia', lat: 22.29, lon: 114.17, intensity: 0.64, size: 0.029, phase: 5.05 },
+  { region: 'asia', lat: 28.61, lon: 77.21, intensity: 0.72, size: 0.031, phase: 5.75 },
+  { region: 'asia', lat: 12.97, lon: 77.59, intensity: 0.56, size: 0.027, phase: 6.20 },
+  { region: 'asia', lat: 14.60, lon: 120.98, intensity: 0.48, size: 0.025, phase: 0.55 },
+  { region: 'asia', lat: -6.21, lon: 106.85, intensity: 0.72, size: 0.030, phase: 1.25 },
+  { region: 'asia', lat: -7.25, lon: 112.75, intensity: 0.50, size: 0.025, phase: 2.00 },
+  { region: 'asia', lat: 21.03, lon: 105.85, intensity: 0.48, size: 0.024, phase: 2.75 },
+  { region: 'asia', lat: 23.81, lon: 90.41, intensity: 0.45, size: 0.023, phase: 3.50 },
+  { region: 'asia', lat: 24.86, lon: 67.01, intensity: 0.44, size: 0.023, phase: 4.25 },
+  { region: 'asia', lat: 41.01, lon: 28.98, intensity: 0.52, size: 0.025, phase: 5.00 },
+
+  { region: 'africa', lat: -4.04, lon: 39.67, intensity: 0.40, size: 0.022, phase: 0.30 },
+  { region: 'africa', lat: 9.03, lon: 38.74, intensity: 0.42, size: 0.022, phase: 1.05 },
+  { region: 'africa', lat: 5.35, lon: -4.01, intensity: 0.40, size: 0.022, phase: 1.80 },
+  { region: 'africa', lat: 5.60, lon: -0.19, intensity: 0.44, size: 0.023, phase: 2.55 },
+  { region: 'africa', lat: 12.37, lon: -1.52, intensity: 0.36, size: 0.021, phase: 3.30 },
+  { region: 'africa', lat: -6.79, lon: 39.21, intensity: 0.38, size: 0.021, phase: 4.05 },
+  { region: 'africa', lat: -15.42, lon: 28.32, intensity: 0.34, size: 0.020, phase: 4.80 },
+
+  { region: 'australia', lat: -31.95, lon: 115.86, intensity: 0.54, size: 0.026, phase: 0.40 },
+  { region: 'australia', lat: -35.28, lon: 149.13, intensity: 0.42, size: 0.022, phase: 1.20 },
+  { region: 'australia', lat: -19.26, lon: 146.82, intensity: 0.30, size: 0.020, phase: 2.00 },
+  { region: 'australia', lat: -12.46, lon: 130.84, intensity: 0.28, size: 0.019, phase: 2.80 },
 ];
 
 /*
@@ -710,47 +763,44 @@ function createConnector(
   color: number,
   phase: number,
 ) {
-  const middle =
-    from
-      .clone()
-      .add(to)
-      .normalize()
-      .multiplyScalar(
-        1.022,
-      );
+  const a = from.clone().normalize();
+  const b = to.clone().normalize();
+  const dot = THREE.MathUtils.clamp(a.dot(b), -0.9999, 0.9999);
+  const angle = Math.acos(dot);
+  const radius = 1.026;
+  const points: THREE.Vector3[] = [];
 
-  const curve =
-    new THREE.QuadraticBezierCurve3(
-      from,
-      middle,
-      to,
-    );
+  for (let i = 0; i <= 28; i += 1) {
+    const t = i / 28;
+    const sinAngle = Math.sin(angle);
+    let point: THREE.Vector3;
 
-  const geometry =
-    new THREE.BufferGeometry().setFromPoints(
-      curve.getPoints(22),
-    );
+    if (Math.abs(sinAngle) < 0.0001) {
+      point = a.clone().lerp(b, t).normalize();
+    } else {
+      const wa = Math.sin((1 - t) * angle) / sinAngle;
+      const wb = Math.sin(t * angle) / sinAngle;
+      point = a.clone().multiplyScalar(wa).add(b.clone().multiplyScalar(wb));
+      point.normalize();
+    }
 
-  const material =
-    new THREE.LineBasicMaterial({
-      color,
-      transparent: true,
-      opacity: 0.13,
-      depthWrite: false,
-      depthTest: true,
-      blending:
-        THREE.AdditiveBlending,
-    });
+    points.push(point.multiplyScalar(radius));
+  }
 
-  const line =
-    new THREE.Line(
-      geometry,
-      material,
-    );
+  const geometry = new THREE.BufferGeometry().setFromPoints(points);
+  const material = new THREE.LineBasicMaterial({
+    color,
+    transparent: true,
+    opacity: 0.075,
+    depthWrite: false,
+    depthTest: true,
+    blending: THREE.AdditiveBlending,
+  });
 
+  const line = new THREE.Line(geometry, material);
   line.userData = {
     phase,
-    baseOpacity: 0.10,
+    baseOpacity: 0.075,
   };
 
   return line;
@@ -991,7 +1041,7 @@ function createCityLightGroup(
     mobile
       ? CITY_LIGHTS.filter(
           (_, index) =>
-            index % 2 === 0,
+            index % 4 !== 1,
         )
       : CITY_LIGHTS;
 
@@ -1481,8 +1531,8 @@ export function HolographicEarth({
         0,
         0.01,
         mobile
-          ? 4.34
-          : 4.02,
+          ? 4.48
+          : 4.08,
       );
 
       /*
@@ -1494,8 +1544,8 @@ export function HolographicEarth({
 
       master3DSystem.scale.setScalar(
         mobile
-          ? 0.875
-          : 0.95,
+          ? 0.79
+          : 0.91,
       );
 
       master3DSystem.rotation.x =
@@ -1628,7 +1678,7 @@ export function HolographicEarth({
               );
 
             cityLights.position.y =
-              0.10;
+              0.055;
 
             synchronizedSystem.add(
               cityLights,
@@ -1651,7 +1701,7 @@ export function HolographicEarth({
               );
 
             cityLights.position.y =
-              0.10;
+              0.055;
 
             synchronizedSystem.add(
               cityLights,
@@ -1676,7 +1726,7 @@ export function HolographicEarth({
         );
 
       earth.position.y =
-        0.10;
+        0.055;
 
       synchronizedSystem.add(
         earth,
@@ -1711,7 +1761,7 @@ export function HolographicEarth({
         );
 
       earthGrid.position.y =
-        0.10;
+        0.055;
 
       synchronizedSystem.add(
         earthGrid,
@@ -1724,18 +1774,18 @@ export function HolographicEarth({
       const atmosphere =
         new THREE.Mesh(
           new THREE.SphereGeometry(
-            1.048,
+            1.027,
             mobile ? 42 : 58,
             mobile ? 28 : 40,
           ),
           createAtmosphereMaterial(
             0x35e9ff,
-            0.19,
+            0.095,
           ),
         );
 
       atmosphere.position.y =
-        0.10;
+        0.055;
 
       synchronizedSystem.add(
         atmosphere,
@@ -1744,18 +1794,18 @@ export function HolographicEarth({
       const violetAtmosphere =
         new THREE.Mesh(
           new THREE.SphereGeometry(
-            1.032,
+            1.016,
             mobile ? 38 : 52,
             mobile ? 24 : 36,
           ),
           createAtmosphereMaterial(
             0xa763ff,
-            0.030,
+            0.014,
           ),
         );
 
       violetAtmosphere.position.y =
-        0.10;
+        0.055;
 
       synchronizedSystem.add(
         violetAtmosphere,
@@ -1768,7 +1818,7 @@ export function HolographicEarth({
         new THREE.Group();
 
       surfaceRings.position.y =
-        0.10;
+        0.055;
 
       synchronizedSystem.add(
         surfaceRings,
@@ -1780,7 +1830,7 @@ export function HolographicEarth({
           30,
           0.13,
           0x47eaff,
-          0.055,
+          0.026,
           mobile ? 112 : 144,
         );
 
@@ -1790,7 +1840,7 @@ export function HolographicEarth({
           -16,
           -0.28,
           0xa763ff,
-          0.038,
+          0.018,
           mobile ? 112 : 144,
         );
 
@@ -1803,7 +1853,7 @@ export function HolographicEarth({
         new THREE.Group();
 
       subtleOrbit.position.y =
-        0.10;
+        0.055;
 
       synchronizedSystem.add(
         subtleOrbit,
@@ -1824,7 +1874,7 @@ export function HolographicEarth({
             ),
           ),
           0x52eaff,
-          0.075,
+          0.032,
           mobile ? 120 : 160,
         );
 
@@ -1839,7 +1889,7 @@ export function HolographicEarth({
         new THREE.Group();
 
       surfaceNetwork.position.y =
-        0.10;
+        0.055;
 
       synchronizedSystem.add(
         surfaceNetwork,
@@ -1938,7 +1988,7 @@ export function HolographicEarth({
             synchronizedSystem.localToWorld(
               new THREE.Vector3(
                 0,
-                0.10,
+                0.055,
                 0,
               ),
             );
@@ -2012,13 +2062,13 @@ export function HolographicEarth({
                 projected.z <
                   1 &&
                 x >
-                  -8 &&
+                  5 &&
                 x <
-                  108 &&
+                  95 &&
                 y >
-                  7 &&
+                  14 &&
                 y <
-                  93;
+                  88;
 
               const topHud =
                 y <
@@ -2032,17 +2082,17 @@ export function HolographicEarth({
                 y >
                 (
                   mobile
-                    ? 82
-                    : 87
+                    ? 84
+                    : 88
                 );
 
               const alpha =
                 THREE.MathUtils.clamp(
                   (
                     depth -
-                    0.075
+                    0.14
                   ) /
-                    0.22,
+                    0.20,
                   0,
                   1,
                 );
@@ -2199,12 +2249,21 @@ export function HolographicEarth({
                       )
                   );
 
+              const regionKey = String(sprite.userData.region ?? 'americas') as RegionKey;
+              const regionPhase =
+                REGIONS.find((item) => item.key === regionKey)?.phase ?? 0;
+
               const regionalPulse =
-                0.93 +
-                0.07 *
-                  Math.sin(
-                    now *
-                      0.00085,
+                0.89 +
+                0.11 *
+                  (
+                    0.5 +
+                    0.5 *
+                      Math.sin(
+                        now *
+                          0.00072 +
+                          regionPhase,
+                      )
                   );
 
               material.opacity =
@@ -2303,8 +2362,8 @@ export function HolographicEarth({
 
           camera.position.z =
             mobile
-              ? 4.34
-              : 4.02;
+              ? 4.48
+              : 4.08;
 
           camera.updateProjectionMatrix();
 
@@ -2314,8 +2373,8 @@ export function HolographicEarth({
            */
           master3DSystem.scale.setScalar(
             mobile
-              ? 0.875
-              : 0.95,
+              ? 0.79
+              : 0.91,
           );
 
           renderer.setPixelRatio(
@@ -2323,8 +2382,8 @@ export function HolographicEarth({
               window.devicePixelRatio ||
                 1,
               mobile
-                ? 1.20
-                : 1.45,
+                ? 1.35
+                : 1.55,
             ),
           );
 
@@ -2565,41 +2624,41 @@ export function HolographicEarth({
               atmosphere.material as
                 THREE.ShaderMaterial
             ).uniforms.uOpacity.value =
-              0.17 +
+              0.085 +
               pulse *
-                0.025;
+                0.014;
 
             (
               violetAtmosphere.material as
                 THREE.ShaderMaterial
             ).uniforms.uOpacity.value =
-              0.024 +
+              0.012 +
               pulse *
-                0.010;
+                0.005;
 
             (
               ringA.material as
                 THREE.LineBasicMaterial
             ).opacity =
-              0.050 +
+              0.024 +
               pulse *
-                0.010;
+                0.006;
 
             (
               ringB.material as
                 THREE.LineBasicMaterial
             ).opacity =
-              0.034 +
+              0.018 +
               pulse *
-                0.008;
+                0.005;
 
             (
               orbit.material as
                 THREE.LineBasicMaterial
             ).opacity =
-              0.060 +
+              0.028 +
               pulse *
-                0.016;
+                0.008;
 
             (
               coreHalo.material as
@@ -2791,26 +2850,6 @@ export function HolographicEarth({
         className={
           styles.scanline
         }
-        aria-hidden="true"
-      />
-
-      <div
-        className={`${styles.corner} ${styles.cornerTopLeft}`}
-        aria-hidden="true"
-      />
-
-      <div
-        className={`${styles.corner} ${styles.cornerTopRight}`}
-        aria-hidden="true"
-      />
-
-      <div
-        className={`${styles.corner} ${styles.cornerBottomLeft}`}
-        aria-hidden="true"
-      />
-
-      <div
-        className={`${styles.corner} ${styles.cornerBottomRight}`}
         aria-hidden="true"
       />
 
