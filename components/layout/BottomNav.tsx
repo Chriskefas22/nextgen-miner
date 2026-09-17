@@ -1,50 +1,49 @@
 'use client';
 
 import Link from 'next/link';
-import { Grid2X2, Home, Pickaxe, Wallet } from 'lucide-react';
+import { Boxes, Grid2X2, Pickaxe, Wallet } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 
 export function BottomNav() {
-  const pathname = usePathname();
-  const currentPath = pathname ?? '';
+  const pathname = usePathname() ?? '';
 
   const isActive = (href: string) => {
-    if (href === '/dashboard') return currentPath === '/dashboard';
-    return currentPath === href || currentPath.startsWith(`${href}/`);
+    if (href === '/dashboard') return pathname === '/dashboard';
+    return pathname === href || pathname.startsWith(`${href}/`);
   };
 
-  const homeActive = isActive('/dashboard');
-  const mineActive = isActive('/rooms') || isActive('/miners');
+  const rackActive = isActive('/rooms');
+  const mineActive = isActive('/miners');
   const walletActive = isActive('/wallet');
   const moreActive = isActive('/more');
+  const homeActive = isActive('/dashboard');
 
   return (
-    <nav
-      className="bottom-nav home-bottom-nav ng-bottom-dock"
-      aria-label="Primary navigation"
-    >
+    <nav className="bottom-nav home-bottom-nav ng-bottom-dock" aria-label="Primary navigation">
       <Link
-        href="/dashboard"
-        className={homeActive ? 'active' : ''}
-        aria-current={homeActive ? 'page' : undefined}
+        href="/rooms"
+        className={rackActive ? 'active' : ''}
+        aria-current={rackActive ? 'page' : undefined}
+        aria-label="Mining rack and room management"
       >
-        <Home size={17} />
-        <span>Home</span>
+        <Boxes size={18} />
+        <span>Rack</span>
       </Link>
 
       <Link
-        href="/rooms"
+        href="/miners"
         className={mineActive ? 'active' : ''}
         aria-current={mineActive ? 'page' : undefined}
+        aria-label="Miner catalog and mining equipment"
       >
-        <Pickaxe size={17} />
+        <Pickaxe size={18} />
         <span>Mine</span>
       </Link>
 
       <Link
         href="/dashboard"
-        className="home-n-core"
-        aria-label="NextGen Miner Home"
+        className={`home-n-core${homeActive ? ' is-core-active' : ''}`}
+        aria-label="Home dashboard"
         aria-current={homeActive ? 'page' : undefined}
       >
         <span>N</span>
@@ -54,8 +53,9 @@ export function BottomNav() {
         href="/wallet"
         className={walletActive ? 'active' : ''}
         aria-current={walletActive ? 'page' : undefined}
+        aria-label="Wallet"
       >
-        <Wallet size={17} />
+        <Wallet size={18} />
         <span>Wallet</span>
       </Link>
 
@@ -63,8 +63,9 @@ export function BottomNav() {
         href="/more"
         className={moreActive ? 'active' : ''}
         aria-current={moreActive ? 'page' : undefined}
+        aria-label="More"
       >
-        <Grid2X2 size={17} />
+        <Grid2X2 size={18} />
         <span>More</span>
       </Link>
     </nav>
