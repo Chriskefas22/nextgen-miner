@@ -7,7 +7,7 @@
   min-height: clamp(455px, 67vw, 800px);
   overflow: hidden;
   isolation: isolate;
-  border: 1px solid rgba(62, 163, 255, 0.28);
+  border: 1px solid rgba(62, 163, 255, 0.22);
   border-radius: 28px;
   background:
     radial-gradient(circle at 50% 51%, rgba(18, 96, 180, 0.10), transparent 31%),
@@ -102,8 +102,7 @@
 .centerHud,
 .coreHud,
 .liveBadge,
-.scanline,
-.corner {
+.scanline {
   pointer-events: none;
 }
 
@@ -292,16 +291,6 @@
   animation: scan 7s linear infinite;
 }
 
-/* CP21.0 — decorative white corner brackets intentionally removed. */
-.corner,
-.corner::before,
-.corner::after,
-.cornerTopLeft,
-.cornerTopRight,
-.cornerBottomLeft,
-.cornerBottomRight {
-  display: none !important;
-}
 
 @keyframes scan {
   0% { transform: translateY(-6%); }
@@ -342,6 +331,10 @@
   .regionLabel {
     padding: 5px 8px;
     font-size: 8px;
+  }
+
+  .region {
+    filter: drop-shadow(0 0 6px rgba(71, 234, 255, 0.18));
   }
 
   .regionDot {
@@ -397,7 +390,7 @@
   }
 
   .liveBadge {
-    min-width: 98px;
+    min-width: 114px;
   }
 }
 
@@ -409,5 +402,62 @@
 
   .region {
     transition: none;
+  }
+}
+
+
+/* CP21.1 — Earth/HUD state synchronization contract. */
+.host[data-live="false"] .liveBadge {
+  border-color: rgba(101, 131, 168, 0.24);
+  background: rgba(5, 15, 29, 0.54);
+}
+
+.host[data-live="false"] .liveTitle {
+  color: #91a9bd;
+}
+
+.host[data-live="false"] .liveDots i {
+  opacity: 0.28;
+  animation: none;
+  box-shadow: 0 0 5px rgba(130, 160, 186, 0.25);
+}
+
+.host[data-live="false"] .liveSubline {
+  color: #71879a;
+}
+
+/* CP21.1 — Earth HUD status must match the same server-derived live state. */
+.host[data-live="false"] .operational {
+  color: #b4c1cc;
+  text-shadow: none;
+}
+
+.host[data-live="false"] .statusDot {
+  background: #8fa3b2;
+  box-shadow: 0 0 6px rgba(143, 163, 178, 0.28);
+}
+
+.host[data-live="false"] .liveBadge {
+  border-color: rgba(143, 163, 178, 0.18);
+  background: rgba(4, 12, 22, 0.58);
+}
+
+.host[data-live="false"] .liveTitle {
+  color: #b7c5cf;
+  text-shadow: none;
+}
+
+.host[data-live="false"] .liveDots i {
+  opacity: 0.28;
+  animation: none;
+}
+
+.host[data-live="false"] .liveSubline {
+  color: #718796;
+}
+
+@media (max-width: 760px) {
+  .liveBadge {
+    min-width: 114px;
   }
 }

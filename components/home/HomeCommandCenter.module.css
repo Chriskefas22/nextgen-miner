@@ -1232,3 +1232,78 @@
     min-height: 78px;
   }
 }
+
+
+/* CP21.1 — Home composition contract. The global bottom dock is owned by AppShell. */
+.page {
+  padding-bottom: 24px !important;
+  scroll-padding-bottom: 96px;
+}
+
+@media (max-width: 760px) {
+  .page {
+    gap: 11px;
+    padding-bottom: 24px !important;
+    scroll-padding-bottom: 96px;
+  }
+
+  .hero {
+    min-height: 0;
+    gap: 0;
+  }
+
+  .heroVisual {
+    min-height: 470px;
+    padding: 0;
+    overflow: visible;
+  }
+
+  .statusChips {
+    gap: 9px;
+    margin-top: 13px;
+  }
+
+  .statusChips > div {
+    min-height: 54px;
+    padding: 9px 10px;
+  }
+}
+
+/* The dock gets a single canonical selector to prevent legacy rules from resizing it. */
+:global(.home-shell .ng-bottom-dock) {
+  position: fixed !important;
+  left: 50% !important;
+  right: auto !important;
+  bottom: max(10px, env(safe-area-inset-bottom, 0px)) !important;
+  width: min(720px, calc(100vw - 24px)) !important;
+  height: 68px !important;
+  min-height: 68px !important;
+  max-height: 68px !important;
+  transform: translateX(-50%) !important;
+  box-sizing: border-box !important;
+  padding: 5px 8px !important;
+  display: grid !important;
+  grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+  align-items: center !important;
+  gap: 4px !important;
+  z-index: 1000 !important;
+  overflow: visible !important;
+}
+
+:global(.home-shell .ng-bottom-dock > a) {
+  width: auto !important;
+  min-width: 0 !important;
+  height: 54px !important;
+  min-height: 54px !important;
+  max-height: 54px !important;
+  margin: 0 !important;
+}
+
+:global(.home-shell .ng-bottom-dock > .home-n-core) {
+  width: 58px !important;
+  height: 58px !important;
+  min-height: 58px !important;
+  max-height: 58px !important;
+  margin: auto !important;
+  transform: translateY(-10px) !important;
+}

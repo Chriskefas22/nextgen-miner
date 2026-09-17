@@ -2062,27 +2062,27 @@ export function HolographicEarth({
                 projected.z <
                   1 &&
                 x >
-                  5 &&
+                  (mobile ? 9 : 6) &&
                 x <
-                  95 &&
+                  (mobile ? 91 : 94) &&
                 y >
-                  14 &&
+                  (mobile ? 18 : 14) &&
                 y <
-                  88;
+                  (mobile ? 84 : 88);
 
               const topHud =
                 y <
                 (
                   mobile
-                    ? 20
-                    : 14
+                    ? 22
+                    : 16
                 );
 
               const bottomHud =
                 y >
                 (
                   mobile
-                    ? 84
+                    ? 82
                     : 88
                 );
 
@@ -2136,18 +2136,23 @@ export function HolographicEarth({
               element.dataset.status =
                 metricsRef.current.status.toLowerCase();
 
+              const isNetworkLive =
+                metricsRef.current.status === 'LIVE';
+
               const pulse =
-                0.88 +
-                0.12 *
-                  (
-                    0.5 +
-                    0.5 *
-                      Math.sin(
-                        now *
-                          0.0021 +
-                          region.phase,
+                isNetworkLive
+                  ? 0.88 +
+                    0.12 *
+                      (
+                        0.5 +
+                        0.5 *
+                          Math.sin(
+                            now *
+                              0.0021 +
+                              region.phase,
+                          )
                       )
-                  );
+                  : 0.90;
 
               element.style.setProperty(
                 '--region-pulse',
@@ -2157,23 +2162,27 @@ export function HolographicEarth({
               );
 
               runtime.primary.scale.setScalar(
-                0.84 +
-                  (
-                    pulse -
-                    0.88
-                  ) *
-                    1.8,
+                isNetworkLive
+                  ? 0.84 +
+                    (
+                      pulse -
+                      0.88
+                    ) *
+                      1.8
+                  : 0.86,
               );
 
               (
                 runtime.primary.material as THREE.MeshBasicMaterial
               ).opacity =
-                0.43 +
-                (
-                  pulse -
-                  0.88
-                ) *
-                  1.35;
+                isNetworkLive
+                  ? 0.43 +
+                    (
+                      pulse -
+                      0.88
+                    ) *
+                      1.35
+                  : 0.33;
             },
           );
         };
@@ -2236,41 +2245,54 @@ export function HolographicEarth({
                     daylight
                   );
 
+              const isNetworkLive =
+                metricsRef.current.status === 'LIVE';
+
               const individualPulse =
-                0.84 +
-                0.16 *
-                  (
-                    0.5 +
-                    0.5 *
-                      Math.sin(
-                        now *
-                          0.0019 +
-                          phase,
+                isNetworkLive
+                  ? 0.84 +
+                    0.16 *
+                      (
+                        0.5 +
+                        0.5 *
+                          Math.sin(
+                            now *
+                              0.0019 +
+                              phase,
+                          )
                       )
-                  );
+                  : 0.92;
 
               const regionKey = String(sprite.userData.region ?? 'americas') as RegionKey;
               const regionPhase =
                 REGIONS.find((item) => item.key === regionKey)?.phase ?? 0;
 
               const regionalPulse =
-                0.89 +
-                0.11 *
-                  (
-                    0.5 +
-                    0.5 *
-                      Math.sin(
-                        now *
-                          0.00072 +
-                          regionPhase,
+                isNetworkLive
+                  ? 0.89 +
+                    0.11 *
+                      (
+                        0.5 +
+                        0.5 *
+                          Math.sin(
+                            now *
+                              0.00072 +
+                              regionPhase,
+                          )
                       )
-                  );
+                  : 0.94;
+
+              const networkActivity =
+                isNetworkLive
+                  ? 1
+                  : 0.72;
 
               material.opacity =
                 baseOpacity *
                 nightStrength *
                 individualPulse *
-                regionalPulse;
+                regionalPulse *
+                networkActivity;
             },
           );
         };
@@ -2306,22 +2328,28 @@ export function HolographicEarth({
                     0.10,
                 );
 
+              const isNetworkLive =
+                metricsRef.current.status === 'LIVE';
+
               const pulse =
-                0.72 +
-                0.28 *
-                  (
-                    0.5 +
-                    0.5 *
-                      Math.sin(
-                        now *
-                          0.0016 +
-                          phase,
+                isNetworkLive
+                  ? 0.72 +
+                    0.28 *
+                      (
+                        0.5 +
+                        0.5 *
+                          Math.sin(
+                            now *
+                              0.0016 +
+                              phase,
+                          )
                       )
-                  );
+                  : 0.78;
 
               material.opacity =
                 base *
-                pulse;
+                pulse *
+                (isNetworkLive ? 1 : 0.45);
             },
           );
         };
@@ -2824,6 +2852,12 @@ export function HolographicEarth({
 
   const live =
     metrics.status === 'LIVE';
+  const networkBadgeTitle = live
+    ? 'LIVE NETWORK'
+    : 'NETWORK PAUSED';
+  const networkBadgeSubline = live
+    ? `${metrics.asset} · REAL-TIME DATA`
+    : `${metrics.asset} · SERVER SNAPSHOT`;
 
   return (
     <div
@@ -2836,6 +2870,7 @@ export function HolographicEarth({
           ? 'true'
           : 'false'
       }
+      data-asset={metrics.asset}
       aria-label="Interactive holographic global mining network Earth"
     >
       <canvas
@@ -2873,7 +2908,9 @@ export function HolographicEarth({
               styles.subline
             }
           >
-            REAL-TIME VISUALIZATION
+            {live
+              ? 'REAL-TIME VISUALIZATION'
+              : 'SERVER SNAPSHOT VISUALIZATION'}
           </span>
         </div>
 
@@ -3009,7 +3046,7 @@ export function HolographicEarth({
             styles.liveTitle
           }
         >
-          LIVE NETWORK
+          {networkBadgeTitle}
         </span>
 
         <div
@@ -3029,7 +3066,7 @@ export function HolographicEarth({
             styles.liveSubline
           }
         >
-          REAL-TIME DATA
+          {networkBadgeSubline}
         </span>
       </div>
     </div>
