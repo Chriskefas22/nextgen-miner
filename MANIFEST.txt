@@ -1,10 +1,16 @@
-NEXTGEN MINER — TRUE 360° THREE.JS EARTH PATCH
-
-components/landing/NetworkCore.tsx
-components/landing/LandingPage.tsx
-css/landing-neon-frame.css
-public/assets/landing/earth-equirectangular.webp
-THREE_INSTALL.md
-package-json-addition.txt
-PATCH_NOTES.md
-README.md
+CP25_DATABASE_APPLIED.md
+CP25_README.md
+MANIFEST.txt
+app/items/inventory.css
+app/items/page.tsx
+app/miners/page.tsx
+app/rooms/RoomsPage.module.css
+app/rooms/page.tsx
+components/home/HomeCommandCenter.integration.patch.txt
+components/home/MiningEarningsLifecycle.module.css
+components/home/MiningEarningsLifecycle.tsx
+components/layout/BottomNav.tsx
+components/miner/MinerCard.tsx
+supabase/migrations/20260918_cp25_1_room_expansion_power.sql
+supabase/migrations/20260918_cp25_2_farm_room_summary_claim_preview.sql
+supabase/migrations/20260918_cp25_3_room_upgrade_pricing_alignment.sql
