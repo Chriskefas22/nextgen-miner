@@ -1,0 +1,45 @@
+name: Apply CP24 Living Earth
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apply-cp24:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Apply CP24 patch
+        run: python apply_cp24_live_earth.py
+
+      - name: Commit and push changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          if git diff --quiet; then
+            echo "No changes detected."
+            exit 0
+          fi
+
+          git add \
+            components/home/HolographicEarth.tsx \
+            components/home/HolographicEarth.module.css \
+            components/home/HomeCommandCenter.tsx \
+            components/home/HomeCommandCenter.module.css \
+            app/auth/register/page.tsx
+
+          git commit -m "Apply CP24 living Earth network UI"
+          git push origin HEAD:main
