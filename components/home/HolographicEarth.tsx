@@ -10,6 +10,12 @@ export type HomeEarthMetrics = {
   activeHashrate: string;
   activeMiners: string;
   dailyOutputUsd: string;
+  networkUserLights?: Array<{
+    lat: number;
+    lon: number;
+    intensity: number;
+    country_code?: string;
+  }>;
 };
 
 type RegionKey =
@@ -1025,6 +1031,14 @@ function isConfidentOcean(
   );
 }
 
+function createNetworkUserLightGroup(
+  glowTexture: THREE.Texture | null,
+) {
+  const group = new THREE.Group();
+  group.userData.networkUserLights = true;
+  return group;
+}
+
 function createCityLightGroup(
   mobile: boolean,
   glowTexture: THREE.Texture | null,
@@ -1070,13 +1084,13 @@ function createCityLightGroup(
             map:
               glowTexture,
             color:
-              0xffe5a0,
+              0xffd46a,
             transparent:
               true,
             opacity:
-              0.22 +
+              0.30 +
               city.intensity *
-                0.34,
+                0.36,
             depthWrite:
               false,
             depthTest:
@@ -1089,8 +1103,8 @@ function createCityLightGroup(
       const size =
         city.size *
         (mobile
-          ? 1.55
-          : 1.82);
+          ? 1.72
+          : 2.02);
 
       sprite.scale.set(
         size,
@@ -1104,9 +1118,9 @@ function createCityLightGroup(
 
       sprite.userData = {
         baseOpacity:
-          0.22 +
+          0.30 +
           city.intensity *
-            0.34,
+            0.36,
         phase:
           city.phase +
           index * 0.093,
@@ -1405,6 +1419,13 @@ export function HolographicEarth({
       new THREE.Group(),
     );
 
+  const networkUserLightsRef =
+    useRef<
+      THREE.Group
+    >(
+      new THREE.Group(),
+    );
+
   metricsRef.current =
     metrics;
 
@@ -1686,6 +1707,18 @@ export function HolographicEarth({
 
             cityLightsRef.current =
               cityLights;
+
+            const networkUserLights =
+              createNetworkUserLightGroup(
+                glowTexture,
+              );
+
+            synchronizedSystem.add(
+              networkUserLights,
+            );
+
+            networkUserLightsRef.current =
+              networkUserLights;
           },
           undefined,
           () => {
@@ -1709,6 +1742,18 @@ export function HolographicEarth({
 
             cityLightsRef.current =
               cityLights;
+
+            const networkUserLights =
+              createNetworkUserLightGroup(
+                glowTexture,
+              );
+
+            synchronizedSystem.add(
+              networkUserLights,
+            );
+
+            networkUserLightsRef.current =
+              networkUserLights;
           },
         );
 
@@ -2187,6 +2232,222 @@ export function HolographicEarth({
           );
         };
 
+      let networkLightSignature = '';
+
+      const syncNetworkUserLights =
+        () => {
+          const items =
+            metricsRef.current.networkUserLights ??
+            [];
+
+          const signature =
+            items
+              .map(
+                (item, index) =>
+                  [
+                    item.country_code ?? '',
+                    Number(item.lat).toFixed(4),
+                    Number(item.lon).toFixed(4),
+                    Number(item.intensity).toFixed(3),
+                    index,
+                  ].join(':'),
+              )
+              .join('|');
+
+          if (
+            signature === networkLightSignature
+          ) {
+            return;
+          }
+
+          networkLightSignature =
+            signature;
+
+          const group =
+            networkUserLightsRef.current;
+
+          group.children
+            .slice()
+            .forEach(
+              (child) => {
+                const sprite =
+                  child as THREE.Sprite;
+
+                const material =
+                  sprite.material as
+                    THREE.SpriteMaterial;
+
+                material.dispose();
+                group.remove(
+                  child,
+                );
+              },
+            );
+
+          if (
+            !items.length ||
+            !glowTexture
+          ) {
+            return;
+          }
+
+          items.forEach(
+            (item, index) => {
+              const intensity =
+                THREE.MathUtils.clamp(
+                  Number(
+                    item.intensity ??
+                      0.72,
+                  ),
+                  0.45,
+                  1,
+                );
+
+              const sprite =
+                new THREE.Sprite(
+                  new THREE.SpriteMaterial({
+                    map:
+                      glowTexture,
+                    color:
+                      0xffd05c,
+                    transparent:
+                      true,
+                    opacity:
+                      0.22 +
+                      intensity *
+                        0.12,
+                    depthWrite:
+                      false,
+                    depthTest:
+                      true,
+                    blending:
+                      THREE.AdditiveBlending,
+                  }),
+                );
+
+              const position =
+                latLonToVector3(
+                  Number(item.lat),
+                  Number(item.lon),
+                  1.020,
+                );
+
+              const size =
+                (0.016 +
+                  intensity *
+                    0.012) *
+                (
+                  window.innerWidth <
+                  760
+                    ? 1.18
+                    : 1
+                );
+
+              sprite.scale.set(
+                size,
+                size,
+                1,
+              );
+
+              sprite.position.copy(
+                position,
+              );
+
+              sprite.userData = {
+                baseOpacity:
+                  0.22 +
+                  intensity *
+                    0.12,
+                intensity,
+                phase:
+                  index * 2.417 +
+                  Number(item.lat) *
+                    0.071 +
+                  Number(item.lon) *
+                    0.013,
+                userNode:
+                  true,
+              };
+
+              group.add(
+                sprite,
+              );
+            },
+          );
+        };
+
+      const animateUserLights =
+        (now: number) => {
+          const live =
+            metricsRef.current.status ===
+            'LIVE';
+
+          networkUserLightsRef.current.children.forEach(
+            (child) => {
+              const sprite =
+                child as THREE.Sprite;
+
+              const material =
+                sprite.material as
+                  THREE.SpriteMaterial;
+
+              const base =
+                Number(
+                  sprite.userData
+                    .baseOpacity ??
+                    0.26,
+                );
+
+              const phase =
+                Number(
+                  sprite.userData
+                    .phase ??
+                    0,
+                );
+
+              const intensity =
+                Number(
+                  sprite.userData
+                    .intensity ??
+                    0.7,
+                );
+
+              const pulse =
+                live
+                  ? 0.955 +
+                    0.045 *
+                      (
+                        0.5 +
+                        0.5 *
+                          Math.sin(
+                            now *
+                              0.00103 +
+                              phase,
+                          )
+                      ) +
+                    0.012 *
+                      Math.sin(
+                        now *
+                          0.00031 +
+                          phase *
+                            1.73,
+                      )
+                  : 0.18;
+
+              material.opacity =
+                base *
+                pulse *
+                (
+                  live
+                    ? 0.94 +
+                      intensity *
+                        0.06
+                    : 0.16
+                );
+            },
+          );
+        };
+
       const animateLights =
         (now: number) => {
           /*
@@ -2250,15 +2511,15 @@ export function HolographicEarth({
 
               const individualPulse =
                 isNetworkLive
-                  ? 0.84 +
-                    0.16 *
+                  ? 0.955 +
+                    0.045 *
                       (
                         0.5 +
                         0.5 *
                           Math.sin(
                             now *
-                              0.0019 +
-                              phase,
+                              0.00105 +
+                              phase * 2.31,
                           )
                       )
                   : 0.92;
@@ -2269,23 +2530,23 @@ export function HolographicEarth({
 
               const regionalPulse =
                 isNetworkLive
-                  ? 0.89 +
-                    0.11 *
+                  ? 0.975 +
+                    0.025 *
                       (
                         0.5 +
                         0.5 *
                           Math.sin(
                             now *
-                              0.00072 +
-                              regionPhase,
+                              0.00041 +
+                              regionPhase * 1.37,
                           )
                       )
                   : 0.94;
 
               const networkActivity =
                 isNetworkLive
-                  ? 1
-                  : 0.72;
+                  ? 1.0
+                  : 0.28;
 
               material.opacity =
                 baseOpacity *
@@ -2697,7 +2958,13 @@ export function HolographicEarth({
                 0.040;
           }
 
+          syncNetworkUserLights();
+
           animateLights(
+            now,
+          );
+
+          animateUserLights(
             now,
           );
 
@@ -3067,6 +3334,10 @@ export function HolographicEarth({
           }
         >
           {networkBadgeSubline}
+        </span>
+
+        <span className={styles.liveUsers}>
+          {(metrics.networkUserLights ?? []).length.toLocaleString('en-US')} NETWORK LIGHTS
         </span>
       </div>
     </div>

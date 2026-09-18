@@ -61,6 +61,35 @@ export default function Register() {
       const supabase = createClient();
       const origin = window.location.origin;
       const metadata: Record<string, string> = { username: cleanUsername };
+
+      try {
+        const timezone =
+          Intl.DateTimeFormat().resolvedOptions().timeZone ?? '';
+
+        const language =
+          navigator.language ?? '';
+
+        const countryResponse =
+          await fetch(
+            `/api/network/country?timezone=${encodeURIComponent(timezone)}&language=${encodeURIComponent(language)}`,
+            { cache: 'no-store' },
+          );
+
+        const countryPayload =
+          await countryResponse.json();
+
+        const countryCode =
+          typeof countryPayload?.country_code === 'string'
+            ? countryPayload.country_code.toUpperCase()
+            : '';
+
+        if (/^[A-Z]{2}$/.test(countryCode)) {
+          metadata.country_code = countryCode;
+        }
+      } catch {
+        // Decorative network metadata must never block registration.
+      }
+
       if (referralCode) metadata.referral_code = referralCode;
 
       const { data, error } = await supabase.auth.signUp({

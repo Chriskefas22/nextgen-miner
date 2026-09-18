@@ -461,3 +461,52 @@
     min-width: 114px;
   }
 }
+
+
+/* CP24 — live Earth gold lighting: warm, visible and deliberately subtle in motion. */
+.host[data-live="true"] {
+  border-color: rgba(71, 234, 255, 0.30);
+  box-shadow:
+    inset 0 0 64px rgba(28, 179, 255, 0.055),
+    0 0 34px rgba(50, 192, 255, 0.08),
+    0 18px 52px rgba(0, 0, 0, 0.24);
+}
+
+.host[data-live="true"] .canvas {
+  filter: saturate(1.20) contrast(1.08) brightness(1.09);
+  transition: filter .45s ease;
+}
+
+.host[data-live="true"] .liveBadge {
+  border-color: rgba(255, 210, 112, 0.34);
+  background:
+    linear-gradient(145deg, rgba(24, 23, 24, 0.70), rgba(3, 16, 34, 0.58));
+  box-shadow:
+    inset 0 0 18px rgba(255, 211, 103, 0.035),
+    0 0 22px rgba(255, 196, 85, 0.07);
+}
+
+.liveUsers {
+  display: block;
+  margin-top: 6px;
+  color: #e9c779;
+  font-size: 7px;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  opacity: 0.82;
+}
+
+.host[data-live="false"] .canvas {
+  filter: saturate(.52) contrast(.90) brightness(.74);
+  transition: filter .45s ease;
+}
+
+@media (max-width: 760px) {
+  .liveUsers {
+    font-size: 6.5px;
+  }
+
+  .host[data-live="true"] .canvas {
+    filter: saturate(1.22) contrast(1.08) brightness(1.10);
+  }
+}

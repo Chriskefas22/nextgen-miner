@@ -65,24 +65,105 @@ export function HomeCommandCenter({ initialData }: { initialData: HomeSnapshot }
   const [message, setMessage] = useState('');
   const [clock, setClock] = useState(Date.now());
 
+  type NetworkUserLight = {
+    lat: number;
+    lon: number;
+    intensity: number;
+    country_code?: string;
+  };
+
+  const [networkUserLights, setNetworkUserLights] =
+    useState<NetworkUserLight[]>([]);
+
   const load = useCallback(async (nextAsset = asset, silent = false) => {
     const sb = createClient();
     if (!silent) setLoading(true);
     try {
-      const [a, c] = await Promise.all([
+      const [a, c, n] = await Promise.all([
         sb.rpc('nextgen_farm_snapshot', { p_asset: nextAsset }),
         sb.rpc('nextgen_farm_claim_status', { p_asset: nextAsset }),
+        sb.rpc('nextgen_home_network_lights'),
       ]);
       if (a.error) throw a.error;
       if (c.error) throw c.error;
+      if (n.error) throw n.error;
       setData(a.data as HomeSnapshot);
+      setNetworkUserLights(
+        Array.isArray(n.data)
+          ? (n.data as NetworkUserLight[])
+          : [],
+      );
       setClaim(c.data as ClaimStatus);
       setAsset(nextAsset);
     } catch (e) { setMessage(actionError(e)); }
     finally { if (!silent) setLoading(false); }
   }, [asset]);
 
-  useEffect(() => { void load(asset, true); const t = window.setInterval(() => void load(asset, true), 15000); return () => window.clearInterval(t); }, [asset, load]);
+  useEffect(() => {
+    let cancelled = false;
+
+    void (async () => {
+      try {
+        const sb = createClient();
+        const { data: { user } } =
+          await sb.auth.getUser();
+
+        if (
+          user &&
+          !user.user_metadata?.country_code
+        ) {
+          const timezone =
+            Intl.DateTimeFormat().resolvedOptions().timeZone ?? '';
+
+          const language =
+            navigator.language ?? '';
+
+          const response =
+            await fetch(
+              `/api/network/country?timezone=${encodeURIComponent(timezone)}&language=${encodeURIComponent(language)}`,
+              { cache: 'no-store' },
+            );
+
+          const payload =
+            await response.json();
+
+          const code =
+            typeof payload?.country_code ===
+              'string'
+              ? payload.country_code.toUpperCase()
+              : '';
+
+          if (
+            !cancelled &&
+            /^[A-Z]{2}$/.test(code)
+          ) {
+            await sb.auth.updateUser({
+              data: {
+                country_code: code,
+              },
+            });
+          }
+        }
+      } catch {
+        // Decorative map metadata must never block dashboard use.
+      }
+
+      if (!cancelled) {
+        await load(asset, true);
+      }
+    })();
+
+    const t =
+      window.setInterval(
+        () => void load(asset, true),
+        15000,
+      );
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(t);
+    };
+  }, [asset, load]);
   useEffect(() => { const t = window.setInterval(() => setClock(Date.now()), 1000); return () => window.clearInterval(t); }, []);
 
   const historyValues = useMemo(() => data.earnings_history.map((x) => Number(x.allocated_usd ?? 0)), [data.earnings_history]);
@@ -99,6 +180,8 @@ export function HomeCommandCenter({ initialData }: { initialData: HomeSnapshot }
   const liveRate = Number(selected.rate_usd ?? 0);
   const rawCoverage = Number(data.live_earnings.starter_coverage_days ?? 0);
   const coverageLabel = Number.isFinite(rawCoverage) && rawCoverage > 0 && rawCoverage < 100000 ? `${num(rawCoverage, 1)} days` : 'Capacity guarded';
+  const poolBudget = Number(data.pool?.mining_budget_usd ?? 0);
+  const poolAllocated = Number(data.pool?.allocated_usd ?? 0);
   const dailyClaim = data.streak.days.find((d) => d.status === 'ready');
   const activity = data.recent_transactions.slice(0, 4);
 
@@ -131,6 +214,7 @@ export function HomeCommandCenter({ initialData }: { initialData: HomeSnapshot }
             activeHashrate: num(data.active_hashrate),
             activeMiners: num(data.active_miners, 0),
             dailyOutputUsd: money(data.live_earnings.daily_usd),
+            networkUserLights,
           }} />
         </div>
       </section>
@@ -142,6 +226,28 @@ export function HomeCommandCenter({ initialData }: { initialData: HomeSnapshot }
         <div className={styles.statCard}><span><Coins size={16} />MINING OUTPUT (TODAY)</span><strong>${money(data.live_earnings.daily_usd)}</strong><small>{money(data.live_earnings.estimated_crypto)} {asset}</small></div>
         <div className={styles.statCard}><span><Cuboid size={16} />ACTIVE MINERS</span><strong>{data.active_miners}</strong><Link href="/miners">View All <ArrowRight size={13} /></Link></div>
         <div className={styles.statCard}><span><Sparkles size={16} />DIAMOND BALANCE</span><strong>{num(data.diamond_balance, 0)}</strong><small>Internal Utility</small></div>
+      </section>
+
+      <section className={styles.poolPanel} aria-label="USDT mining pool economics">
+        <div className={styles.poolPanelHead}>
+          <div>
+            <div className={styles.sectionKicker}>ECONOMIC POOL</div>
+            <h2>Today's USDT Mining Budget</h2>
+            <p>Verified deposits fund the shared pool. Miner hashrate determines each active user's share.</p>
+          </div>
+          <span className={styles.poolState}>{data.pool?.reserve_status ?? 'SYNCING'}</span>
+        </div>
+        <div className={styles.poolMetrics}>
+          <div><small>POOL BUDGET</small><b>${money(data.pool?.mining_budget_usd)}</b></div>
+          <div><small>ALLOCATED</small><b>${money(data.pool?.allocated_usd)}</b></div>
+          <div><small>REMAINING</small><b>${money(Math.max(poolBudget - poolAllocated, 0))}</b></div>
+          <div><small>10D REVENUE</small><b>${money(data.pool?.rolling_10d_net_revenue_usd)}</b></div>
+        </div>
+        <div className={styles.poolNote}>
+          <span>Funding is counted once.</span>
+          <span>Unused Diamond does not create another revenue source.</span>
+          <span>New deposits join the rolling pool according to the daily accounting window.</span>
+        </div>
       </section>
 
       <section className={styles.assetPanel}>
