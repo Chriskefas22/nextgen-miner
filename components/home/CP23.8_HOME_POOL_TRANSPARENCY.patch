@@ -1,0 +1,158 @@
+*** Begin Patch
+*** Update File: components/home/HomeCommandCenter.tsx
+@@
+   const coverageLabel = Number.isFinite(rawCoverage) && rawCoverage > 0 && rawCoverage < 100000 ? `${num(rawCoverage, 1)} days` : 'Capacity guarded';
+   const dailyClaim = data.streak.days.find((d) => d.status === 'ready');
+   const activity = data.recent_transactions.slice(0, 4);
++  const poolBudget = Number(data.pool?.mining_budget_usd ?? 0);
++  const poolAllocated = Number(data.pool?.allocated_usd ?? 0);
++  const poolRemaining = Math.max(poolBudget - poolAllocated, 0);
+@@
+       <section className={styles.statsRow}>
+         <div className={styles.statCard}><span><Zap size={16} />ACTIVE HASHRATE</span><strong>{num(data.active_hashrate)} <em>H/s</em></strong><small>+0%</small></div>
+         <div className={styles.statCard}><span><Coins size={16} />MINING OUTPUT (TODAY)</span><strong>${money(data.live_earnings.daily_usd)}</strong><small>{money(data.live_earnings.estimated_crypto)} {asset}</small></div>
+         <div className={styles.statCard}><span><Cuboid size={16} />ACTIVE MINERS</span><strong>{data.active_miners}</strong><Link href="/miners">View All <ArrowRight size={13} /></Link></div>
+         <div className={styles.statCard}><span><Sparkles size={16} />DIAMOND BALANCE</span><strong>{num(data.diamond_balance, 0)}</strong><small>Internal Utility</small></div>
+       </section>
++
++      <section className={styles.poolPanel} aria-label="USDT mining pool economics">
++        <div className={styles.poolPanelHead}>
++          <div>
++            <div className={styles.sectionKicker}>ECONOMIC POOL</div>
++            <h2>Today's USDT Mining Budget</h2>
++            <p>Deposits fund the shared pool. Miner hashrate determines each active user's share of that pool.</p>
++          </div>
++          <span className={styles.poolState}>{data.pool?.reserve_status ?? 'SYNCING'}</span>
++        </div>
++        <div className={styles.poolMetrics}>
++          <div><small>POOL BUDGET</small><b>${money(poolBudget)}</b></div>
++          <div><small>ALLOCATED</small><b>${money(poolAllocated)}</b></div>
++          <div><small>REMAINING</small><b>${money(poolRemaining)}</b></div>
++          <div><small>10D REVENUE</small><b>${money(data.pool?.rolling_10d_net_revenue_usd)}</b></div>
++        </div>
++        <div className={styles.poolNote}>
++          <span>Funding is counted once.</span>
++          <span>Holding unused Diamond does not create a second revenue source.</span>
++          <span>New deposits enter the next rolling pool unless the current pool is still unallocated and can be safely refreshed.</span>
++        </div>
++      </section>
+ 
+       <section className={styles.assetPanel}>
+*** Update File: components/home/HomeCommandCenter.module.css
+@@
+ .statCard a {
+   display: inline-flex;
+@@
+   text-decoration: none;
+ }
++
++.poolPanel {
++  min-width: 0;
++  padding: 15px;
++  background:
++    radial-gradient(circle at 92% 15%, rgba(139,61,255,.10), transparent 25%),
++    linear-gradient(145deg, rgba(7,20,35,.96), rgba(3,11,20,.98));
++  border: 1px solid rgba(39,121,170,.22);
++  border-radius: 17px;
++  box-shadow: inset 0 0 25px rgba(31,173,234,.018), 0 14px 30px rgba(0,0,0,.18);
++}
++
++.poolPanelHead {
++  display: flex;
++  align-items: flex-start;
++  justify-content: space-between;
++  gap: 12px;
++}
++
++.poolPanelHead h2 {
++  margin: 4px 0 3px;
++  font: 700 15px Orbitron;
++}
++
++.poolPanelHead p {
++  margin: 0;
++  max-width: 760px;
++  color: #7c98ab;
++  font-size: 10px;
++  line-height: 1.45;
++}
++
++.poolState {
++  flex: 0 0 auto;
++  padding: 5px 8px;
++  border: 1px solid rgba(81,242,189,.22);
++  border-radius: 999px;
++  color: #55efba;
++  background: rgba(53,243,180,.05);
++  font-size: 7px;
++  font-weight: 900;
++  letter-spacing: .12em;
++}
++
++.poolMetrics {
++  display: grid;
++  grid-template-columns: repeat(4, minmax(0,1fr));
++  gap: 7px;
++  margin-top: 12px;
++}
++
++.poolMetrics > div {
++  padding: 10px;
++  border-radius: 11px;
++  border: 1px solid rgba(46,113,151,.18);
++  background: rgba(5,16,28,.72);
++}
++
++.poolMetrics small,
++.poolMetrics b {
++  display: block;
++}
++
++.poolMetrics small {
++  color: #66869b;
++  font-size: 7px;
++  letter-spacing: .12em;
++}
++
++.poolMetrics b {
++  margin-top: 5px;
++  color: #ebfbff;
++  font: 800 14px/1.1 Rajdhani, sans-serif;
++}
++
++.poolNote {
++  display: flex;
++  flex-wrap: wrap;
++  gap: 5px 14px;
++  margin-top: 9px;
++  color: #6f8ca0;
++  font-size: 8px;
++  line-height: 1.45;
++}
++
++.poolNote span::before {
++  content: '•';
++  margin-right: 5px;
++  color: #41eaff;
++}
++
++@media (max-width: 760px) {
++  .poolPanel {
++    padding: 13px;
++    border-radius: 15px;
++  }
++
++  .poolPanelHead {
++    display: block;
++  }
++
++  .poolState {
++    display: inline-block;
++    margin-top: 8px;
++  }
++
++  .poolMetrics {
++    grid-template-columns: repeat(2, minmax(0,1fr));
++  }
++}
+*** End Patch
