@@ -1,0 +1,25 @@
+FILE: components/home/HomeCommandCenter.tsx
+
+1) Add this import with the other local imports:
+
+import { MiningEarningsLifecycle } from './MiningEarningsLifecycle';
+
+2) Immediately after the existing message notice block and before the statsRow, add:
+
+      <MiningEarningsLifecycle asset={asset} />
+
+The target area currently looks like:
+
+      {message ? <section className={styles.notice}><ShieldCheck size={16} />{message}</section> : null}
+
+      <section className={styles.statsRow}>
+
+Change it to:
+
+      {message ? <section className={styles.notice}><ShieldCheck size={16} />{message}</section> : null}
+
+      <MiningEarningsLifecycle asset={asset} />
+
+      <section className={styles.statsRow}>
+
+No other HomeCommandCenter.tsx change is required.
