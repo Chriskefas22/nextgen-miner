@@ -1,6 +1,5 @@
 /* =========================================================
    NEXTGEN MINER — MINER CARD
-   Clean responsive card / individual miner artwork
    ========================================================= */
 
 .miner-card {
@@ -50,23 +49,11 @@
     ) !important;
 }
 
-
-/* =========================================================
-   MINER ARTWORK
-   ========================================================= */
-
 .miner-visual {
   position: relative !important;
-
-  /*
-   * Basic CPU asset = 2048 × 1365
-   * Keep the native visual proportion.
-   */
   aspect-ratio: 3 / 2;
-
   width: 100%;
   overflow: hidden;
-
   padding: 0 !important;
 
   background:
@@ -77,12 +64,6 @@
     ) !important;
 }
 
-
-/*
- * Very subtle lower fade.
- * It should blend the artwork into the information panel,
- * not cover the miner itself.
- */
 .miner-visual::after {
   content: "";
 
@@ -100,21 +81,12 @@
   z-index: 1;
 }
 
-
-/* =========================================================
-   MINER IMAGE
-   ========================================================= */
-
 .miner-visual img {
   display: block !important;
 
   width: 100% !important;
   height: 100% !important;
 
-  /*
-   * Keep the individual artwork visible.
-   * Do not aggressively crop it.
-   */
   object-fit: cover !important;
   object-position: center center !important;
 
@@ -130,11 +102,6 @@
     filter 0.35s ease;
 }
 
-
-/*
- * Very small hover enlargement.
- * Previous 1.045 was too aggressive for the artwork.
- */
 .miner-card:hover .miner-visual img {
   transform: scale(1.018);
 
@@ -144,20 +111,9 @@
     brightness(1);
 }
 
-
-/* =========================================================
-   IMPORTANT:
-   REMOVE THE OLD ROTATING GREEN RING
-   ========================================================= */
-
 .miner-scan {
   display: none !important;
 }
-
-
-/* =========================================================
-   RARITY ACCENTS
-   ========================================================= */
 
 .rarity-uncommon {
   --miner-accent: #35f3b4;
@@ -191,16 +147,10 @@
   --miner-accent: #35f3b4;
 }
 
-
-/* =========================================================
-   BADGES
-   ========================================================= */
-
 .rarity-badge,
 .lvl,
 .ownership {
   position: absolute;
-
   z-index: 3;
 
   border: 1px solid
@@ -225,47 +175,29 @@
   letter-spacing: 0.1em;
 }
 
-
-/* Rarity */
-
 .rarity-badge {
   left: 10px;
   top: 10px;
-
   color: var(--miner-accent);
 }
-
-
-/* Level */
 
 .lvl {
   right: 10px;
   top: 10px;
-
   color: #ffffff;
 }
-
-
-/* Ownership */
 
 .ownership {
   right: 10px;
   bottom: 10px;
-
   color: #a9bfd1;
 }
 
 .ownership.active {
   color: #35f3b4;
-
   border-color:
     rgba(53, 243, 180, 0.4);
 }
-
-
-/* =========================================================
-   CARD INFORMATION
-   ========================================================= */
 
 .miner-copy {
   padding: 14px !important;
@@ -273,43 +205,30 @@
 
 .miner-title-row {
   display: flex;
-
   justify-content: space-between;
   align-items: flex-start;
-
   gap: 10px;
 }
 
 .miner-card h3 {
   margin: 0 !important;
-
   font-family: Orbitron !important;
-
   font-size: 15px !important;
   line-height: 1.2 !important;
-
   color: #f4f8ff !important;
 }
 
 .miner-card p {
   margin: 6px 0 0 !important;
-
   color: #8ea6ba !important;
-
   font-size: 10px !important;
   line-height: 1.45 !important;
 }
-
-
-/* =========================================================
-   PREMIUM LABEL
-   ========================================================= */
 
 .premium-tag {
   flex-shrink: 0;
 
   padding: 4px 7px;
-
   border-radius: 999px;
 
   border: 1px solid
@@ -322,33 +241,20 @@
   color: var(--miner-accent);
 
   font-size: 8px;
-
   font-weight: 900;
-
   letter-spacing: 0.1em;
-
   white-space: nowrap;
 }
 
-
-/* =========================================================
-   LEVEL PROGRESS
-   ========================================================= */
-
 .level-head {
   display: flex;
-
   justify-content: space-between;
-
   margin-top: 12px;
   margin-bottom: 6px;
 
   color: #7897ad;
-
   font-size: 8px;
-
   font-weight: 900;
-
   letter-spacing: 0.08em;
 }
 
@@ -358,32 +264,20 @@
 
 .progress {
   height: 6px !important;
-
   overflow: hidden;
-
   border-radius: 999px;
 }
 
-
-/* =========================================================
-   STATS
-   ========================================================= */
-
 .miner-grid {
   display: grid;
-
   grid-template-columns: 1fr 1fr !important;
-
   gap: 7px !important;
-
   margin: 11px 0 !important;
 }
 
 .miner-grid > div {
   min-width: 0;
-
   padding: 9px !important;
-
   border-radius: 10px !important;
 
   background:
@@ -398,58 +292,44 @@
   display: block;
 
   font-size: 7px !important;
-
   letter-spacing: 0.1em;
-
   color: #67869e !important;
 }
 
 .miner-grid b {
   display: block;
-
   margin-top: 3px;
-
   font-size: 10px !important;
-
   color: #e5f2ff;
 }
 
-
-/* =========================================================
-   ACTION BUTTON
-   ========================================================= */
-
 .miner-card .btn {
   width: 100% !important;
-
   min-height: 42px;
-
   font-size: 10px !important;
 }
 
-
-/* =========================================================
-   ACTION MESSAGE
-   ========================================================= */
+.miner-owned-button {
+  color: #73f5c5 !important;
+  border-color:
+    rgba(53, 243, 180, 0.32) !important;
+  background:
+    rgba(53, 243, 180, 0.055) !important;
+  cursor: default !important;
+}
 
 .miner-action-message {
   margin-top: 8px;
-
   padding: 7px 9px;
-
   border-radius: 9px;
-
   font-size: 9px;
-
   font-weight: 800;
 }
 
 .miner-action-message.success {
   color: #8affe0;
-
   background:
     rgba(53, 243, 180, 0.07);
-
   border:
     1px solid
     rgba(53, 243, 180, 0.2);
@@ -457,19 +337,323 @@
 
 .miner-action-message.error {
   color: #ffb0bf;
-
   background:
     rgba(255, 85, 122, 0.07);
-
   border:
     1px solid
     rgba(255, 85, 122, 0.2);
 }
 
-
 /* =========================================================
-   TABLET
+   PURCHASE CONFIRMATION MODAL
    ========================================================= */
+
+.miner-purchase-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 5000;
+
+  display: grid;
+  place-items: center;
+
+  padding:
+    max(18px, env(safe-area-inset-top))
+    max(18px, env(safe-area-inset-right))
+    max(18px, env(safe-area-inset-bottom))
+    max(18px, env(safe-area-inset-left));
+
+  background:
+    rgba(1, 7, 13, 0.78);
+
+  backdrop-filter: blur(8px);
+}
+
+.miner-purchase-modal {
+  position: relative;
+
+  width: min(
+    100%,
+    510px
+  );
+
+  max-height:
+    calc(100dvh - 36px);
+
+  overflow-y: auto;
+
+  padding: 24px;
+
+  border:
+    1px solid
+    rgba(54, 215, 255, 0.36);
+
+  border-radius: 20px;
+
+  background:
+    radial-gradient(
+      circle at 50% 0%,
+      rgba(71, 88, 255, 0.10),
+      transparent 48%
+    ),
+    linear-gradient(
+      145deg,
+      #081a2b,
+      #030a12
+    );
+
+  box-shadow:
+    0 30px 90px
+      rgba(0, 0, 0, 0.62),
+    inset 0 0 45px
+      rgba(50, 220, 255, 0.03);
+}
+
+.miner-modal-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+
+  width: 34px;
+  height: 34px;
+
+  display: grid;
+  place-items: center;
+
+  border:
+    1px solid
+    rgba(100, 155, 180, 0.20);
+
+  border-radius: 9px;
+
+  background:
+    rgba(4, 15, 26, 0.72);
+
+  color: #91aabb;
+
+  cursor: pointer;
+}
+
+.miner-modal-close:hover {
+  color: #ffffff;
+  border-color:
+    rgba(69, 234, 255, 0.38);
+}
+
+.miner-modal-icon {
+  width: 42px;
+  height: 42px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 12px;
+
+  color: #51eec1;
+
+  border:
+    1px solid
+    rgba(81, 238, 193, 0.28);
+
+  background:
+    rgba(81, 238, 193, 0.07);
+
+  box-shadow:
+    0 0 24px
+      rgba(81, 238, 193, 0.08);
+}
+
+.miner-modal-kicker {
+  margin-top: 15px;
+
+  color: #48eaff;
+
+  font-size: 8px;
+  font-weight: 900;
+
+  letter-spacing: 0.20em;
+}
+
+.miner-purchase-modal h2 {
+  margin:
+    6px 42px
+    0 0;
+
+  font:
+    700 25px
+    Orbitron,
+    sans-serif;
+
+  color: #f4fbff;
+}
+
+.miner-modal-copy {
+  margin-top: 12px;
+
+  color: #88a5b7;
+
+  font-size: 11px;
+
+  line-height: 1.6;
+}
+
+.miner-modal-copy strong {
+  color: #f4fbff;
+}
+
+.miner-modal-summary {
+  display: grid;
+  gap: 7px;
+
+  margin-top: 17px;
+
+  padding: 12px;
+
+  border:
+    1px solid
+    rgba(50, 113, 150, 0.18);
+
+  border-radius: 13px;
+
+  background:
+    rgba(4, 15, 26, 0.72);
+}
+
+.miner-modal-summary > div {
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 10px;
+
+  padding:
+    8px 0;
+
+  border-bottom:
+    1px solid
+    rgba(44, 100, 134, 0.11);
+}
+
+.miner-modal-summary > div:last-child {
+  border-bottom: 0;
+}
+
+.miner-modal-summary span {
+  color: #67869b;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.10em;
+}
+
+.miner-modal-summary strong {
+  color: #e9fbff;
+  font:
+    700 12px
+    Orbitron,
+    sans-serif;
+
+  text-align: right;
+}
+
+.miner-modal-summary strong.danger {
+  color: #ff9fb2;
+}
+
+.miner-modal-note,
+.miner-modal-warning {
+  margin-top: 10px;
+
+  padding:
+    9px 10px;
+
+  border-radius: 10px;
+
+  font-size: 9px;
+  line-height: 1.45;
+}
+
+.miner-modal-note {
+  color: #89a9bb;
+
+  border:
+    1px solid
+    rgba(45, 126, 165, 0.16);
+
+  background:
+    rgba(4, 17, 29, 0.62);
+}
+
+.miner-modal-warning {
+  color: #ffabbc;
+
+  border:
+    1px solid
+    rgba(255, 94, 125, 0.22);
+
+  background:
+    rgba(255, 82, 113, 0.06);
+}
+
+.miner-modal-actions {
+  display: grid;
+
+  grid-template-columns:
+    1fr 1.35fr;
+
+  gap: 8px;
+
+  margin-top: 17px;
+}
+
+.miner-modal-cancel,
+.miner-modal-confirm {
+  min-height: 45px;
+
+  border-radius: 11px;
+
+  font-size: 10px;
+
+  font-weight: 900;
+
+  letter-spacing: 0.05em;
+
+  cursor: pointer;
+}
+
+.miner-modal-cancel {
+  border:
+    1px solid
+    rgba(68, 125, 158, 0.24);
+
+  background:
+    rgba(4, 15, 26, 0.76);
+
+  color: #bfd3df;
+}
+
+.miner-modal-confirm {
+  border:
+    1px solid
+    rgba(95, 241, 195, 0.38);
+
+  background:
+    linear-gradient(
+      135deg,
+      #32dcff,
+      #58edbc
+    );
+
+  color: #021319;
+
+  box-shadow:
+    0 0 23px
+      rgba(55, 230, 255, 0.11);
+}
+
+.miner-modal-confirm:disabled {
+  opacity: 0.48;
+  cursor: not-allowed;
+}
 
 @media (max-width: 1100px) {
   .shop-grid {
@@ -477,11 +661,6 @@
       repeat(3, minmax(0, 1fr));
   }
 }
-
-
-/* =========================================================
-   MOBILE
-   ========================================================= */
 
 @media (max-width: 760px) {
   .shop-grid {
@@ -504,25 +683,29 @@
   .miner-grid > div {
     padding: 8px !important;
   }
+
+  .miner-purchase-modal {
+    width: 100%;
+    padding: 20px 16px;
+    border-radius: 17px;
+  }
+
+  .miner-purchase-modal h2 {
+    font-size: 21px;
+  }
+
+  .miner-modal-copy {
+    font-size: 10px;
+  }
 }
-
-
-/* =========================================================
-   SMALL MOBILE
-   ========================================================= */
 
 @media (max-width: 520px) {
   .shop-grid {
     grid-template-columns: 1fr;
-
     gap: 12px;
-
     padding-bottom: 110px;
   }
 
-  /*
-   * Keep exactly the same proportion as the artwork.
-   */
   .miner-visual {
     aspect-ratio: 3 / 2;
   }
@@ -546,12 +729,19 @@
   .miner-card .btn {
     min-height: 44px;
   }
+
+  .miner-modal-summary strong {
+    font-size: 10px;
+  }
+
+  .miner-modal-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .miner-modal-confirm {
+    order: -1;
+  }
 }
-
-
-/* =========================================================
-   VERY SMALL DEVICES
-   ========================================================= */
 
 @media (max-width: 380px) {
   .miner-copy {
@@ -567,5 +757,13 @@
   .ownership {
     font-size: 8px;
     padding: 5px 7px;
+  }
+
+  .miner-purchase-modal {
+    padding: 18px 13px;
+  }
+
+  .miner-purchase-modal h2 {
+    font-size: 19px;
   }
 }
