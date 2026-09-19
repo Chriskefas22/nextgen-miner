@@ -317,13 +317,10 @@ export default function MinersPage() {
                 ) ?? [];
 
               /*
-               * This is DISPLAY ONLY.
-               *
-               * The Shop does not use the highest level
-               * to determine the purchase action.
-               * A BUY always calls nextgen_purchase_miner
-               * for the catalog miner, creating another
-               * Level 1 copy.
+               * Shop display only:
+               * a purchase always creates a new Level 1 copy.
+               * Existing owned levels are shown for reference,
+               * but are never converted into a Shop upgrade price.
                */
               const highest =
                 owned.reduce(
@@ -396,35 +393,24 @@ export default function MinersPage() {
                   Number(
                     item.base_price_diamond,
                   ),
-
-                /*
-                 * Highest owned level is informative only.
-                 * It does NOT become the next Shop purchase.
-                 */
                 currentLevel:
                   highest,
-
                 maxLevel,
-
                 currentHashrate:
                   Number(
                     levelRow?.hashrate ??
                       item.base_hashrate,
                   ),
-
                 ownedCount:
                   owned.length,
-
                 owned:
                   owned.length > 0,
-
                 active:
                   owned.some(
                     (row) =>
                       row.status.toLowerCase() ===
                       'active',
                   ),
-
                 deploymentState:
                   owned.some(
                     (row) =>
@@ -535,10 +521,10 @@ export default function MinersPage() {
 
           <div className="muted">
             12 miner families ·
-            Buy as many Level 1
-            copies as you need.
-            Merge happens later
-            in Inventory / Rooms.
+            Buy Level 1 copies
+            freely. Merge matching
+            miners later to advance
+            through Level 10.
           </div>
         </div>
 
@@ -561,15 +547,14 @@ export default function MinersPage() {
           <br />
 
           <span>
-            SHOP is for buying
-            copies. Every BUY
-            creates another
-            Level 1 miner. Build
-            two matching copies,
-            deploy them to the
-            same Room, then merge
-            them to create the next
-            level.
+            Shop purchases create
+            new Level 1 copies.
+            Buy two matching miners,
+            deploy them to the same
+            Room, then merge them to
+            create the next level.
+            The Shop itself never
+            performs a level upgrade.
           </span>
         </div>
 
@@ -676,6 +661,7 @@ export default function MinersPage() {
           <div className="eyebrow">
             DATABASE SYNC
           </div>
+
           <h2>
             Loading miner
             catalog…
@@ -717,6 +703,9 @@ export default function MinersPage() {
                 miner={
                   miner
                 }
+                diamondBalance={
+                  balance
+                }
                 onChanged={
                   load
                 }
@@ -753,7 +742,6 @@ export default function MinersPage() {
           <span>
             BUY ×2
           </span>
-
           <span
             style={{
               opacity: 0.55,
@@ -761,12 +749,9 @@ export default function MinersPage() {
           >
             →
           </span>
-
           <span>
-            DEPLOY TO SAME
-            ROOM
+            DEPLOY TO SAME ROOM
           </span>
-
           <span
             style={{
               opacity: 0.55,
@@ -774,11 +759,9 @@ export default function MinersPage() {
           >
             →
           </span>
-
           <span>
             MERGE
           </span>
-
           <span
             style={{
               opacity: 0.55,
@@ -786,11 +769,9 @@ export default function MinersPage() {
           >
             →
           </span>
-
           <span>
             LEVEL +1
           </span>
-
           <span
             style={{
               opacity: 0.55,
@@ -798,7 +779,6 @@ export default function MinersPage() {
           >
             →
           </span>
-
           <span>
             REPEAT TO LV 10
           </span>
