@@ -1,6 +1,6 @@
 'use client';
 
-import { Check, ShoppingCart } from 'lucide-react';
+import { Check, ShoppingCart, X } from 'lucide-react';
 import { useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { number, diamond, hash } from '@/lib/format';
@@ -14,13 +14,6 @@ export type Miner = {
   image: string;
   baseHashrate: number;
   purchasePrice: number;
-
-  /*
-   * These fields describe the user's current collection in the Shop.
-   * IMPORTANT: Shop purchases NEVER upgrade an existing miner.
-   * Every BUY creates another Level 1 copy (or claims the configured
-   * free starter, when applicable).
-   */
   currentLevel: number;
   maxLevel: number;
   currentHashrate: number;
@@ -32,6 +25,7 @@ export type Miner = {
 
 type Props = {
   miner: Miner;
+  diamondBalance: number;
   onChanged?: () => Promise<void> | void;
 };
 
@@ -52,30 +46,53 @@ function actionError(error: unknown) {
     : 'Action failed';
 }
 
+function money(value: number) {
+  return Number(value || 0).toLocaleString(
+    'en-US',
+    {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2,
+    },
+  );
+}
+
 export function MinerCard({
   miner,
+  diamondBalance,
   onChanged,
 }: Props) {
   const [busy, setBusy] =
     useState(false);
+
   const [message, setMessage] =
     useState('');
 
-  const isStarter =
-    miner.purchasePrice <= 0;
+  const [confirmOpen, setConfirmOpen] =
+    useState(false);
 
   /*
-   * SHOP FLOW — PURCHASE ONLY
-   *
-   * 1. BUY -> creates another miner in Inventory.
-   * 2. BUY again -> creates another identical Level 1 miner.
-   * 3. User merges two identical miners in the same Room.
-   * 4. The merge creates the next level.
-   * 5. Shop remains a purchase source; it never calls
-   *    nextgen_upgrade_miner.
+   * Starter Keyboard is the free launch miner.
+   * Once it has been provisioned to the account,
+   * its Shop action becomes a permanent OWNED state.
    */
-  async function buy() {
-    if (busy) return;
+  const isStarter =
+    miner.slug === 'starter-keyboard';
+
+  const starterOwned =
+    isStarter && miner.owned;
+
+  /*
+   * Important:
+   * Shop BUY always purchases a NEW Level 1 copy.
+   * Shop never calls nextgen_upgrade_miner.
+   * Level progression remains:
+   *
+   *   BUY x2 -> deploy same Room -> merge -> Level 2
+   *   BUY x2 -> deploy same Room -> merge -> Level 2
+   *   Level 2 x2 -> merge -> Level 3
+   */
+  async function confirmPurchase() {
+    if (busy || starterOwned) return;
 
     setBusy(true);
     setMessage('');
@@ -94,6 +111,8 @@ export function MinerCard({
         throw result.error;
       }
 
+      setConfirmOpen(false);
+
       setMessage(
         isStarter
           ? 'MINER ADDED TO INVENTORY ✓'
@@ -110,158 +129,351 @@ export function MinerCard({
     }
   }
 
+  function openConfirm() {
+    if (busy || starterOwned) return;
+
+    setMessage('');
+    setConfirmOpen(true);
+  }
+
+  function closeConfirm() {
+    if (busy) return;
+    setConfirmOpen(false);
+  }
+
+  const hasEnoughDiamond =
+    diamondBalance >=
+    miner.purchasePrice;
+
   return (
-    <article
-      className={`miner-card glass rarity-${miner.tier
-        .toLowerCase()
-        .replace(
-          /[^a-z0-9]+/g,
-          '-',
-        )}`}
-    >
-      <div className="miner-visual">
-        <img
-          src={miner.image}
-          alt={`${miner.name} virtual miner`}
-          loading="lazy"
-          decoding="async"
-        />
+    <>
+      <article
+        className={`miner-card glass rarity-${miner.tier
+          .toLowerCase()
+          .replace(
+            /[^a-z0-9]+/g,
+            '-',
+          )}`}
+      >
+        <div className="miner-visual">
+          <img
+            src={miner.image}
+            alt={`${miner.name} virtual miner`}
+            loading="lazy"
+            decoding="async"
+          />
 
-        <span className="rarity-badge">
-          {miner.tier}
-        </span>
-
-        <span className="lvl">
-          {miner.owned
-            ? `MAX LV ${miner.currentLevel}/${miner.maxLevel}`
-            : `LV 1/${miner.maxLevel}`}
-        </span>
-
-        {miner.owned ? (
-          <span
-            className={`ownership ${
-              miner.active
-                ? 'active'
-                : ''
-            }`}
-          >
-            {miner.deploymentState ===
-              'deployed' &&
-            miner.active
-              ? 'DEPLOYED'
-              : 'IN INVENTORY'}
-            {miner.ownedCount > 1
-              ? ` ×${miner.ownedCount}`
-              : ''}
+          <span className="rarity-badge">
+            {miner.tier}
           </span>
-        ) : null}
-      </div>
 
-      <div className="miner-copy">
-        <div className="miner-title-row">
-          <div>
-            <h3>
-              {miner.name}
-            </h3>
+          <span className="lvl">
+            {starterOwned
+              ? `OWNED · LV 1/${miner.maxLevel}`
+              : `LV 1/${miner.maxLevel}`}
+          </span>
 
-            <p>
-              {miner.owned
-                ? 'Buy another copy anytime. Merge two identical same-level miners in Rooms to advance to the next level.'
-                : 'Buy a Level 1 copy. Merge identical copies later to progress through Level 10.'}
-            </p>
-          </div>
+          {starterOwned ? (
+            <span className="ownership active">
+              OWNED · FREE
+            </span>
+          ) : miner.owned ? (
+            <span
+              className={`ownership ${
+                miner.active
+                  ? 'active'
+                  : ''
+              }`}
+            >
+              {miner.deploymentState ===
+                'deployed' &&
+              miner.active
+                ? 'DEPLOYED'
+                : 'IN INVENTORY'}
+              {miner.ownedCount > 1
+                ? ` ×${miner.ownedCount}`
+                : ''}
+            </span>
+          ) : null}
         </div>
 
-        <div className="miner-grid">
-          <div>
-            <small>
-              BASE HASHRATE
-            </small>
-            <b>
-              {hash(
-                miner.baseHashrate,
-              )}
-            </b>
+        <div className="miner-copy">
+          <div className="miner-title-row">
+            <div>
+              <h3>
+                {miner.name}
+              </h3>
+
+              <p>
+                {starterOwned
+                  ? 'Your free starter miner is already owned. Deploy it from Inventory into a Room.'
+                  : miner.owned
+                    ? 'Shop purchases always create another Level 1 copy. Merge matching miners later to progress.'
+                    : 'Buy a Level 1 copy. Buy again whenever you need more identical miners for merging.'}
+              </p>
+            </div>
           </div>
 
-          <div>
-            <small>
-              PURCHASE LEVEL
-            </small>
-            <b>
-              LV 1/{miner.maxLevel}
-            </b>
+          <div className="miner-grid">
+            <div>
+              <small>
+                BASE HASHRATE
+              </small>
+              <b>
+                {hash(
+                  miner.baseHashrate,
+                )}
+              </b>
+            </div>
+
+            <div>
+              <small>
+                START LEVEL
+              </small>
+              <b>
+                LV 1/{miner.maxLevel}
+              </b>
+            </div>
+
+            <div>
+              <small>
+                OWNED
+              </small>
+              <b>
+                {starterOwned
+                  ? 'YES'
+                  : number(
+                      miner.ownedCount,
+                    )}
+              </b>
+            </div>
+
+            <div>
+              <small>
+                BUY PRICE
+              </small>
+              <b>
+                {isStarter
+                  ? starterOwned
+                    ? 'FREE'
+                    : diamond(
+                        miner.purchasePrice,
+                      )
+                  : diamond(
+                      miner.purchasePrice,
+                    )}
+              </b>
+            </div>
           </div>
 
-          <div>
-            <small>
-              OWNED
-            </small>
-            <b>
-              {number(
-                miner.ownedCount,
-              )}
-            </b>
-          </div>
-
-          <div>
-            <small>
-              BUY PRICE
-            </small>
-            <b>
-              {diamond(
-                miner.purchasePrice,
-              )}
-            </b>
-          </div>
-        </div>
-
-        <button
-          type="button"
-          className="btn btn-primary"
-          style={{
-            width:
-              '100%',
-            minHeight: 44,
-          }}
-          disabled={busy}
-          onClick={() =>
-            void buy()
-          }
-        >
-          {busy ? (
-            'PROCESSING…'
-          ) : isStarter ? (
-            <>
-              <Check
-                size={16}
-              />
-              BUY
-            </>
-          ) : (
-            <>
-              <ShoppingCart
-                size={16}
-              />
-              BUY
-            </>
-          )}
-        </button>
-
-        {message ? (
-          <div
-            className={`miner-action-message ${
-              message.includes(
-                '✓',
-              )
-                ? 'success'
-                : 'error'
+          <button
+            type="button"
+            className={`btn ${
+              starterOwned
+                ? 'btn-ghost miner-owned-button'
+                : 'btn-primary'
             }`}
+            style={{
+              width: '100%',
+              minHeight: 44,
+            }}
+            disabled={
+              busy ||
+              starterOwned
+            }
+            onClick={openConfirm}
           >
-            {message}
-          </div>
-        ) : null}
-      </div>
-    </article>
+            {starterOwned ? (
+              <>
+                <Check
+                  size={16}
+                />
+                OWNED
+              </>
+            ) : busy ? (
+              'PROCESSING…'
+            ) : (
+              <>
+                <ShoppingCart
+                  size={16}
+                />
+                BUY
+              </>
+            )}
+          </button>
+
+          {message ? (
+            <div
+              className={`miner-action-message ${
+                message.includes(
+                  '✓',
+                )
+                  ? 'success'
+                  : 'error'
+              }`}
+            >
+              {message}
+            </div>
+          ) : null}
+        </div>
+      </article>
+
+      {confirmOpen ? (
+        <div
+          className="miner-purchase-overlay"
+          role="presentation"
+          onMouseDown={(event) => {
+            if (
+              event.target ===
+              event.currentTarget
+            ) {
+              closeConfirm();
+            }
+          }}
+        >
+          <section
+            className="miner-purchase-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={`confirm-purchase-${miner.catalogId}`}
+          >
+            <button
+              type="button"
+              className="miner-modal-close"
+              aria-label="Close purchase confirmation"
+              onClick={closeConfirm}
+              disabled={busy}
+            >
+              <X size={18} />
+            </button>
+
+            <div className="miner-modal-icon">
+              <ShoppingCart
+                size={20}
+              />
+            </div>
+
+            <div className="miner-modal-kicker">
+              PURCHASE CONFIRMATION
+            </div>
+
+            <h2
+              id={`confirm-purchase-${miner.catalogId}`}
+            >
+              Confirm Purchase
+            </h2>
+
+            <p className="miner-modal-copy">
+              You are about to buy{' '}
+              <strong>
+                {miner.name}
+              </strong>
+              . This Shop purchase adds a
+              new Level 1 copy to your
+              collection.
+            </p>
+
+            <div className="miner-modal-summary">
+              <div>
+                <span>
+                  PRICE
+                </span>
+                <strong>
+                  {isStarter
+                    ? 'FREE'
+                    : `${money(
+                        miner.purchasePrice,
+                      )} 💎`}
+                </strong>
+              </div>
+
+              <div>
+                <span>
+                  YOUR BALANCE
+                </span>
+                <strong>
+                  {money(
+                    diamondBalance,
+                  )}{' '}
+                  💎
+                </strong>
+              </div>
+
+              <div>
+                <span>
+                  AFTER PURCHASE
+                </span>
+                <strong
+                  className={
+                    !hasEnoughDiamond &&
+                    !isStarter
+                      ? 'danger'
+                      : ''
+                  }
+                >
+                  {isStarter
+                    ? money(
+                        diamondBalance,
+                      )
+                    : money(
+                        Math.max(
+                          0,
+                          diamondBalance -
+                            miner.purchasePrice,
+                        ),
+                      )}{' '}
+                  💎
+                </strong>
+              </div>
+            </div>
+
+            {!hasEnoughDiamond &&
+            !isStarter ? (
+              <div className="miner-modal-warning">
+                Insufficient Diamond balance for
+                this purchase.
+              </div>
+            ) : (
+              <div className="miner-modal-note">
+                Buy does not upgrade an existing miner.
+                It creates another Level 1 copy.
+              </div>
+            )}
+
+            <div className="miner-modal-actions">
+              <button
+                type="button"
+                className="miner-modal-cancel"
+                onClick={
+                  closeConfirm
+                }
+                disabled={busy}
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                className="miner-modal-confirm"
+                onClick={() =>
+                  void confirmPurchase()
+                }
+                disabled={
+                  busy ||
+                  (!hasEnoughDiamond &&
+                    !isStarter)
+                }
+              >
+                {busy
+                  ? 'PROCESSING…'
+                  : isStarter
+                    ? 'Yes, Add Starter'
+                    : 'Yes, Buy It'}
+              </button>
+            </div>
+          </section>
+        </div>
+      ) : null}
+    </>
   );
 }
