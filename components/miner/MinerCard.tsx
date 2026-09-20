@@ -67,8 +67,18 @@ export function MinerCard({ miner, diamondBalance, onChanged }: Props) {
 
       if (result.error) throw result.error;
 
+      const rawBonus = Number(
+        (result.data as { bonus_hashrate_percent?: unknown } | null)
+          ?.bonus_hashrate_percent ?? 0,
+      );
+      const bonus = Math.max(0, Math.min(5, rawBonus));
+
       setConfirmOpen(false);
-      setMessage(isStarter ? 'MINER ADDED ✓' : 'PURCHASE SUCCESSFUL ✓');
+      setMessage(
+        isStarter
+          ? `MINER ADDED · BONUS +${bonus.toFixed(1)}% ✓`
+          : `PURCHASE SUCCESSFUL · BONUS +${bonus.toFixed(1)}% ✓`,
+      );
       await onChanged?.();
     } catch (error) {
       setMessage(actionError(error));
@@ -117,7 +127,9 @@ export function MinerCard({ miner, diamondBalance, onChanged }: Props) {
             </div>
             <div>
               <span>PRICE</span>
-              <strong>{isStarter ? 'FREE' : diamond(miner.purchasePrice)}</strong>
+              <strong>
+                {isStarter ? 'FREE' : diamond(miner.purchasePrice)}
+              </strong>
             </div>
           </div>
 
@@ -165,7 +177,7 @@ export function MinerCard({ miner, diamondBalance, onChanged }: Props) {
             <div
               className={`miner-action-message ${
                 message.includes('✓') ? 'success' : 'error'
-              }`}
+              } ${message.includes('BONUS') ? 'bonus' : ''}`}
             >
               {message}
             </div>
@@ -216,7 +228,9 @@ export function MinerCard({ miner, diamondBalance, onChanged }: Props) {
             <div className="miner-modal-summary">
               <div>
                 <span>PRICE</span>
-                <strong>{isStarter ? 'FREE' : `${money(miner.purchasePrice)} 💎`}</strong>
+                <strong>
+                  {isStarter ? 'FREE' : `${money(miner.purchasePrice)} 💎`}
+                </strong>
               </div>
               <div>
                 <span>YOUR BALANCE</span>
@@ -240,7 +254,11 @@ export function MinerCard({ miner, diamondBalance, onChanged }: Props) {
                 onClick={() => void confirmPurchase()}
                 disabled={busy || starterOwned || !canBuy}
               >
-                {busy ? 'PROCESSING…' : isStarter ? 'Yes, Add Starter' : 'Yes, Buy It'}
+                {busy
+                  ? 'PROCESSING…'
+                  : isStarter
+                    ? 'Yes, Add Starter'
+                    : 'Yes, Buy It'}
               </button>
             </div>
           </section>
