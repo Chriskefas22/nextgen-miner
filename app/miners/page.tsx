@@ -1,10 +1,12 @@
 'use client';
 
+import { HelpCircle, Layers, Package, Sparkles, X, Zap } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AppShell } from '@/components/layout/AppShell';
 import { MinerCard, Miner } from '@/components/miner/MinerCard';
 import { createClient } from '@/lib/supabase/client';
 import { diamond } from '@/lib/format';
+import './miners-shop.css';
 
 const FILTERS = [
   'All',
@@ -50,6 +52,7 @@ export default function MinersPage() {
   const [balance, setBalance] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [helpOpen, setHelpOpen] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -155,22 +158,118 @@ export default function MinersPage() {
   );
 
   return (
-    <AppShell showSearch={false}>
+    <AppShell showSearch={false} showBalance={false}>
       <div className="shop-page-head">
-        <div>
+        <div className="shop-title-block">
           <div className="eyebrow">MINER SHOP</div>
-          <h1 className="page-title">Choose Your Miner</h1>
+          <div className="shop-title-line">
+            <h1 className="page-title">Choose Your Miner</h1>
+            <button
+              type="button"
+              className="shop-help-trigger"
+              aria-label="What's this? Learn how miners work"
+              aria-haspopup="dialog"
+              aria-expanded={helpOpen}
+              onClick={() => setHelpOpen(true)}
+              title="What's this? Learn how miners work"
+            >
+              <HelpCircle size={18} strokeWidth={2.25} />
+            </button>
+          </div>
           <p className="shop-page-subtitle">Browse miners and purchase directly from the collection.</p>
         </div>
 
         <div className="shop-balance-card" aria-label="Diamond balance">
-          <span>💎</span>
+          <span className="shop-balance-gem">💎</span>
           <div>
             <small>YOUR BALANCE</small>
             <strong>{diamond(balance)}</strong>
           </div>
         </div>
       </div>
+
+      {helpOpen ? (
+        <div
+          className="miner-shop-help-overlay"
+          role="presentation"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setHelpOpen(false);
+          }}
+        >
+          <section
+            className="miner-shop-help-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="miner-shop-help-title"
+          >
+            <button
+              type="button"
+              className="miner-shop-help-close"
+              aria-label="Close miner guide"
+              onClick={() => setHelpOpen(false)}
+            >
+              <X size={20} />
+            </button>
+
+            <div className="miner-shop-help-icon">
+              <HelpCircle size={21} />
+            </div>
+
+            <div className="miner-shop-help-kicker">MINER GUIDE</div>
+            <h2 id="miner-shop-help-title">How the Miner Works</h2>
+            <p className="miner-shop-help-intro">
+              Miners are the core units that add hashrate to your mining network. Choose a miner, purchase it, then manage it from your Inventory and Rooms.
+            </p>
+
+            <div className="miner-shop-help-steps">
+              <div className="miner-shop-help-step">
+                <span><Package size={18} /></span>
+                <div>
+                  <b>1. Buy a Miner</b>
+                  <p>Purchase a Level 1 miner directly from the Shop using your Diamond balance.</p>
+                </div>
+              </div>
+
+              <div className="miner-shop-help-step">
+                <span><Layers size={18} /></span>
+                <div>
+                  <b>2. Manage in Inventory</b>
+                  <p>Your purchased miner is available in Inventory for deployment and collection management.</p>
+                </div>
+              </div>
+
+              <div className="miner-shop-help-step">
+                <span><Zap size={18} /></span>
+                <div>
+                  <b>3. Deploy to a Room</b>
+                  <p>Place a miner into a Room to activate it and use its hashrate as part of your setup.</p>
+                </div>
+              </div>
+
+              <div className="miner-shop-help-step">
+                <span><Sparkles size={18} /></span>
+                <div>
+                  <b>4. Upgrade Your Setup</b>
+                  <p>Build matching miner collections and use the available Room and merge mechanics to advance your miners.</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="miner-shop-help-note">
+              <strong>Tip</strong>
+              <span>Choose miners by their hashrate, tier, and price so your collection fits the way you want to build your network.</span>
+            </div>
+
+            <button
+              type="button"
+              className="miner-shop-help-done"
+              onClick={() => setHelpOpen(false)}
+            >
+              Got it
+            </button>
+          </section>
+        </div>
+      ) : null}
 
       <div className="shop-filter-row">
         {FILTERS.map((item) => (
