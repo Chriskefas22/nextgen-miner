@@ -1,0 +1,63 @@
+
+/* CP25 — deployed miner return control lives in Room / Rack. */
+.slotReturn {
+  position: absolute;
+  right: 5px;
+  bottom: 5px;
+  z-index: 4;
+
+  width: 24px;
+  height: 24px;
+
+  display: grid;
+  place-items: center;
+
+  border: 1px solid rgba(255, 170, 74, 0.34);
+  border-radius: 7px;
+
+  background: rgba(2, 9, 16, 0.82);
+  color: #ffd08a;
+
+  cursor: pointer;
+
+  backdrop-filter: blur(6px);
+}
+
+.slotReturn:hover {
+  border-color: rgba(255, 191, 48, 0.60);
+  color: #fff0c2;
+  background: rgba(25, 18, 10, 0.88);
+}
+
+.slotReturn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.rackHint {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+
+  margin-top: 8px;
+  color: #6f8b9e;
+  font-size: 8px;
+}
+
+.rackHint svg {
+  color: #ffc65c;
+}
+
+@media (max-width: 700px) {
+  .slotReturn {
+    width: 26px;
+    height: 26px;
+  }
+
+  .rackHint {
+    justify-content: center;
+    text-align: center;
+    line-height: 1.4;
+  }
+}
