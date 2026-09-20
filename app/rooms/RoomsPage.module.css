@@ -22,3 +22,8 @@
 @media(max-width:1000px){.selectorHero,.roomHero{align-items:flex-start;flex-direction:column}.heroStats{width:100%;grid-template-columns:1fr 1fr}.roomButtons{grid-template-columns:repeat(2,1fr)}.roomControls{grid-template-columns:1fr 1fr}.roomControls .primaryBtn{grid-column:1/-1}.roomFooter{grid-template-columns:1fr 1fr}.roomFooter .secondaryBtn{width:100%}.rackGrid{grid-template-columns:repeat(4,minmax(0,1fr)) !important}}
 @media(max-width:700px){.page{gap:11px}.selectorHero,.roomHero{padding:16px 14px;border-radius:17px}.title,.roomHero h1{font-size:28px}.selectorHero p,.roomHero p{font-size:10px}.roomButtons{grid-template-columns:1fr}.roomButton{min-height:64px}.unlockPanel{display:grid;align-items:start;padding:14px}.unlockPanel .primaryBtn,.unlockPanel .maxBadge{width:100%}.roomControls{grid-template-columns:1fr 1fr;padding:9px}.roomControls .primaryBtn{grid-column:1/-1}.roomStats{grid-template-columns:1fr 1fr}.rackPanel{padding:11px}.rackGrid{grid-template-columns:repeat(3,minmax(0,1fr)) !important;gap:7px}.roomFooter{grid-template-columns:1fr 1fr}.roomFooter .secondaryBtn{grid-column:1/-1}.lockPanel{min-height:430px;padding:28px 17px}.roomNav{padding-bottom:1px}.backLink{font-size:8px}}
 @media(max-width:420px){.roomControls{grid-template-columns:1fr}.roomControls .primaryBtn{grid-column:auto}.rackGrid{grid-template-columns:repeat(3,minmax(0,1fr)) !important}.heroStats{grid-template-columns:1fr 1fr}}
+
+/* Rack column utilities for the dedicated Room page. */
+.rack3{--rack-columns:3}
+.rack4{--rack-columns:4}
+.rack6{--rack-columns:6}
