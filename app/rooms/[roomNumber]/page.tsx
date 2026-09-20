@@ -429,16 +429,47 @@ export default function RoomDetailPage() {
       <div className={styles.page}>
         <div className={styles.roomNav}>
           <Link
-            href="/rooms"
+            href="/rooms/1"
             className={styles.backLink}
           >
             <ArrowLeft size={14} />
-            ALL ROOMS
+            ROOM 01
           </Link>
 
-          <span className={styles.roomNavItem}>
-            ROOM {String(room.room_number).padStart(2, '0')}
-          </span>
+          {(data?.rooms ?? []).map((candidate) => (
+            <Link
+              key={candidate.room_number}
+              href={`/rooms/${candidate.room_number}`}
+              className={
+                candidate.room_number === room.room_number
+                  ? styles.roomNavItem
+                  : styles.backLink
+              }
+            >
+              ROOM {String(candidate.room_number).padStart(2, '0')}
+            </Link>
+          ))}
+
+          {Array.from(
+            {
+              length: Math.max(
+                0,
+                (data?.max_rooms ?? 5) -
+                  (data?.rooms?.length ?? 0),
+              ),
+            },
+            (_, index) =>
+              (data?.rooms?.length ?? 0) + index + 1,
+          ).map((lockedNumber) => (
+            <Link
+              key={`locked-${lockedNumber}`}
+              href={`/rooms/${lockedNumber}`}
+              className={styles.backLink}
+            >
+              <LockKeyhole size={11} />
+              ROOM {String(lockedNumber).padStart(2, '0')}
+            </Link>
+          ))}
         </div>
 
         {message ? (
