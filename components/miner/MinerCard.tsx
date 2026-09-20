@@ -30,30 +30,20 @@ type Props = {
 };
 
 function actionError(error: unknown) {
-  if (
-    error &&
-    typeof error === 'object' &&
-    'message' in error
-  ) {
+  if (error && typeof error === 'object' && 'message' in error) {
     return String(
-      (error as { message?: unknown }).message ??
-        'Action failed',
+      (error as { message?: unknown }).message ?? 'Action failed',
     );
   }
 
-  return error instanceof Error
-    ? error.message
-    : 'Action failed';
+  return error instanceof Error ? error.message : 'Action failed';
 }
 
 function money(value: number) {
-  return Number(value || 0).toLocaleString(
-    'en-US',
-    {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 2,
-    },
-  );
+  return Number(value || 0).toLocaleString('en-US', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  });
 }
 
 export function MinerCard({
@@ -61,35 +51,34 @@ export function MinerCard({
   diamondBalance,
   onChanged,
 }: Props) {
-  const [busy, setBusy] =
-    useState(false);
-
-  const [message, setMessage] =
-    useState('');
-
-  const [confirmOpen, setConfirmOpen] =
-    useState(false);
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState('');
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   /*
    * Starter Keyboard is the free launch miner.
-   * Once it has been provisioned to the account,
-   * its Shop action becomes a permanent OWNED state.
+   * After the server provisions it, Shop shows OWNED.
    */
-  const isStarter =
-    miner.slug === 'starter-keyboard';
-
-  const starterOwned =
-    isStarter && miner.owned;
+  const isStarter = miner.slug === 'starter-keyboard';
+  const starterOwned = isStarter && miner.owned;
 
   /*
-   * Important:
-   * Shop BUY always purchases a NEW Level 1 copy.
-   * Shop never calls nextgen_upgrade_miner.
-   * Level progression remains:
+   * SHOP PURCHASE RULE
    *
-   *   BUY x2 -> deploy same Room -> merge -> Level 2
-   *   BUY x2 -> deploy same Room -> merge -> Level 2
-   *   Level 2 x2 -> merge -> Level 3
+   * Every BUY creates ONE NEW Level 1 copy.
+   *
+   * Shop does NOT:
+   * - upgrade an existing miner
+   * - merge miners
+   * - change a miner's level
+   *
+   * Level progression remains in the existing
+   * Inventory / Room / Merge flow:
+   *
+   * BUY x2 -> same Room -> MERGE -> Level 2
+   * BUY x2 -> same Room -> MERGE -> Level 2
+   * Level 2 x2 -> MERGE -> Level 3
+   * ... repeat through Level 10.
    */
   async function confirmPurchase() {
     if (busy || starterOwned) return;
@@ -98,18 +87,14 @@ export function MinerCard({
     setMessage('');
 
     try {
-      const result =
-        await createClient().rpc(
-          'nextgen_purchase_miner',
-          {
-            p_miner_id:
-              miner.catalogId,
-          },
-        );
+      const result = await createClient().rpc(
+        'nextgen_purchase_miner',
+        {
+          p_miner_id: miner.catalogId,
+        },
+      );
 
-      if (result.error) {
-        throw result.error;
-      }
+      if (result.error) throw result.error;
 
       setConfirmOpen(false);
 
@@ -121,9 +106,7 @@ export function MinerCard({
 
       await onChanged?.();
     } catch (error) {
-      setMessage(
-        actionError(error),
-      );
+      setMessage(actionError(error));
     } finally {
       setBusy(false);
     }
@@ -131,7 +114,6 @@ export function MinerCard({
 
   function openConfirm() {
     if (busy || starterOwned) return;
-
     setMessage('');
     setConfirmOpen(true);
   }
@@ -142,18 +124,14 @@ export function MinerCard({
   }
 
   const hasEnoughDiamond =
-    diamondBalance >=
-    miner.purchasePrice;
+    diamondBalance >= miner.purchasePrice;
 
   return (
     <>
       <article
         className={`miner-card glass rarity-${miner.tier
           .toLowerCase()
-          .replace(
-            /[^a-z0-9]+/g,
-            '-',
-          )}`}
+          .replace(/[^a-z0-9]+/g, '-')}`}
       >
         <div className="miner-visual">
           <img
@@ -178,21 +156,20 @@ export function MinerCard({
               OWNED · FREE
             </span>
           ) : miner.owned ? (
+            /*
+             * Do NOT display "×5", "×10", etc.
+             * Inventory quantity remains available in the
+             * data model, but the Shop card stays clean.
+             */
             <span
               className={`ownership ${
-                miner.active
-                  ? 'active'
-                  : ''
+                miner.active ? 'active' : ''
               }`}
             >
-              {miner.deploymentState ===
-                'deployed' &&
+              {miner.deploymentState === 'deployed' &&
               miner.active
                 ? 'DEPLOYED'
                 : 'IN INVENTORY'}
-              {miner.ownedCount > 1
-                ? ` ×${miner.ownedCount}`
-                : ''}
             </span>
           ) : null}
         </div>
@@ -200,15 +177,13 @@ export function MinerCard({
         <div className="miner-copy">
           <div className="miner-title-row">
             <div>
-              <h3>
-                {miner.name}
-              </h3>
+              <h3>{miner.name}</h3>
 
               <p>
                 {starterOwned
                   ? 'Your free starter miner is already owned. Deploy it from Inventory into a Room.'
                   : miner.owned
-                    ? 'Shop purchases always create another Level 1 copy. Merge matching miners later to progress.'
+                    ? 'Buy another copy anytime. Each purchase creates a new Level 1 miner for your collection.'
                     : 'Buy a Level 1 copy. Buy again whenever you need more identical miners for merging.'}
               </p>
             </div>
@@ -216,52 +191,32 @@ export function MinerCard({
 
           <div className="miner-grid">
             <div>
-              <small>
-                BASE HASHRATE
-              </small>
-              <b>
-                {hash(
-                  miner.baseHashrate,
-                )}
-              </b>
+              <small>BASE HASHRATE</small>
+              <b>{hash(miner.baseHashrate)}</b>
             </div>
 
             <div>
-              <small>
-                START LEVEL
-              </small>
-              <b>
-                LV 1/{miner.maxLevel}
-              </b>
+              <small>START LEVEL</small>
+              <b>LV 1/{miner.maxLevel}</b>
             </div>
 
             <div>
-              <small>
-                OWNED
-              </small>
+              <small>OWNED</small>
               <b>
                 {starterOwned
                   ? 'YES'
-                  : number(
-                      miner.ownedCount,
-                    )}
+                  : number(miner.ownedCount)}
               </b>
             </div>
 
             <div>
-              <small>
-                BUY PRICE
-              </small>
+              <small>BUY PRICE</small>
               <b>
                 {isStarter
                   ? starterOwned
                     ? 'FREE'
-                    : diamond(
-                        miner.purchasePrice,
-                      )
-                  : diamond(
-                      miner.purchasePrice,
-                    )}
+                    : diamond(miner.purchasePrice)
+                  : diamond(miner.purchasePrice)}
               </b>
             </div>
           </div>
@@ -277,26 +232,19 @@ export function MinerCard({
               width: '100%',
               minHeight: 44,
             }}
-            disabled={
-              busy ||
-              starterOwned
-            }
+            disabled={busy || starterOwned}
             onClick={openConfirm}
           >
             {starterOwned ? (
               <>
-                <Check
-                  size={16}
-                />
+                <Check size={16} />
                 OWNED
               </>
             ) : busy ? (
               'PROCESSING…'
             ) : (
               <>
-                <ShoppingCart
-                  size={16}
-                />
+                <ShoppingCart size={16} />
                 BUY
               </>
             )}
@@ -305,11 +253,7 @@ export function MinerCard({
           {message ? (
             <div
               className={`miner-action-message ${
-                message.includes(
-                  '✓',
-                )
-                  ? 'success'
-                  : 'error'
+                message.includes('✓') ? 'success' : 'error'
               }`}
             >
               {message}
@@ -323,10 +267,7 @@ export function MinerCard({
           className="miner-purchase-overlay"
           role="presentation"
           onMouseDown={(event) => {
-            if (
-              event.target ===
-              event.currentTarget
-            ) {
+            if (event.target === event.currentTarget) {
               closeConfirm();
             }
           }}
@@ -348,73 +289,49 @@ export function MinerCard({
             </button>
 
             <div className="miner-modal-icon">
-              <ShoppingCart
-                size={20}
-              />
+              <ShoppingCart size={20} />
             </div>
 
             <div className="miner-modal-kicker">
               PURCHASE CONFIRMATION
             </div>
 
-            <h2
-              id={`confirm-purchase-${miner.catalogId}`}
-            >
+            <h2 id={`confirm-purchase-${miner.catalogId}`}>
               Confirm Purchase
             </h2>
 
             <p className="miner-modal-copy">
               You are about to buy{' '}
-              <strong>
-                {miner.name}
-              </strong>
-              . This Shop purchase adds a
-              new Level 1 copy to your
-              collection.
+              <strong>{miner.name}</strong>. This Shop purchase
+              adds one new Level 1 copy to your collection.
             </p>
 
             <div className="miner-modal-summary">
               <div>
-                <span>
-                  PRICE
-                </span>
+                <span>PRICE</span>
                 <strong>
                   {isStarter
                     ? 'FREE'
-                    : `${money(
-                        miner.purchasePrice,
-                      )} 💎`}
+                    : `${money(miner.purchasePrice)} 💎`}
                 </strong>
               </div>
 
               <div>
-                <span>
-                  YOUR BALANCE
-                </span>
-                <strong>
-                  {money(
-                    diamondBalance,
-                  )}{' '}
-                  💎
-                </strong>
+                <span>YOUR BALANCE</span>
+                <strong>{money(diamondBalance)} 💎</strong>
               </div>
 
               <div>
-                <span>
-                  AFTER PURCHASE
-                </span>
+                <span>AFTER PURCHASE</span>
                 <strong
                   className={
-                    !hasEnoughDiamond &&
-                    !isStarter
+                    !hasEnoughDiamond && !isStarter
                       ? 'danger'
                       : ''
                   }
                 >
                   {isStarter
-                    ? money(
-                        diamondBalance,
-                      )
+                    ? money(diamondBalance)
                     : money(
                         Math.max(
                           0,
@@ -427,16 +344,14 @@ export function MinerCard({
               </div>
             </div>
 
-            {!hasEnoughDiamond &&
-            !isStarter ? (
+            {!hasEnoughDiamond && !isStarter ? (
               <div className="miner-modal-warning">
-                Insufficient Diamond balance for
-                this purchase.
+                Insufficient Diamond balance for this purchase.
               </div>
             ) : (
               <div className="miner-modal-note">
-                Buy does not upgrade an existing miner.
-                It creates another Level 1 copy.
+                Each BUY creates another Level 1 copy. Shop
+                purchases never upgrade existing miners.
               </div>
             )}
 
@@ -444,9 +359,7 @@ export function MinerCard({
               <button
                 type="button"
                 className="miner-modal-cancel"
-                onClick={
-                  closeConfirm
-                }
+                onClick={closeConfirm}
                 disabled={busy}
               >
                 Cancel
@@ -455,13 +368,10 @@ export function MinerCard({
               <button
                 type="button"
                 className="miner-modal-confirm"
-                onClick={() =>
-                  void confirmPurchase()
-                }
+                onClick={() => void confirmPurchase()}
                 disabled={
                   busy ||
-                  (!hasEnoughDiamond &&
-                    !isStarter)
+                  (!hasEnoughDiamond && !isStarter)
                 }
               >
                 {busy
