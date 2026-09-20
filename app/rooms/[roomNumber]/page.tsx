@@ -11,8 +11,8 @@ import {
   RotateCcw,
   Sparkles,
 } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react';
-import { usePathname } from 'next/navigation';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useParams } from 'next/navigation';
 import { AppShell } from '@/components/layout/AppShell';
 import { createClient } from '@/lib/supabase/client';
 import styles from '../RoomsPage.module.css';
@@ -77,9 +77,8 @@ function imagePath(path: string | null, slug: string) {
 }
 
 export default function RoomDetailPage() {
-  const pathname = usePathname();
-  const pathParts = pathname.split('/').filter(Boolean);
-  const roomNumber = Number(pathParts[pathParts.length - 1] ?? '0');
+  const params = useParams<{ roomNumber: string }>();
+  const roomNumber = Number(params?.roomNumber);
 
   const [data, setData] = useState<RoomsSnapshot | null>(null);
   const [balance, setBalance] = useState(0);
@@ -132,9 +131,8 @@ export default function RoomDetailPage() {
     [data, roomNumber],
   );
 
-  const unlocked = Boolean(room);
   const nextRoom = data?.next_room_number ?? null;
-  const isNextLockedRoom = !unlocked && nextRoom === roomNumber;
+  const isNextLockedRoom = !room && nextRoom === roomNumber;
 
   async function unlockRoom() {
     if (busy || !isNextLockedRoom || !data) return;
@@ -250,7 +248,7 @@ export default function RoomDetailPage() {
     );
   }
 
-  if (!unlocked) {
+  if (!room) {
     const price = data?.next_room_unlock_price_diamond ?? 0;
 
     return (
@@ -475,17 +473,13 @@ export default function RoomDetailPage() {
           </div>
 
           <div
-            className={styles.rackGrid}
-            style={
-              {
-                '--rack-columns':
-                  room.capacity_slots >= 48
-                    ? 6
-                    : room.capacity_slots >= 24
-                      ? 4
-                      : 3,
-              } as CSSProperties
-            }
+            className={`${styles.rackGrid} ${
+              room.capacity_slots >= 48
+                ? styles.rack6
+                : room.capacity_slots >= 24
+                  ? styles.rack4
+                  : styles.rack3
+            }`}
           >
             {slots.map((slot, index) =>
               slot ? (
