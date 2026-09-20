@@ -312,8 +312,7 @@ export function MinerCard({
             </h2>
 
             <p className="miner-modal-copy">
-              Add one new <strong>{miner.name}</strong> Level 1
-              miner to your collection.
+              Review the purchase details below for <strong>{miner.name}</strong>.
             </p>
 
             <div className="miner-modal-summary">
@@ -332,11 +331,6 @@ export function MinerCard({
                   {money(diamondBalance)} 💎
                 </strong>
               </div>
-            </div>
-
-            <div className="miner-modal-note">
-              Each BUY creates one new Level 1 copy. Shop
-              purchases never upgrade existing miners.
             </div>
 
             <div className="miner-modal-actions">
