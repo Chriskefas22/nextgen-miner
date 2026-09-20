@@ -1,5 +1,6 @@
 /* =========================================================
    NEXTGEN MINER — MINER CARD
+   CP: BUY BUTTON GATE + PURCHASE CONFIRMATION
    ========================================================= */
 
 .miner-card {
@@ -7,6 +8,7 @@
 
   position: relative;
   overflow: hidden;
+
   border-radius: 18px !important;
 
   background:
@@ -16,7 +18,8 @@
       rgba(2, 8, 15, 0.99)
     ) !important;
 
-  border: 1px solid
+  border:
+    1px solid
     color-mix(
       in srgb,
       var(--miner-accent) 18%,
@@ -33,13 +36,14 @@
   transform: translateY(-3px);
 
   box-shadow:
-    0 18px 46px rgba(0, 0, 0, 0.34),
+    0 18px 46px
+      rgba(0, 0, 0, 0.34),
     0 0 26px
       color-mix(
         in srgb,
         var(--miner-accent) 12%,
         transparent
-      ) !important;
+      );
 
   border-color:
     color-mix(
@@ -51,9 +55,13 @@
 
 .miner-visual {
   position: relative !important;
+
   aspect-ratio: 3 / 2;
+
   width: 100%;
+
   overflow: hidden;
+
   padding: 0 !important;
 
   background:
@@ -78,6 +86,7 @@
     );
 
   pointer-events: none;
+
   z-index: 1;
 }
 
@@ -102,7 +111,9 @@
     filter 0.35s ease;
 }
 
-.miner-card:hover .miner-visual img {
+.miner-card:hover
+  .miner-visual
+  img {
   transform: scale(1.018);
 
   filter:
@@ -114,6 +125,10 @@
 .miner-scan {
   display: none !important;
 }
+
+/* =========================================================
+   RARITY
+   ========================================================= */
 
 .rarity-uncommon {
   --miner-accent: #35f3b4;
@@ -147,13 +162,19 @@
   --miner-accent: #35f3b4;
 }
 
+/* =========================================================
+   IMAGE BADGES
+   ========================================================= */
+
 .rarity-badge,
 .lvl,
 .ownership {
   position: absolute;
+
   z-index: 3;
 
-  border: 1px solid
+  border:
+    1px solid
     color-mix(
       in srgb,
       var(--miner-accent) 48%,
@@ -170,6 +191,7 @@
   padding: 5px 8px;
 
   font-size: 9px;
+
   font-weight: 900;
 
   letter-spacing: 0.1em;
@@ -178,26 +200,35 @@
 .rarity-badge {
   left: 10px;
   top: 10px;
-  color: var(--miner-accent);
+
+  color:
+    var(--miner-accent);
 }
 
 .lvl {
   right: 10px;
   top: 10px;
+
   color: #ffffff;
 }
 
 .ownership {
   right: 10px;
   bottom: 10px;
+
   color: #a9bfd1;
 }
 
 .ownership.active {
   color: #35f3b4;
+
   border-color:
     rgba(53, 243, 180, 0.4);
 }
+
+/* =========================================================
+   CARD CONTENT
+   ========================================================= */
 
 .miner-copy {
   padding: 14px !important;
@@ -205,565 +236,1148 @@
 
 .miner-title-row {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
+
+  justify-content:
+    space-between;
+
+  align-items:
+    flex-start;
+
   gap: 10px;
 }
 
 .miner-card h3 {
   margin: 0 !important;
-  font-family: Orbitron !important;
+
+  font-family:
+    Orbitron !important;
+
   font-size: 15px !important;
+
   line-height: 1.2 !important;
+
   color: #f4f8ff !important;
 }
 
 .miner-card p {
-  margin: 6px 0 0 !important;
+  margin:
+    6px 0 0 !important;
+
   color: #8ea6ba !important;
+
   font-size: 10px !important;
+
   line-height: 1.45 !important;
-}
-
-.premium-tag {
-  flex-shrink: 0;
-
-  padding: 4px 7px;
-  border-radius: 999px;
-
-  border: 1px solid
-    color-mix(
-      in srgb,
-      var(--miner-accent) 45%,
-      transparent
-    );
-
-  color: var(--miner-accent);
-
-  font-size: 8px;
-  font-weight: 900;
-  letter-spacing: 0.1em;
-  white-space: nowrap;
-}
-
-.level-head {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 12px;
-  margin-bottom: 6px;
-
-  color: #7897ad;
-  font-size: 8px;
-  font-weight: 900;
-  letter-spacing: 0.08em;
-}
-
-.level-head b {
-  color: #d9ebff;
-}
-
-.progress {
-  height: 6px !important;
-  overflow: hidden;
-  border-radius: 999px;
 }
 
 .miner-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr !important;
+
+  grid-template-columns:
+    1fr 1fr !important;
+
   gap: 7px !important;
-  margin: 11px 0 !important;
+
+  margin:
+    11px 0 !important;
 }
 
 .miner-grid > div {
   min-width: 0;
+
   padding: 9px !important;
+
   border-radius: 10px !important;
 
   background:
-    rgba(6, 17, 29, 0.78) !important;
+    rgba(
+      6,
+      17,
+      29,
+      0.78
+    ) !important;
 
   border:
     1px solid
-    rgba(45, 110, 149, 0.19) !important;
+    rgba(
+      45,
+      110,
+      149,
+      0.19
+    ) !important;
 }
 
 .miner-grid small {
   display: block;
 
   font-size: 7px !important;
-  letter-spacing: 0.1em;
-  color: #67869e !important;
+
+  letter-spacing:
+    0.1em;
+
+  color:
+    #67869e !important;
 }
 
 .miner-grid b {
   display: block;
+
   margin-top: 3px;
+
   font-size: 10px !important;
+
   color: #e5f2ff;
 }
 
-.miner-card .btn {
-  width: 100% !important;
-  min-height: 42px;
-  font-size: 10px !important;
+/* =========================================================
+   BALANCE WARNING
+   ========================================================= */
+
+.miner-balance-warning {
+  display: flex;
+
+  align-items:
+    center;
+
+  gap: 7px;
+
+  margin:
+    0 0 9px;
+
+  padding:
+    8px 9px;
+
+  border:
+    1px solid
+    rgba(
+      255,
+      111,
+      140,
+      0.18
+    );
+
+  border-radius: 9px;
+
+  color: #a9bac8;
+
+  background:
+    rgba(
+      255,
+      74,
+      108,
+      0.045
+    );
+
+  font-size: 8px;
+
+  line-height: 1.35;
 }
 
-.miner-owned-button {
-  color: #73f5c5 !important;
-  border-color:
-    rgba(53, 243, 180, 0.32) !important;
-  background:
-    rgba(53, 243, 180, 0.055) !important;
-  cursor: default !important;
+.miner-balance-warning svg {
+  flex:
+    0 0 auto;
+
+  color:
+    #ff90aa;
 }
+
+.miner-balance-warning strong {
+  color:
+    #ffc0cc;
+}
+
+/* =========================================================
+   BUY BUTTON — THREE STATES
+   1. ready: illuminated / clickable
+   2. disabled: dark / not clickable
+   3. owned: green ownership state
+   ========================================================= */
+
+.miner-buy-button {
+  width: 100%;
+
+  min-height: 46px;
+
+  display: flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  gap: 8px;
+
+  border-radius: 11px;
+
+  padding:
+    11px 14px;
+
+  border: 1px solid;
+
+  font-family:
+    Rajdhani,
+    sans-serif;
+
+  font-size: 11px;
+
+  font-weight: 900;
+
+  letter-spacing:
+    0.08em;
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease,
+    opacity 0.2s ease,
+    border-color 0.2s ease;
+
+  -webkit-tap-highlight-color:
+    transparent;
+}
+
+.miner-buy-button.ready {
+  color: #031219;
+
+  border-color:
+    rgba(
+      103,
+      246,
+      210,
+      0.52
+    );
+
+  background:
+    linear-gradient(
+      135deg,
+      #31dcff 0%,
+      #6360ff 47%,
+      #923cff 100%
+    );
+
+  box-shadow:
+    0 0 24px
+      rgba(
+        48,
+        219,
+        255,
+        0.16
+      ),
+    inset 0 1px 0
+      rgba(
+        255,
+        255,
+        255,
+        0.16
+      );
+
+  cursor: pointer;
+}
+
+.miner-buy-button.ready:hover {
+  transform:
+    translateY(-1px);
+
+  box-shadow:
+    0 0 30px
+      rgba(
+        64,
+        226,
+        255,
+        0.24
+      ),
+    0 0 26px
+      rgba(
+        112,
+        76,
+        255,
+        0.16
+      ),
+    inset 0 1px 0
+      rgba(
+        255,
+        255,
+        255,
+        0.18
+      );
+}
+
+.miner-buy-button.ready:active {
+  transform:
+    translateY(0)
+    scale(0.99);
+}
+
+.miner-buy-button.disabled {
+  color:
+    #647989;
+
+  border-color:
+    rgba(
+      75,
+      103,
+      120,
+      0.22
+    );
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(
+        12,
+        27,
+        39,
+        0.92
+      ),
+      rgba(
+        5,
+        14,
+        23,
+        0.96
+      )
+    );
+
+  box-shadow:
+    inset 0 0 18px
+      rgba(
+        0,
+        0,
+        0,
+        0.24
+      );
+
+  cursor:
+    not-allowed;
+
+  opacity:
+    0.68;
+
+  filter:
+    saturate(0.5);
+}
+
+.miner-buy-button.owned {
+  color:
+    #73f5c5;
+
+  border-color:
+    rgba(
+      53,
+      243,
+      180,
+      0.28
+    );
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(
+        23,
+        83,
+        73,
+        0.25
+      ),
+      rgba(
+        8,
+        25,
+        29,
+        0.72
+      )
+    );
+
+  cursor:
+    default;
+}
+
+.miner-buy-button:disabled {
+  transform:
+    none !important;
+}
+
+/* =========================================================
+   ACTION FEEDBACK
+   ========================================================= */
 
 .miner-action-message {
   margin-top: 8px;
-  padding: 7px 9px;
+
+  padding:
+    7px 9px;
+
   border-radius: 9px;
+
   font-size: 9px;
+
   font-weight: 800;
 }
 
 .miner-action-message.success {
-  color: #8affe0;
+  color:
+    #8affe0;
+
   background:
-    rgba(53, 243, 180, 0.07);
+    rgba(
+      53,
+      243,
+      180,
+      0.07
+    );
+
   border:
     1px solid
-    rgba(53, 243, 180, 0.2);
+    rgba(
+      53,
+      243,
+      180,
+      0.2
+    );
 }
 
 .miner-action-message.error {
-  color: #ffb0bf;
+  color:
+    #ffb0bf;
+
   background:
-    rgba(255, 85, 122, 0.07);
+    rgba(
+      255,
+      85,
+      122,
+      0.07
+    );
+
   border:
     1px solid
-    rgba(255, 85, 122, 0.2);
+    rgba(
+      255,
+      85,
+      122,
+      0.2
+    );
 }
 
 /* =========================================================
-   PURCHASE CONFIRMATION MODAL
+   PURCHASE CONFIRMATION
    ========================================================= */
 
 .miner-purchase-overlay {
   position: fixed;
+
   inset: 0;
+
   z-index: 5000;
 
   display: grid;
+
   place-items: center;
 
   padding:
-    max(18px, env(safe-area-inset-top))
-    max(18px, env(safe-area-inset-right))
-    max(18px, env(safe-area-inset-bottom))
-    max(18px, env(safe-area-inset-left));
+    max(
+      18px,
+      env(
+        safe-area-inset-top
+      )
+    )
+    max(
+      18px,
+      env(
+        safe-area-inset-right
+      )
+    )
+    max(
+      18px,
+      env(
+        safe-area-inset-bottom
+      )
+    )
+    max(
+      18px,
+      env(
+        safe-area-inset-left
+      )
+    );
 
   background:
-    rgba(1, 7, 13, 0.78);
+    radial-gradient(
+      circle at center,
+      rgba(
+        49,
+        71,
+        105,
+        0.14
+      ),
+      transparent 55%
+    ),
+    rgba(
+      1,
+      6,
+      12,
+      0.82
+    );
 
-  backdrop-filter: blur(8px);
+  backdrop-filter:
+    blur(12px);
 }
 
 .miner-purchase-modal {
   position: relative;
 
-  width: min(
-    100%,
-    510px
-  );
+  width:
+    min(
+      100%,
+      500px
+    );
 
   max-height:
-    calc(100dvh - 36px);
+    calc(
+      100dvh -
+      36px
+    );
 
   overflow-y: auto;
 
-  padding: 24px;
+  padding:
+    22px;
 
   border:
     1px solid
-    rgba(54, 215, 255, 0.36);
+    rgba(
+      72,
+      216,
+      255,
+      0.32
+    );
 
-  border-radius: 20px;
+  border-radius:
+    22px;
 
   background:
     radial-gradient(
-      circle at 50% 0%,
-      rgba(71, 88, 255, 0.10),
-      transparent 48%
+      circle at
+        15% 0%,
+      rgba(
+        39,
+        226,
+        255,
+        0.08
+      ),
+      transparent 32%
+    ),
+    radial-gradient(
+      circle at
+        90% 10%,
+      rgba(
+        133,
+        67,
+        255,
+        0.12
+      ),
+      transparent 35%
     ),
     linear-gradient(
       145deg,
-      #081a2b,
-      #030a12
+      #081b30,
+      #030a12 82%
     );
 
   box-shadow:
-    0 30px 90px
-      rgba(0, 0, 0, 0.62),
-    inset 0 0 45px
-      rgba(50, 220, 255, 0.03);
+    0 35px 100px
+      rgba(
+        0,
+        0,
+        0,
+        0.62
+      ),
+    inset 0 0 55px
+      rgba(
+        59,
+        224,
+        255,
+        0.025
+      );
 }
 
 .miner-modal-close {
   position: absolute;
+
   top: 12px;
+
   right: 12px;
 
-  width: 34px;
-  height: 34px;
+  width: 36px;
+
+  height: 36px;
 
   display: grid;
+
   place-items: center;
 
   border:
     1px solid
-    rgba(100, 155, 180, 0.20);
+    rgba(
+      112,
+      151,
+      177,
+      0.18
+    );
 
-  border-radius: 9px;
+  border-radius:
+    10px;
 
   background:
-    rgba(4, 15, 26, 0.72);
+    rgba(
+      3,
+      12,
+      22,
+      0.72
+    );
 
-  color: #91aabb;
+  color:
+    #8ea8ba;
 
-  cursor: pointer;
+  cursor:
+    pointer;
 }
 
 .miner-modal-close:hover {
-  color: #ffffff;
+  color:
+    #ffffff;
+
   border-color:
-    rgba(69, 234, 255, 0.38);
+    rgba(
+      69,
+      234,
+      255,
+      0.35
+    );
+}
+
+.miner-modal-topline {
+  display: flex;
+
+  align-items:
+    center;
+
+  gap: 11px;
 }
 
 .miner-modal-icon {
-  width: 42px;
-  height: 42px;
+  width: 46px;
+
+  height: 46px;
 
   display: grid;
+
   place-items: center;
-
-  border-radius: 12px;
-
-  color: #51eec1;
 
   border:
     1px solid
-    rgba(81, 238, 193, 0.28);
+    rgba(
+      82,
+      239,
+      191,
+      0.28
+    );
+
+  border-radius:
+    13px;
+
+  color:
+    #57efbf;
 
   background:
-    rgba(81, 238, 193, 0.07);
+    linear-gradient(
+      145deg,
+      rgba(
+        82,
+        239,
+        191,
+        0.09
+      ),
+      rgba(
+        63,
+        178,
+        255,
+        0.04
+      )
+    );
 
   box-shadow:
     0 0 24px
-      rgba(81, 238, 193, 0.08);
+      rgba(
+        82,
+        239,
+        191,
+        0.07
+      );
 }
 
 .miner-modal-kicker {
-  margin-top: 15px;
+  color:
+    #48eaff;
 
-  color: #48eaff;
+  font-size:
+    8px;
 
-  font-size: 8px;
-  font-weight: 900;
+  font-weight:
+    900;
 
-  letter-spacing: 0.20em;
+  letter-spacing:
+    0.2em;
+}
+
+.miner-modal-status {
+  display: inline-flex;
+
+  align-items:
+    center;
+
+  gap: 6px;
+
+  margin-top:
+    4px;
+
+  color:
+    #67edc2;
+
+  font-size:
+    7px;
+
+  font-weight:
+    900;
+
+  letter-spacing:
+    0.09em;
+}
+
+.miner-modal-status span {
+  width: 6px;
+
+  height: 6px;
+
+  border-radius:
+    50%;
+
+  background:
+    currentColor;
+
+  box-shadow:
+    0 0 9px
+      currentColor;
 }
 
 .miner-purchase-modal h2 {
   margin:
-    6px 42px
-    0 0;
+    14px 44px 0 0;
 
   font:
-    700 25px
+    700 26px
     Orbitron,
     sans-serif;
 
-  color: #f4fbff;
+  letter-spacing:
+    -0.02em;
+
+  color:
+    #f5fcff;
 }
 
 .miner-modal-copy {
-  margin-top: 12px;
+  margin-top:
+    10px;
 
-  color: #88a5b7;
+  color:
+    #8aa5b7;
 
-  font-size: 11px;
+  font-size:
+    11px;
 
-  line-height: 1.6;
+  line-height:
+    1.6;
 }
 
 .miner-modal-copy strong {
-  color: #f4fbff;
+  color:
+    #f3fbff;
 }
 
 .miner-modal-summary {
-  display: grid;
-  gap: 7px;
+  display:
+    grid;
 
-  margin-top: 17px;
+  gap: 2px;
 
-  padding: 12px;
+  margin-top:
+    16px;
+
+  padding:
+    7px 13px;
 
   border:
     1px solid
-    rgba(50, 113, 150, 0.18);
+    rgba(
+      43,
+      109,
+      146,
+      0.18
+    );
 
-  border-radius: 13px;
+  border-radius:
+    14px;
 
   background:
-    rgba(4, 15, 26, 0.72);
+    linear-gradient(
+      145deg,
+      rgba(
+        6,
+        22,
+        36,
+        0.88
+      ),
+      rgba(
+        3,
+        12,
+        21,
+        0.88
+      )
+    );
 }
 
 .miner-modal-summary > div {
-  display: flex;
+  display:
+    flex;
 
-  align-items: center;
-  justify-content: space-between;
+  align-items:
+    center;
 
-  gap: 10px;
+  justify-content:
+    space-between;
+
+  gap:
+    12px;
 
   padding:
-    8px 0;
+    12px 0;
 
   border-bottom:
     1px solid
-    rgba(44, 100, 134, 0.11);
+    rgba(
+      44,
+      101,
+      133,
+      0.11
+    );
 }
 
 .miner-modal-summary > div:last-child {
-  border-bottom: 0;
+  border-bottom:
+    0;
 }
 
 .miner-modal-summary span {
-  color: #67869b;
-  font-size: 8px;
-  font-weight: 800;
-  letter-spacing: 0.10em;
+  color:
+    #68879b;
+
+  font-size:
+    8px;
+
+  font-weight:
+    900;
+
+  letter-spacing:
+    0.12em;
 }
 
 .miner-modal-summary strong {
-  color: #e9fbff;
+  color:
+    #eefbff;
+
   font:
-    700 12px
+    700 15px
     Orbitron,
     sans-serif;
 
-  text-align: right;
-}
-
-.miner-modal-summary strong.danger {
-  color: #ff9fb2;
-}
-
-.miner-modal-note,
-.miner-modal-warning {
-  margin-top: 10px;
-
-  padding:
-    9px 10px;
-
-  border-radius: 10px;
-
-  font-size: 9px;
-  line-height: 1.45;
+  text-align:
+    right;
 }
 
 .miner-modal-note {
-  color: #89a9bb;
+  display:
+    grid;
+
+  grid-template-columns:
+    auto 1fr;
+
+  gap:
+    9px;
+
+  margin-top:
+    10px;
+
+  padding:
+    11px 12px;
 
   border:
     1px solid
-    rgba(45, 126, 165, 0.16);
+    rgba(
+      55,
+      128,
+      168,
+      0.15
+    );
+
+  border-radius:
+    11px;
 
   background:
-    rgba(4, 17, 29, 0.62);
+    rgba(
+      3,
+      15,
+      27,
+      0.55
+    );
 }
 
-.miner-modal-warning {
-  color: #ffabbc;
+.miner-modal-note > span {
+  color:
+    #4fe8ff;
 
-  border:
-    1px solid
-    rgba(255, 94, 125, 0.22);
+  font-size:
+    7px;
 
-  background:
-    rgba(255, 82, 113, 0.06);
+  font-weight:
+    900;
+
+  letter-spacing:
+    0.1em;
+}
+
+.miner-modal-note p {
+  margin:
+    0;
+
+  color:
+    #7f9bac !important;
+
+  font-size:
+    9px !important;
+
+  line-height:
+    1.5 !important;
 }
 
 .miner-modal-actions {
-  display: grid;
+  display:
+    grid;
 
   grid-template-columns:
-    1fr 1.35fr;
+    1fr 1.3fr;
 
-  gap: 8px;
+  gap:
+    8px;
 
-  margin-top: 17px;
+  margin-top:
+    16px;
 }
 
 .miner-modal-cancel,
 .miner-modal-confirm {
-  min-height: 45px;
+  min-height:
+    46px;
 
-  border-radius: 11px;
+  border-radius:
+    11px;
 
-  font-size: 10px;
+  font-size:
+    10px;
 
-  font-weight: 900;
+  font-weight:
+    900;
 
-  letter-spacing: 0.05em;
+  letter-spacing:
+    0.06em;
 
-  cursor: pointer;
+  cursor:
+    pointer;
 }
 
 .miner-modal-cancel {
   border:
     1px solid
-    rgba(68, 125, 158, 0.24);
+    rgba(
+      70,
+      123,
+      154,
+      0.23
+    );
 
   background:
-    rgba(4, 15, 26, 0.76);
+    rgba(
+      4,
+      15,
+      26,
+      0.76
+    );
 
-  color: #bfd3df;
+  color:
+    #bfd4df;
+}
+
+.miner-modal-cancel:hover {
+  border-color:
+    rgba(
+      90,
+      171,
+      210,
+      0.35
+    );
 }
 
 .miner-modal-confirm {
   border:
     1px solid
-    rgba(95, 241, 195, 0.38);
+    rgba(
+      102,
+      247,
+      212,
+      0.38
+    );
 
   background:
     linear-gradient(
       135deg,
-      #32dcff,
-      #58edbc
+      #33dcff 0%,
+      #5a67ff 48%,
+      #5af0bd 100%
     );
 
-  color: #021319;
+  color:
+    #03141a;
 
   box-shadow:
-    0 0 23px
-      rgba(55, 230, 255, 0.11);
+    0 0 25px
+      rgba(
+        64,
+        224,
+        255,
+        0.13
+      );
+}
+
+.miner-modal-confirm:hover {
+  box-shadow:
+    0 0 30px
+      rgba(
+        64,
+        224,
+        255,
+        0.19
+      );
 }
 
 .miner-modal-confirm:disabled {
-  opacity: 0.48;
-  cursor: not-allowed;
+  opacity:
+    0.48;
+
+  cursor:
+    not-allowed;
 }
 
-@media (max-width: 1100px) {
-  .shop-grid {
-    grid-template-columns:
-      repeat(3, minmax(0, 1fr));
-  }
-}
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
 
 @media (max-width: 760px) {
-  .shop-grid {
-    grid-template-columns:
-      repeat(2, minmax(0, 1fr));
-
-    gap: 10px;
-
-    padding-bottom: 96px;
-  }
-
   .miner-copy {
-    padding: 11px !important;
+    padding:
+      11px !important;
   }
 
   .miner-grid {
-    gap: 6px !important;
+    gap:
+      6px !important;
   }
 
   .miner-grid > div {
-    padding: 8px !important;
+    padding:
+      8px !important;
+  }
+
+  .miner-buy-button {
+    min-height:
+      45px;
+
+    font-size:
+      10px;
   }
 
   .miner-purchase-modal {
-    width: 100%;
-    padding: 20px 16px;
-    border-radius: 17px;
+    width:
+      100%;
+
+    padding:
+      19px 15px;
+
+    border-radius:
+      18px;
   }
 
   .miner-purchase-modal h2 {
-    font-size: 21px;
-  }
-
-  .miner-modal-copy {
-    font-size: 10px;
+    font-size:
+      22px;
   }
 }
 
 @media (max-width: 520px) {
-  .shop-grid {
-    grid-template-columns: 1fr;
-    gap: 12px;
-    padding-bottom: 110px;
-  }
-
-  .miner-visual {
-    aspect-ratio: 3 / 2;
-  }
-
   .miner-card h3 {
-    font-size: 16px !important;
+    font-size:
+      16px !important;
   }
 
   .miner-card p {
-    font-size: 10px !important;
-  }
-
-  .miner-grid {
-    gap: 7px !important;
+    font-size:
+      10px !important;
   }
 
   .miner-grid > div {
-    padding: 9px !important;
-  }
-
-  .miner-card .btn {
-    min-height: 44px;
-  }
-
-  .miner-modal-summary strong {
-    font-size: 10px;
+    padding:
+      9px !important;
   }
 
   .miner-modal-actions {
-    grid-template-columns: 1fr;
+    grid-template-columns:
+      1fr;
   }
 
   .miner-modal-confirm {
-    order: -1;
+    order:
+      -1;
+  }
+
+  .miner-modal-summary strong {
+    font-size:
+      12px;
   }
 }
 
 @media (max-width: 380px) {
-  .miner-copy {
-    padding: 10px !important;
-  }
-
-  .miner-grid > div {
-    padding: 8px !important;
-  }
-
   .rarity-badge,
   .lvl,
   .ownership {
-    font-size: 8px;
-    padding: 5px 7px;
+    font-size:
+      8px;
+
+    padding:
+      5px 7px;
   }
 
   .miner-purchase-modal {
-    padding: 18px 13px;
+    padding:
+      17px 12px;
   }
 
   .miner-purchase-modal h2 {
-    font-size: 19px;
+    font-size:
+      20px;
   }
 }
