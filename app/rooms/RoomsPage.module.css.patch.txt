@@ -1,4 +1,0 @@
-/* Add these classes to app/rooms/RoomsPage.module.css */
-.rack3{--rack-columns:3}
-.rack4{--rack-columns:4}
-.rack6{--rack-columns:6}
