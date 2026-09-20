@@ -3,7 +3,7 @@
 import { HelpCircle, Layers, Package, Sparkles, X, Zap } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AppShell } from '@/components/layout/AppShell';
-import { MinerCard, Miner } from '@/components/miner/MinerCard';
+import { MinerCard, type Miner } from '@/components/miner/MinerCard';
 import { createClient } from '@/lib/supabase/client';
 import { diamond } from '@/lib/format';
 import './miners-shop.css';
@@ -19,23 +19,24 @@ const FILTERS = [
   'Mythic',
 ] as const;
 
-type CatalogRow = {
-  id: number;
+type ShopMinerRow = {
+  catalog_id: number;
   slug: string;
   name: string;
   tier: string;
   base_hashrate: number;
-  base_price_diamond: number;
+  purchase_price: number;
   image_path: string | null;
   sort_order: number;
+  owned_count: number;
+  owned: boolean;
+  active: boolean;
+  deployment_state: 'inventory' | 'deployed';
 };
 
-type UserMinerRow = {
-  id: number;
-  miner_id: number;
-  current_level: number;
-  status: string;
-  deployment_state: 'inventory' | 'deployed';
+type ShopSnapshot = {
+  diamond_balance: number;
+  miners: ShopMinerRow[];
 };
 
 function imagePath(path: string | null, slug: string) {
@@ -48,7 +49,8 @@ function imagePath(path: string | null, slug: string) {
 
 export default function MinersPage() {
   const [miners, setMiners] = useState<Miner[]>([]);
-  const [filter, setFilter] = useState<(typeof FILTERS)[number]>('All');
+  const [filter, setFilter] =
+    useState<(typeof FILTERS)[number]>('All');
   const [balance, setBalance] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -60,86 +62,56 @@ export default function MinersPage() {
 
     try {
       const sb = createClient();
-      const {
-        data: { user },
-      } = await sb.auth.getUser();
+      const result = await sb.rpc('nextgen_shop_snapshot');
 
-      const [catalogResult, userResult, walletResult] = await Promise.all([
-        sb
-          .from('nextgen_miner_catalog')
-          .select('id,slug,name,tier,base_hashrate,base_price_diamond,image_path,sort_order')
-          .eq('enabled', true)
-          .order('sort_order'),
-        user
-          ? sb
-              .from('nextgen_user_miners')
-              .select('id,miner_id,current_level,status,deployment_state')
-              .eq('user_id', user.id)
-              .eq('is_merged', false)
-          : Promise.resolve({ data: [], error: null }),
-        user
-          ? sb
-              .from('nextgen_wallets')
-              .select('diamond_balance')
-              .eq('user_id', user.id)
-              .maybeSingle()
-          : Promise.resolve({ data: null, error: null }),
-      ]);
+      if (result.error) throw result.error;
 
-      if (catalogResult.error) throw catalogResult.error;
-      if (userResult.error) throw userResult.error;
-      if (walletResult.error) throw walletResult.error;
+      const snapshot = result.data as unknown as ShopSnapshot;
+      const tierOrder = [
+        'STARTER',
+        'COMMON',
+        'UNCOMMON',
+        'RARE',
+        'EPIC',
+        'LEGENDARY',
+        'MYTHIC',
+      ];
 
-      const catalog = (catalogResult.data ?? []) as unknown as CatalogRow[];
-      const users = (userResult.data ?? []) as unknown as UserMinerRow[];
-
-      const byMiner = new Map<number, UserMinerRow[]>();
-      for (const row of users) {
-        const id = Number(row.miner_id);
-        const list = byMiner.get(id) ?? [];
-        list.push(row);
-        byMiner.set(id, list);
-      }
-
-      const tierOrder = ['STARTER', 'COMMON', 'UNCOMMON', 'RARE', 'EPIC', 'LEGENDARY', 'MYTHIC'];
-
-      const mapped: Miner[] = catalog.map((item) => {
-        const owned = byMiner.get(Number(item.id)) ?? [];
-        const highest = owned.reduce(
-          (max, row) => Math.max(max, Number(row.current_level || 1)),
-          1,
-        );
-
-        return {
-          catalogId: Number(item.id),
-          slug: item.slug,
-          name: item.name,
-          tier: item.tier,
-          image: imagePath(item.image_path, item.slug),
-          baseHashrate: Number(item.base_hashrate),
-          purchasePrice: Number(item.base_price_diamond),
-          currentLevel: highest,
-          maxLevel: 10,
-          currentHashrate: Number(item.base_hashrate),
-          ownedCount: owned.length,
-          owned: owned.length > 0,
-          active: owned.some((row) => row.status.toLowerCase() === 'active'),
-          deploymentState: owned.some((row) => row.deployment_state === 'deployed')
+      const mapped: Miner[] = (snapshot.miners ?? []).map((item) => ({
+        catalogId: Number(item.catalog_id),
+        slug: item.slug,
+        name: item.name,
+        tier: item.tier,
+        image: imagePath(item.image_path, item.slug),
+        baseHashrate: Number(item.base_hashrate),
+        purchasePrice: Number(item.purchase_price),
+        currentLevel: 1,
+        maxLevel: 10,
+        currentHashrate: Number(item.base_hashrate),
+        ownedCount: Number(item.owned_count ?? 0),
+        owned: Boolean(item.owned),
+        active: Boolean(item.active),
+        deploymentState:
+          item.deployment_state === 'deployed'
             ? 'deployed'
             : 'inventory',
-        };
-      });
+      }));
 
       mapped.sort(
         (a, b) =>
-          tierOrder.indexOf(a.tier.toUpperCase()) - tierOrder.indexOf(b.tier.toUpperCase()) ||
+          tierOrder.indexOf(a.tier.toUpperCase()) -
+            tierOrder.indexOf(b.tier.toUpperCase()) ||
           a.catalogId - b.catalogId,
       );
 
       setMiners(mapped);
-      setBalance(Number(walletResult.data?.diamond_balance ?? 0));
+      setBalance(Number(snapshot.diamond_balance ?? 0));
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unable to load miner catalog.');
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Unable to load miner catalog.',
+      );
     } finally {
       setLoading(false);
     }
@@ -147,13 +119,31 @@ export default function MinersPage() {
 
   useEffect(() => {
     void load();
+
+    const sync = () => {
+      if (!document.hidden) void load();
+    };
+
+    window.addEventListener('focus', sync);
+    document.addEventListener('visibilitychange', sync);
+    window.addEventListener('nextgen:sync', sync as EventListener);
+
+    return () => {
+      window.removeEventListener('focus', sync);
+      document.removeEventListener('visibilitychange', sync);
+      window.removeEventListener('nextgen:sync', sync as EventListener);
+    };
   }, [load]);
 
   const filtered = useMemo(
     () =>
       filter === 'All'
         ? miners
-        : miners.filter((miner) => miner.tier.toLowerCase() === filter.toLowerCase()),
+        : miners.filter(
+            (miner) =>
+              miner.tier.toLowerCase() ===
+              filter.toLowerCase(),
+          ),
     [miners, filter],
   );
 
@@ -162,8 +152,10 @@ export default function MinersPage() {
       <div className="shop-page-head">
         <div className="shop-title-block">
           <div className="eyebrow">MINER SHOP</div>
+
           <div className="shop-title-line">
             <h1 className="page-title">Choose Your Miner</h1>
+
             <button
               type="button"
               className="shop-help-trigger"
@@ -176,7 +168,10 @@ export default function MinersPage() {
               <HelpCircle size={18} strokeWidth={2.25} />
             </button>
           </div>
-          <p className="shop-page-subtitle">Browse miners and purchase directly from the collection.</p>
+
+          <p className="shop-page-subtitle">
+            Browse miners and purchase directly from the collection.
+          </p>
         </div>
 
         <div className="shop-balance-card" aria-label="Diamond balance">
@@ -193,7 +188,9 @@ export default function MinersPage() {
           className="miner-shop-help-overlay"
           role="presentation"
           onMouseDown={(event) => {
-            if (event.target === event.currentTarget) setHelpOpen(false);
+            if (event.target === event.currentTarget) {
+              setHelpOpen(false);
+            }
           }}
         >
           <section
@@ -205,7 +202,7 @@ export default function MinersPage() {
             <button
               type="button"
               className="miner-shop-help-close"
-              aria-label="Close miner guide"
+              aria-label="Close purchase guide"
               onClick={() => setHelpOpen(false)}
             >
               <X size={20} />
@@ -215,10 +212,18 @@ export default function MinersPage() {
               <HelpCircle size={21} />
             </div>
 
-            <div className="miner-shop-help-kicker">MINER GUIDE</div>
-            <h2 id="miner-shop-help-title">How the Miner Works</h2>
+            <div className="miner-shop-help-kicker">
+              MINER GUIDE
+            </div>
+
+            <h2 id="miner-shop-help-title">
+              How the Miner Works
+            </h2>
+
             <p className="miner-shop-help-intro">
-              Miners are the core units that add hashrate to your mining network. Choose a miner, purchase it, then manage it from your Inventory and Rooms.
+              Miners add hashrate to your network. Buy one from
+              the Shop, manage it in Inventory, deploy it to a
+              Room, then merge matching miners inside that Room.
             </p>
 
             <div className="miner-shop-help-steps">
@@ -226,15 +231,21 @@ export default function MinersPage() {
                 <span><Package size={18} /></span>
                 <div>
                   <b>1. Buy a Miner</b>
-                  <p>Purchase a Level 1 miner directly from the Shop using your Diamond balance.</p>
+                  <p>
+                    Purchase a Level 1 miner using your Diamond
+                    balance.
+                  </p>
                 </div>
               </div>
 
               <div className="miner-shop-help-step">
                 <span><Layers size={18} /></span>
                 <div>
-                  <b>2. Manage in Inventory</b>
-                  <p>Your purchased miner is available in Inventory for deployment and collection management.</p>
+                  <b>2. Inventory</b>
+                  <p>
+                    The purchased miner becomes a real Inventory
+                    item immediately.
+                  </p>
                 </div>
               </div>
 
@@ -242,22 +253,23 @@ export default function MinersPage() {
                 <span><Zap size={18} /></span>
                 <div>
                   <b>3. Deploy to a Room</b>
-                  <p>Place a miner into a Room to activate it and use its hashrate as part of your setup.</p>
+                  <p>
+                    Place the miner in one of the available
+                    12-slot Rooms to activate it.
+                  </p>
                 </div>
               </div>
 
               <div className="miner-shop-help-step">
                 <span><Sparkles size={18} /></span>
                 <div>
-                  <b>4. Upgrade Your Setup</b>
-                  <p>Build matching miner collections and use the available Room and merge mechanics to advance your miners.</p>
+                  <b>4. Merge & Grow</b>
+                  <p>
+                    Merge two identical miners at the same level
+                    in one Room to create the next level.
+                  </p>
                 </div>
               </div>
-            </div>
-
-            <div className="miner-shop-help-note">
-              <strong>Tip</strong>
-              <span>Choose miners by their hashrate, tier, and price so your collection fits the way you want to build your network.</span>
             </div>
 
             <button
@@ -294,14 +306,23 @@ export default function MinersPage() {
           <div className="eyebrow">SYNC ERROR</div>
           <h2>Unable to load miners</h2>
           <p className="muted">{error}</p>
-          <button type="button" className="btn btn-primary" onClick={() => void load()}>
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={() => void load()}
+          >
             Retry
           </button>
         </div>
       ) : (
         <div className="shop-grid shop-grid-clean">
           {filtered.map((miner) => (
-            <MinerCard key={miner.catalogId} miner={miner} diamondBalance={balance} onChanged={load} />
+            <MinerCard
+              key={miner.catalogId}
+              miner={miner}
+              diamondBalance={balance}
+              onChanged={load}
+            />
           ))}
         </div>
       )}
