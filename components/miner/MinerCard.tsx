@@ -45,14 +45,19 @@ function money(value: number) {
   });
 }
 
-export function MinerCard({ miner, diamondBalance, onChanged }: Props) {
+export function MinerCard({
+  miner,
+  diamondBalance,
+  onChanged,
+}: Props) {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
   const [confirmOpen, setConfirmOpen] = useState(false);
 
   const isStarter = miner.slug === 'starter-keyboard';
   const starterOwned = isStarter && miner.owned;
-  const canBuy = isStarter || diamondBalance >= miner.purchasePrice;
+  const canBuy =
+    isStarter || diamondBalance >= miner.purchasePrice;
 
   async function confirmPurchase() {
     if (busy || starterOwned || !canBuy) return;
@@ -61,17 +66,23 @@ export function MinerCard({ miner, diamondBalance, onChanged }: Props) {
     setMessage('');
 
     try {
-      const result = await createClient().rpc('nextgen_purchase_miner', {
-        p_miner_id: miner.catalogId,
-      });
+      const result = await createClient().rpc(
+        'nextgen_purchase_miner',
+        { p_miner_id: miner.catalogId },
+      );
 
       if (result.error) throw result.error;
 
       const rawBonus = Number(
-        (result.data as { bonus_hashrate_percent?: unknown } | null)
-          ?.bonus_hashrate_percent ?? 0,
+        (result.data as {
+          bonus_hashrate_percent?: unknown;
+        } | null)?.bonus_hashrate_percent ?? 0,
       );
-      const bonus = Math.max(0, Math.min(5, rawBonus));
+
+      const bonus = Math.max(
+        0,
+        Math.min(5, rawBonus),
+      );
 
       setConfirmOpen(false);
       setMessage(
@@ -79,6 +90,8 @@ export function MinerCard({ miner, diamondBalance, onChanged }: Props) {
           ? `MINER ADDED · BONUS +${bonus.toFixed(1)}% ✓`
           : `PURCHASE SUCCESSFUL · BONUS +${bonus.toFixed(1)}% ✓`,
       );
+
+      window.dispatchEvent(new Event('nextgen:sync'));
       await onChanged?.();
     } catch (error) {
       setMessage(actionError(error));
@@ -90,9 +103,11 @@ export function MinerCard({ miner, diamondBalance, onChanged }: Props) {
   return (
     <>
       <article
-        className={`miner-card shop-miner-card rarity-${miner.tier
-          .toLowerCase()
-          .replace(/[^a-z0-9]+/g, '-')}`}
+        className={`miner-card shop-miner-card rarity-${
+          miner.tier
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+        }`}
       >
         <div className="miner-visual">
           <img
@@ -102,15 +117,24 @@ export function MinerCard({ miner, diamondBalance, onChanged }: Props) {
             decoding="async"
           />
 
-          <span className="rarity-badge">{miner.tier}</span>
+          <span className="rarity-badge">
+            {miner.tier}
+          </span>
 
           <span className="lvl">
-            {starterOwned ? 'OWNED · LV 1/10' : 'LV 1/10'}
+            {starterOwned
+              ? 'OWNED · LV 1/10'
+              : 'LV 1/10'}
           </span>
 
           {miner.owned && !starterOwned ? (
-            <span className={`ownership ${miner.active ? 'active' : ''}`}>
-              {miner.deploymentState === 'deployed' && miner.active
+            <span
+              className={`ownership ${
+                miner.active ? 'active' : ''
+              }`}
+            >
+              {miner.deploymentState === 'deployed' &&
+              miner.active
                 ? 'DEPLOYED'
                 : 'OWNED'}
             </span>
@@ -123,12 +147,17 @@ export function MinerCard({ miner, diamondBalance, onChanged }: Props) {
           <div className="shop-miner-meta">
             <div>
               <span>HASHRATE</span>
-              <strong>{hash(miner.baseHashrate)}</strong>
+              <strong>
+                {hash(miner.baseHashrate)}
+              </strong>
             </div>
+
             <div>
               <span>PRICE</span>
               <strong>
-                {isStarter ? 'FREE' : diamond(miner.purchasePrice)}
+                {isStarter
+                  ? 'FREE'
+                  : diamond(miner.purchasePrice)}
               </strong>
             </div>
           </div>
@@ -143,11 +172,23 @@ export function MinerCard({ miner, diamondBalance, onChanged }: Props) {
           <button
             type="button"
             className={`shop-buy-button ${
-              starterOwned ? 'owned' : canBuy ? 'ready' : 'disabled'
+              starterOwned
+                ? 'owned'
+                : canBuy
+                  ? 'ready'
+                  : 'disabled'
             }`}
-            disabled={busy || starterOwned || !canBuy}
+            disabled={
+              busy ||
+              starterOwned ||
+              !canBuy
+            }
             onClick={() => {
-              if (!busy && !starterOwned && canBuy) {
+              if (
+                !busy &&
+                !starterOwned &&
+                canBuy
+              ) {
                 setMessage('');
                 setConfirmOpen(true);
               }
@@ -176,8 +217,14 @@ export function MinerCard({ miner, diamondBalance, onChanged }: Props) {
           {message ? (
             <div
               className={`miner-action-message ${
-                message.includes('✓') ? 'success' : 'error'
-              } ${message.includes('BONUS') ? 'bonus' : ''}`}
+                message.includes('✓')
+                  ? 'success'
+                  : 'error'
+              } ${
+                message.includes('BONUS')
+                  ? 'bonus'
+                  : ''
+              }`}
             >
               {message}
             </div>
@@ -190,7 +237,10 @@ export function MinerCard({ miner, diamondBalance, onChanged }: Props) {
           className="miner-purchase-overlay"
           role="presentation"
           onMouseDown={(event) => {
-            if (event.target === event.currentTarget && !busy) {
+            if (
+              event.target === event.currentTarget &&
+              !busy
+            ) {
               setConfirmOpen(false);
             }
           }}
@@ -205,7 +255,10 @@ export function MinerCard({ miner, diamondBalance, onChanged }: Props) {
               type="button"
               className="miner-modal-close"
               aria-label="Close purchase confirmation"
-              onClick={() => !busy && setConfirmOpen(false)}
+              onClick={() =>
+                !busy &&
+                setConfirmOpen(false)
+              }
               disabled={busy}
             >
               <X size={18} />
@@ -215,26 +268,38 @@ export function MinerCard({ miner, diamondBalance, onChanged }: Props) {
               <ShoppingCart size={20} />
             </div>
 
-            <div className="miner-modal-kicker">PURCHASE CONFIRMATION</div>
+            <div className="miner-modal-kicker">
+              PURCHASE CONFIRMATION
+            </div>
 
-            <h2 id={`confirm-purchase-${miner.catalogId}`}>
+            <h2
+              id={`confirm-purchase-${miner.catalogId}`}
+            >
               Confirm Purchase
             </h2>
 
             <p className="miner-modal-copy">
-              Confirm your purchase of <strong>{miner.name}</strong>.
+              Confirm your purchase of{' '}
+              <strong>{miner.name}</strong>.
             </p>
 
             <div className="miner-modal-summary">
               <div>
                 <span>PRICE</span>
                 <strong>
-                  {isStarter ? 'FREE' : `${money(miner.purchasePrice)} 💎`}
+                  {isStarter
+                    ? 'FREE'
+                    : `${money(
+                        miner.purchasePrice,
+                      )} 💎`}
                 </strong>
               </div>
+
               <div>
                 <span>YOUR BALANCE</span>
-                <strong>{money(diamondBalance)} 💎</strong>
+                <strong>
+                  {money(diamondBalance)} 💎
+                </strong>
               </div>
             </div>
 
@@ -242,7 +307,10 @@ export function MinerCard({ miner, diamondBalance, onChanged }: Props) {
               <button
                 type="button"
                 className="miner-modal-cancel"
-                onClick={() => !busy && setConfirmOpen(false)}
+                onClick={() =>
+                  !busy &&
+                  setConfirmOpen(false)
+                }
                 disabled={busy}
               >
                 Cancel
@@ -251,8 +319,14 @@ export function MinerCard({ miner, diamondBalance, onChanged }: Props) {
               <button
                 type="button"
                 className="miner-modal-confirm"
-                onClick={() => void confirmPurchase()}
-                disabled={busy || starterOwned || !canBuy}
+                onClick={() =>
+                  void confirmPurchase()
+                }
+                disabled={
+                  busy ||
+                  starterOwned ||
+                  !canBuy
+                }
               >
                 {busy
                   ? 'PROCESSING…'
