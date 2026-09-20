@@ -11,8 +11,8 @@ import {
   RotateCcw,
   Sparkles,
 } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react';
+import { usePathname } from 'next/navigation';
 import { AppShell } from '@/components/layout/AppShell';
 import { createClient } from '@/lib/supabase/client';
 import styles from '../RoomsPage.module.css';
@@ -77,8 +77,9 @@ function imagePath(path: string | null, slug: string) {
 }
 
 export default function RoomDetailPage() {
-  const params = useParams<{ roomNumber: string }>();
-  const roomNumber = Number(params?.roomNumber);
+  const pathname = usePathname();
+  const pathParts = pathname.split('/').filter(Boolean);
+  const roomNumber = Number(pathParts[pathParts.length - 1] ?? '0');
 
   const [data, setData] = useState<RoomsSnapshot | null>(null);
   const [balance, setBalance] = useState(0);
@@ -483,7 +484,7 @@ export default function RoomDetailPage() {
                     : room.capacity_slots >= 24
                       ? 4
                       : 3,
-              } as React.CSSProperties
+              } as CSSProperties
             }
           >
             {slots.map((slot, index) =>
