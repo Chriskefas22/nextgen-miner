@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Boxes, LockKeyhole, Plus, Sparkles } from 'lucide-react';
+import { ArrowRight, Boxes, ChevronUp, LockKeyhole } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { AppShell } from '@/components/layout/AppShell';
 import { createClient } from '@/lib/supabase/client';
@@ -15,7 +15,6 @@ type Room = {
   room_label: string;
   capacity_slots: number;
   used_slots: number;
-  hashrate: number;
   upgrade: {
     available: boolean;
     next_level: number | null;
@@ -33,14 +32,16 @@ type RoomsSnapshot = {
   rooms: Room[];
 };
 
-const num = (value: number, digits = 0) =>
-  Number(value || 0).toLocaleString('en-US', { maximumFractionDigits: digits });
+const num = (value: number) =>
+  Number(value || 0).toLocaleString('en-US', {
+    maximumFractionDigits: 0,
+  });
 
 export default function RoomsPage() {
   const [data, setData] = useState<RoomsSnapshot | null>(null);
   const [balance, setBalance] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [busy, setBusy] = useState(false);
+  const [busy, setBusy] = useState<'unlock' | number | null>(null);
   const [message, setMessage] = useState('');
 
   const load = useCallback(async () => {
@@ -89,162 +90,169 @@ export default function RoomsPage() {
       return;
     }
 
-    setBusy(true);
+    setBusy('unlock');
     setMessage('');
 
     try {
       const result = await createClient().rpc('nextgen_create_room');
-
       if (result.error) throw result.error;
 
-      const roomNumber = String(
-        result.data?.room_number ?? data.next_room_number,
-      ).padStart(2, '0');
-
-      setMessage(`Room ${roomNumber} unlocked.`);
+      setMessage(
+        `Room ${String(
+          result.data?.room_number ?? data.next_room_number,
+        ).padStart(2, '0')} unlocked.`,
+      );
       await load();
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'Room unlock failed.');
     } finally {
-      setBusy(false);
+      setBusy(null);
     }
   }
 
+  async function upgradeRoom(room: Room) {
+    if (
+      busy ||
+      !room.upgrade.available ||
+      balance < room.upgrade.price_diamond
+    ) {
+      return;
+    }
+
+    setBusy(room.id);
+    setMessage('');
+
+    try {
+      const result = await createClient().rpc('nextgen_upgrade_room', {
+        p_room_id: room.id,
+      });
+      if (result.error) throw result.error;
+
+      setMessage(
+        `${room.name} upgraded to Level ${
+          result.data?.to_level ?? room.room_level + 1
+        }.`,
+      );
+      await load();
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'Room upgrade failed.');
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  const maxRooms = data?.max_rooms ?? 5;
   const roomsByNumber = new Map(
     (data?.rooms ?? []).map((room) => [room.room_number, room]),
   );
-  const maxRooms = data?.max_rooms ?? 5;
 
   return (
     <AppShell>
       <div className={styles.page}>
         <section className={styles.selectorHero}>
           <div>
-            <div className={styles.kicker}>ROOM CONTROL</div>
+            <div className={styles.kicker}>ROOMS</div>
             <h1 className={styles.title}>Choose Your Room</h1>
             <p>
-              Open one Room at a time. Each Room has its own rack, capacity,
-              miner placement and upgrade controls.
+              Each Room is a separate 12-slot mining workspace. Open a Room to
+              deploy miners and merge matching miners.
             </p>
-          </div>
-
-          <div className={styles.heroStats}>
-            <div>
-              <span>ROOMS</span>
-              <b>{data?.room_count ?? 0}/{maxRooms}</b>
-            </div>
-            <div>
-              <span>DIAMOND</span>
-              <b>{num(balance)}</b>
-            </div>
           </div>
         </section>
 
         {message ? <section className={styles.message}>{message}</section> : null}
 
-        <section className={styles.roomSelector} aria-label="Select mining room">
-          <div className={styles.selectorTop}>
-            <div>
-              <div className={styles.kicker}>MINING ROOMS</div>
-              <h2>Room Network</h2>
+        {loading ? (
+          <section className={styles.loadingPanel}>SYNCING ROOMS…</section>
+        ) : (
+          <section className={styles.roomSelector} aria-label="Choose a Room">
+            <div className={styles.roomGrid}>
+              {Array.from({ length: maxRooms }, (_, index) => index + 1).map(
+                (roomNumber) => {
+                  const room = roomsByNumber.get(roomNumber);
+                  const isNext = data?.next_room_number === roomNumber;
+                  const canUnlock =
+                    isNext &&
+                    balance >= (data?.next_room_unlock_price_diamond ?? 0);
+
+                  return (
+                    <article
+                      key={roomNumber}
+                      className={`${styles.roomCard} ${
+                        room ? styles.roomCardOpen : styles.roomCardLocked
+                      }`}
+                    >
+                      <div className={styles.roomCardTop}>
+                        <div className={styles.roomIcon}>
+                          {room ? <Boxes size={19} /> : <LockKeyhole size={18} />}
+                        </div>
+
+                        <div className={styles.roomCardTitle}>
+                          <span>ROOM {String(roomNumber).padStart(2, '0')}</span>
+                          <strong>{room?.name ?? 'Locked Room'}</strong>
+                          <small>
+                            {room
+                              ? room.room_label
+                              : isNext
+                                ? 'Ready to unlock'
+                                : 'Unlock previous Room first'}
+                          </small>
+                        </div>
+
+                        <b className={styles.roomStatus}>
+                          {room ? 'OPEN' : 'LOCKED'}
+                        </b>
+                      </div>
+
+                      <div className={styles.roomCardActions}>
+                        {room ? (
+                          <Link
+                            href={`/rooms/${roomNumber}`}
+                            className={styles.openRoomBtn}
+                          >
+                            OPEN ROOM
+                            <ArrowRight size={15} />
+                          </Link>
+                        ) : (
+                          <button
+                            type="button"
+                            className={styles.openRoomBtn}
+                            disabled={!canUnlock || busy === 'unlock'}
+                            onClick={() => void unlockNextRoom()}
+                          >
+                            <LockKeyhole size={15} />
+                            {busy === 'unlock'
+                              ? 'UNLOCKING…'
+                              : isNext
+                                ? `UNLOCK · 💎 ${num(
+                                    data?.next_room_unlock_price_diamond ?? 0,
+                                  )}`
+                                : 'LOCKED'}
+                          </button>
+                        )}
+
+                        {room?.upgrade.available ? (
+                          <button
+                            type="button"
+                            className={styles.upgradeBtn}
+                            disabled={
+                              busy === room.id ||
+                              balance < room.upgrade.price_diamond
+                            }
+                            onClick={() => void upgradeRoom(room)}
+                          >
+                            <ChevronUp size={14} />
+                            UPGRADE · 💎 {num(room.upgrade.price_diamond)}
+                          </button>
+                        ) : null}
+                      </div>
+                    </article>
+                  );
+                },
+              )}
             </div>
-            <Sparkles size={18} />
-          </div>
-
-          <div className={styles.roomButtons}>
-            {Array.from({ length: maxRooms }, (_, index) => index + 1).map(
-              (roomNumber) => {
-                const room = roomsByNumber.get(roomNumber);
-
-                return room ? (
-                  <Link
-                    key={roomNumber}
-                    href={`/rooms/${roomNumber}`}
-                    className={styles.roomButton}
-                  >
-                    <span className={styles.roomButtonIcon}>
-                      <Boxes size={18} />
-                    </span>
-
-                    <span>
-                      <b>ROOM {String(roomNumber).padStart(2, '0')}</b>
-                      <small>
-                        {room.name} · Lv {room.room_level}
-                      </small>
-                    </span>
-
-                    <strong>
-                      {room.used_slots}/{room.capacity_slots}
-                    </strong>
-                  </Link>
-                ) : (
-                  <Link
-                    key={roomNumber}
-                    href={`/rooms/${roomNumber}`}
-                    className={`${styles.roomButton} ${styles.lockedButton}`}
-                  >
-                    <span className={styles.roomButtonIcon}>
-                      <LockKeyhole size={18} />
-                    </span>
-
-                    <span>
-                      <b>ROOM {String(roomNumber).padStart(2, '0')}</b>
-                      <small>
-                        {roomNumber === 1 ? 'Starter Room' : 'Locked Room'}
-                      </small>
-                    </span>
-
-                    <strong>LOCKED</strong>
-                  </Link>
-                );
-              },
-            )}
-          </div>
-        </section>
-
-        <section className={styles.unlockPanel}>
-          <div>
-            <div className={styles.kicker}>NEXT UNLOCK</div>
-            <h2>
-              {data?.next_room_number
-                ? `Unlock Room ${String(data.next_room_number).padStart(2, '0')}`
-                : 'All 5 Rooms Unlocked'}
-            </h2>
-            <p>
-              Unlock Rooms sequentially. Once unlocked, every Room gets its own
-              dedicated page and rack workspace.
-            </p>
-          </div>
-
-          {data?.next_room_number ? (
-            <button
-              type="button"
-              className={styles.primaryBtn}
-              disabled={busy || balance < data.next_room_unlock_price_diamond}
-              onClick={() => void unlockNextRoom()}
-            >
-              <Plus size={15} />
-              {busy
-                ? 'UNLOCKING…'
-                : `UNLOCK · 💎 ${num(data.next_room_unlock_price_diamond)}`}
-            </button>
-          ) : (
-            <div className={styles.maxBadge}>MAX 5 ROOMS</div>
-          )}
-        </section>
-
-        {!loading && data && data.room_count > 0 ? (
-          <Link href="/rooms/1" className={styles.openPrimary}>
-            <Boxes size={18} />
-
-            <span>
-              <b>Open Room 01</b>
-              <small>Enter your mining rack workspace</small>
-            </span>
-
-            <span>→</span>
-          </Link>
-        ) : null}
+          </section>
+        )}
       </div>
     </AppShell>
   );
