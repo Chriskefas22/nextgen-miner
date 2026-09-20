@@ -1,18 +1,9 @@
 'use client';
 
-import {
-  Check,
-  LockKeyhole,
-  ShoppingCart,
-  X,
-} from 'lucide-react';
+import { Check, LockKeyhole, ShoppingCart, X } from 'lucide-react';
 import { useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import {
-  number,
-  diamond,
-  hash,
-} from '@/lib/format';
+import { number, diamond, hash } from '@/lib/format';
 import './miner-card.css';
 
 export type Miner = {
@@ -29,9 +20,7 @@ export type Miner = {
   ownedCount: number;
   owned: boolean;
   active: boolean;
-  deploymentState:
-    | 'inventory'
-    | 'deployed';
+  deploymentState: 'inventory' | 'deployed';
 };
 
 type Props = {
@@ -40,42 +29,21 @@ type Props = {
   onChanged?: () => Promise<void> | void;
 };
 
-function actionError(
-  error: unknown,
-) {
-  if (
-    error &&
-    typeof error ===
-      'object' &&
-    'message' in error
-  ) {
+function actionError(error: unknown) {
+  if (error && typeof error === 'object' && 'message' in error) {
     return String(
-      (
-        error as {
-          message?: unknown;
-        }
-      ).message ??
-        'Action failed',
+      (error as { message?: unknown }).message ?? 'Action failed',
     );
   }
 
-  return error instanceof Error
-    ? error.message
-    : 'Action failed';
+  return error instanceof Error ? error.message : 'Action failed';
 }
 
-function money(
-  value: number,
-) {
-  return Number(
-    value || 0,
-  ).toLocaleString(
-    'en-US',
-    {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 2,
-    },
-  );
+function money(value: number) {
+  return Number(value || 0).toLocaleString('en-US', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  });
 }
 
 export function MinerCard({
@@ -83,56 +51,33 @@ export function MinerCard({
   diamondBalance,
   onChanged,
 }: Props) {
-  const [busy, setBusy] =
-    useState(false);
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState('');
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
-  const [message, setMessage] =
-    useState('');
-
-  const [confirmOpen, setConfirmOpen] =
-    useState(false);
-
-  const isStarter =
-    miner.slug ===
-    'starter-keyboard';
-
-  const starterOwned =
-    isStarter &&
-    miner.owned;
+  const isStarter = miner.slug === 'starter-keyboard';
+  const starterOwned = isStarter && miner.owned;
 
   /*
-   * IMPORTANT SHOP RULE:
+   * SHOP RULE:
+   * Every BUY creates one NEW Level 1 copy.
+   * Shop never upgrades or merges an existing miner.
    *
-   * BUY always creates one NEW Level 1 copy.
-   * Shop never upgrades or merges miners.
-   *
-   * Level progression remains:
-   *
-   * BUY x2
-   *   -> deploy both into same Room
-   *   -> merge
-   *   -> Level 2
-   *
-   * Repeat same-level merges through Level 10.
+   * BUY x2 -> same Room -> MERGE -> Level 2
+   * Level 2 x2 -> MERGE -> Level 3
+   * ... repeat through Level 10.
    */
   const canBuy =
     isStarter ||
-    diamondBalance >=
-      miner.purchasePrice;
+    diamondBalance >= miner.purchasePrice;
 
-  const shortfall =
-    Math.max(
-      0,
-      miner.purchasePrice -
-        diamondBalance,
-    );
+  const shortfall = Math.max(
+    0,
+    miner.purchasePrice - diamondBalance,
+  );
 
   async function confirmPurchase() {
-    if (
-      busy ||
-      starterOwned ||
-      !canBuy
-    ) {
+    if (busy || starterOwned || !canBuy) {
       return;
     }
 
@@ -140,14 +85,12 @@ export function MinerCard({
     setMessage('');
 
     try {
-      const result =
-        await createClient().rpc(
-          'nextgen_purchase_miner',
-          {
-            p_miner_id:
-              miner.catalogId,
-          },
-        );
+      const result = await createClient().rpc(
+        'nextgen_purchase_miner',
+        {
+          p_miner_id: miner.catalogId,
+        },
+      );
 
       if (result.error) {
         throw result.error;
@@ -163,20 +106,14 @@ export function MinerCard({
 
       await onChanged?.();
     } catch (error) {
-      setMessage(
-        actionError(error),
-      );
+      setMessage(actionError(error));
     } finally {
       setBusy(false);
     }
   }
 
   function openConfirm() {
-    if (
-      busy ||
-      starterOwned ||
-      !canBuy
-    ) {
+    if (busy || starterOwned || !canBuy) {
       return;
     }
 
@@ -194,10 +131,7 @@ export function MinerCard({
       <article
         className={`miner-card glass rarity-${miner.tier
           .toLowerCase()
-          .replace(
-            /[^a-z0-9]+/g,
-            '-',
-          )}`}
+          .replace(/[^a-z0-9]+/g, '-')}`}
       >
         <div className="miner-visual">
           <img
@@ -224,14 +158,10 @@ export function MinerCard({
           ) : miner.owned ? (
             <span
               className={`ownership ${
-                miner.active
-                  ? 'active'
-                  : ''
+                miner.active ? 'active' : ''
               }`}
             >
-              {miner.deploymentState ===
-                'deployed' &&
-              miner.active
+              {miner.deploymentState === 'deployed' && miner.active
                 ? 'DEPLOYED'
                 : 'IN INVENTORY'}
             </span>
@@ -241,9 +171,7 @@ export function MinerCard({
         <div className="miner-copy">
           <div className="miner-title-row">
             <div>
-              <h3>
-                {miner.name}
-              </h3>
+              <h3>{miner.name}</h3>
 
               <p>
                 {starterOwned
@@ -257,74 +185,39 @@ export function MinerCard({
 
           <div className="miner-grid">
             <div>
-              <small>
-                BASE HASHRATE
-              </small>
-              <b>
-                {hash(
-                  miner.baseHashrate,
-                )}
-              </b>
+              <small>BASE HASHRATE</small>
+              <b>{hash(miner.baseHashrate)}</b>
             </div>
 
             <div>
-              <small>
-                START LEVEL
-              </small>
-              <b>
-                LV 1/
-                {
-                  miner.maxLevel
-                }
-              </b>
+              <small>START LEVEL</small>
+              <b>LV 1/{miner.maxLevel}</b>
             </div>
 
             <div>
-              <small>
-                OWNED
-              </small>
+              <small>OWNED</small>
               <b>
                 {starterOwned
                   ? 'YES'
-                  : number(
-                      miner.ownedCount,
-                    )}
+                  : number(miner.ownedCount)}
               </b>
             </div>
 
             <div>
-              <small>
-                BUY PRICE
-              </small>
+              <small>BUY PRICE</small>
               <b>
                 {isStarter
-                  ? starterOwned
-                    ? 'FREE'
-                    : 'FREE'
-                  : diamond(
-                      miner.purchasePrice,
-                    )}
+                  ? 'FREE'
+                  : diamond(miner.purchasePrice)}
               </b>
             </div>
           </div>
 
-          {!starterOwned &&
-          !canBuy ? (
+          {!starterOwned && !canBuy ? (
             <div className="miner-balance-warning">
-              <LockKeyhole
-                size={13}
-              />
-
+              <LockKeyhole size={13} />
               <span>
-                Need{' '}
-                <strong>
-                  {diamond(
-                    shortfall,
-                  )}
-                >{' '}
-                more
-              </strong>{' '}
-                to purchase this miner.
+                Need <strong>{diamond(shortfall)}</strong> more Diamond to buy.
               </span>
             </div>
           ) : null}
@@ -334,22 +227,12 @@ export function MinerCard({
             className={`miner-buy-button ${
               starterOwned
                 ? 'owned'
-                : !canBuy
-                  ? 'disabled'
-                  : 'ready'
+                : canBuy
+                  ? 'ready'
+                  : 'disabled'
             }`}
-            disabled={
-              busy ||
-              starterOwned ||
-              !canBuy
-            }
-            onClick={
-              openConfirm
-            }
-            aria-disabled={
-              starterOwned ||
-              !canBuy
-            }
+            disabled={busy || starterOwned || !canBuy}
+            onClick={openConfirm}
             title={
               starterOwned
                 ? 'Already owned'
@@ -360,25 +243,19 @@ export function MinerCard({
           >
             {starterOwned ? (
               <>
-                <Check
-                  size={17}
-                />
+                <Check size={16} />
                 OWNED
               </>
             ) : !canBuy ? (
               <>
-                <LockKeyhole
-                  size={16}
-                />
+                <LockKeyhole size={16} />
                 INSUFFICIENT BALANCE
               </>
             ) : busy ? (
               'PROCESSING…'
             ) : (
               <>
-                <ShoppingCart
-                  size={17}
-                />
+                <ShoppingCart size={16} />
                 BUY
               </>
             )}
@@ -387,11 +264,7 @@ export function MinerCard({
           {message ? (
             <div
               className={`miner-action-message ${
-                message.includes(
-                  '✓',
-                )
-                  ? 'success'
-                  : 'error'
+                message.includes('✓') ? 'success' : 'error'
               }`}
             >
               {message}
@@ -404,13 +277,8 @@ export function MinerCard({
         <div
           className="miner-purchase-overlay"
           role="presentation"
-          onMouseDown={(
-            event,
-          ) => {
-            if (
-              event.target ===
-              event.currentTarget
-            ) {
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) {
               closeConfirm();
             }
           }}
@@ -425,97 +293,57 @@ export function MinerCard({
               type="button"
               className="miner-modal-close"
               aria-label="Close purchase confirmation"
-              onClick={
-                closeConfirm
-              }
+              onClick={closeConfirm}
               disabled={busy}
             >
               <X size={18} />
             </button>
 
-            <div className="miner-modal-topline">
-              <div className="miner-modal-icon">
-                <ShoppingCart
-                  size={20}
-                />
-              </div>
-
-              <div>
-                <div className="miner-modal-kicker">
-                  SECURE PURCHASE
-                </div>
-
-                <div className="miner-modal-status">
-                  <span />
-                  BALANCE VERIFIED
-                </div>
-              </div>
+            <div className="miner-modal-icon">
+              <ShoppingCart size={20} />
             </div>
 
-            <h2
-              id={`confirm-purchase-${miner.catalogId}`}
-            >
+            <div className="miner-modal-kicker">
+              PURCHASE CONFIRMATION
+            </div>
+
+            <h2 id={`confirm-purchase-${miner.catalogId}`}>
               Confirm Purchase
             </h2>
 
             <p className="miner-modal-copy">
-              Add one new{' '}
-              <strong>
-                {miner.name}
-              </strong>{' '}
-              Level 1 miner to your
-              collection.
+              Add one new <strong>{miner.name}</strong> Level 1
+              miner to your collection.
             </p>
 
             <div className="miner-modal-summary">
               <div>
-                <span>
-                  PRICE
-                </span>
-
+                <span>PRICE</span>
                 <strong>
                   {isStarter
                     ? 'FREE'
-                    : `${money(
-                        miner.purchasePrice,
-                      )} 💎`}
+                    : `${money(miner.purchasePrice)} 💎`}
                 </strong>
               </div>
 
               <div>
-                <span>
-                  YOUR BALANCE
-                </span>
-
+                <span>YOUR BALANCE</span>
                 <strong>
-                  {money(
-                    diamondBalance,
-                  )}{' '}
-                  💎
+                  {money(diamondBalance)} 💎
                 </strong>
               </div>
             </div>
 
             <div className="miner-modal-note">
-              <span>
-                PURCHASE
-              </span>
-
-              <p>
-                One click adds one
-                new Level 1 copy.
-                Existing miners are
-                never upgraded by Shop.
-              </p>
+              Each BUY creates one new Level 1 copy. Shop
+              purchases never upgrade existing miners.
             </div>
 
             <div className="miner-modal-actions">
               <button
                 type="button"
                 className="miner-modal-cancel"
-                onClick={
-                  closeConfirm
-                }
+                onClick={closeConfirm}
                 disabled={busy}
               >
                 Cancel
@@ -524,14 +352,8 @@ export function MinerCard({
               <button
                 type="button"
                 className="miner-modal-confirm"
-                onClick={() =>
-                  void confirmPurchase()
-                }
-                disabled={
-                  busy ||
-                  starterOwned ||
-                  !canBuy
-                }
+                onClick={() => void confirmPurchase()}
+                disabled={busy || starterOwned || !canBuy}
               >
                 {busy
                   ? 'PROCESSING…'
