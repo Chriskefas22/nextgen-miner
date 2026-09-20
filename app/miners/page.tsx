@@ -221,9 +221,9 @@ export default function MinersPage() {
             </h2>
 
             <p className="miner-shop-help-intro">
-              Miners add hashrate to your network. Buy one from
-              the Shop, manage it in Inventory, deploy it to a
-              Room, then merge matching miners inside that Room.
+              Miners add hashrate to your network. Buy a miner, place and
+              power it up in Room 01, let it mine, then merge matching
+              miners strategically to climb through the levels.
             </p>
 
             <div className="miner-shop-help-steps">
@@ -232,8 +232,8 @@ export default function MinersPage() {
                 <div>
                   <b>1. Buy a Miner</b>
                   <p>
-                    Purchase a Level 1 miner using your Diamond
-                    balance.
+                    Purchase a Level 1 miner using your Diamond balance. Your
+                    random purchase bonus is saved to that miner.
                   </p>
                 </div>
               </div>
@@ -243,8 +243,8 @@ export default function MinersPage() {
                 <div>
                   <b>2. Inventory</b>
                   <p>
-                    The purchased miner becomes a real Inventory
-                    item immediately.
+                    The purchased miner becomes a real Inventory item
+                    immediately, with its bonus preserved.
                   </p>
                 </div>
               </div>
@@ -254,8 +254,8 @@ export default function MinersPage() {
                 <div>
                   <b>3. Deploy to a Room</b>
                   <p>
-                    Place the miner in one of the available
-                    12-slot Rooms to activate it.
+                    Place & power up the miner in Room 01. Deployment activates
+                    its server-side mining session.
                   </p>
                 </div>
               </div>
@@ -265,8 +265,8 @@ export default function MinersPage() {
                 <div>
                   <b>4. Merge & Grow</b>
                   <p>
-                    Merge two identical miners at the same level
-                    in one Room to create the next level.
+                    Merge two identical miners at the same level in one Room to
+                    create the next level and roll a new bonus.
                   </p>
                 </div>
               </div>
