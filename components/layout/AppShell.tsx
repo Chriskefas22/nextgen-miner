@@ -8,18 +8,22 @@ import { BottomNav } from './BottomNav';
 import '../../styles/dashboard-shell.css';
 import '../../styles/home-premium-polish.css';
 
-type AppShellProps = {
+export function AppShell({
+  children,
+  showSearch = true,
+  showBalance = true,
+}: {
   children: React.ReactNode;
   showSearch?: boolean;
-};
-
-export function AppShell({ children, showSearch = true }: AppShellProps) {
+  showBalance?: boolean;
+}) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
   const home = pathname === '/dashboard';
+  const shop = pathname === '/miners';
 
   return (
-    <div className={`app-shell ${home ? 'home-shell' : ''}`}>
+    <div className={`app-shell ${home ? 'home-shell' : ''} ${shop ? 'shop-shell' : ''}`}>
       {open ? (
         <button
           type="button"
@@ -30,7 +34,11 @@ export function AppShell({ children, showSearch = true }: AppShellProps) {
       ) : null}
       <Sidebar open={open} onClose={() => setOpen(false)} />
       <div className="main">
-        <Topbar onMenu={() => setOpen(true)} showSearch={showSearch} />
+        <Topbar
+          onMenu={() => setOpen(true)}
+          showSearch={showSearch}
+          showBalance={showBalance}
+        />
         <main className="content">{children}</main>
       </div>
       <BottomNav />
