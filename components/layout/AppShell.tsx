@@ -7,6 +7,7 @@ import { Topbar } from './Topbar';
 import { BottomNav } from './BottomNav';
 import '../../styles/dashboard-shell.css';
 import '../../styles/home-premium-polish.css';
+import '../../styles/navigation-final.css';
 
 export function AppShell({
   children,
@@ -23,7 +24,11 @@ export function AppShell({
   const shop = pathname === '/miners';
 
   return (
-    <div className={`app-shell ${home ? 'home-shell' : ''} ${shop ? 'shop-shell' : ''}`}>
+    <div
+      className={`app-shell ${
+        home ? 'home-shell' : ''
+      } ${shop ? 'shop-shell' : ''}`}
+    >
       {open ? (
         <button
           type="button"
@@ -32,15 +37,24 @@ export function AppShell({
           className="ng-nav-backdrop"
         />
       ) : null}
-      <Sidebar open={open} onClose={() => setOpen(false)} />
+
+      <Sidebar
+        open={open}
+        onClose={() => setOpen(false)}
+      />
+
       <div className="main">
         <Topbar
           onMenu={() => setOpen(true)}
           showSearch={showSearch}
           showBalance={showBalance}
         />
-        <main className="content">{children}</main>
+
+        <main className="content">
+          {children}
+        </main>
       </div>
+
       <BottomNav />
     </div>
   );

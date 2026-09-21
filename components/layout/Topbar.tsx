@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Bell, Menu, Plus } from 'lucide-react';
+import { Bell, Menu } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import BrandLink from '@/components/branding/BrandLink';
@@ -14,14 +14,15 @@ type TopbarProps = {
 
 function initials(value: string) {
   const parts = value.trim().split(/\s+/).filter(Boolean);
+
   if (parts.length === 0) return 'U';
   if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+
   return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
 }
 
 export function Topbar({
   onMenu,
-  showSearch = true,
   showBalance = true,
 }: TopbarProps) {
   const [balance, setBalance] = useState<number | null>(null);
@@ -41,6 +42,7 @@ export function Topbar({
       if (!user || !mounted) return;
 
       const metadata = user.user_metadata ?? {};
+
       const displayName = String(
         metadata.username ||
           metadata.full_name ||
@@ -50,8 +52,16 @@ export function Topbar({
       );
 
       setUserName(displayName);
-      setMembership(String(metadata.membership || 'Standard Member'));
-      setAvatarUrl(String(metadata.avatar_url || metadata.picture || ''));
+      setMembership(
+        String(metadata.membership || 'Standard Member'),
+      );
+      setAvatarUrl(
+        String(
+          metadata.avatar_url ||
+            metadata.picture ||
+            '',
+        ),
+      );
 
       if (showBalance) {
         const { data } = await supabase
@@ -61,7 +71,11 @@ export function Topbar({
           .maybeSingle();
 
         if (mounted) {
-          setBalance(data?.diamond_balance == null ? 0 : Number(data.diamond_balance));
+          setBalance(
+            data?.diamond_balance == null
+              ? 0
+              : Number(data.diamond_balance),
+          );
         }
       }
     })();
@@ -74,55 +88,71 @@ export function Topbar({
   const formatted =
     balance === null
       ? '—'
-      : new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(balance);
+      : new Intl.NumberFormat('en-US', {
+          maximumFractionDigits: 0,
+        }).format(balance);
 
   return (
     <header className="topbar home-topbar">
       <div className="home-top-left">
         <button
           type="button"
-          aria-label="Open menu"
+          aria-label="Open navigation menu"
           className="icon-btn mobile-menu"
           onClick={onMenu}
         >
-          <Menu size={19} />
+          <Menu size={21} strokeWidth={2} />
         </button>
-        <BrandLink href="/dashboard" variant="dashboard" className="brand" />
-      </div>
 
-      {showSearch ? (
-        <div className="home-search">
-          <input aria-label="Search" placeholder="Search miners, assets, or features..." />
-        </div>
-      ) : null}
+        <BrandLink
+          href="/dashboard"
+          variant="dashboard"
+          className="brand"
+        />
+      </div>
 
       <div className="top-actions">
         {showBalance ? (
-          <div className="diamond-pill">
-            <span>💎</span>
+          <Link
+            href="/wallet"
+            className="top-diamond-inline"
+            aria-label={`Open wallet, Diamond balance ${formatted}`}
+          >
+            <span aria-hidden="true">💎</span>
             <b>{formatted}</b>
-            <Link href="/wallet/deposit" aria-label="Add diamonds">
-              <Plus size={14} />
-            </Link>
-          </div>
+          </Link>
         ) : null}
 
-        <Link href="/notifications" className="icon-btn" aria-label="Notifications">
-          <Bell size={18} />
+        <Link
+          href="/notifications"
+          className="icon-btn top-notification"
+          aria-label="Notifications"
+        >
+          <Bell size={19} strokeWidth={2} />
           <span className="notify-dot" />
+          <span className="notify-pulse" aria-hidden="true" />
         </Link>
 
-        <Link href="/profile" className="home-user" aria-label={`Open profile for ${userName}`}>
+        <Link
+          href="/profile"
+          className="home-user"
+          aria-label={`Open profile for ${userName}`}
+        >
           <span className="home-user-avatar">
             {avatarUrl ? (
-              <img src={avatarUrl} alt="" />
+              <img
+                src={avatarUrl}
+                alt=""
+                referrerPolicy="no-referrer"
+              />
             ) : (
               initials(userName)
             )}
           </span>
-          <span>
+
+          <span className="home-user-copy">
             <b>{userName}</b>
-            <small>{membership} ▾</small>
+            <small>{membership}</small>
           </span>
         </Link>
       </div>
