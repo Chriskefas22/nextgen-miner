@@ -5,6 +5,7 @@ import {
   ArrowLeft,
   Boxes,
   GitMerge,
+  Info,
   LockKeyhole,
   Sparkles,
   X,
@@ -66,12 +67,13 @@ export default function RoomDetailPage() {
   const params = useParams<{ roomNumber: string }>();
   const roomNumber = Number(params?.roomNumber ?? 0);
 
-  const [data, setData] =
-    useState<RoomsSnapshot | null>(null);
+  const [data, setData] = useState<RoomsSnapshot | null>(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] =
-    useState<'unlock' | 'merge' | null>(null);
+    useState<'unlock' | 'merge' | 'move' | null>(null);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [selectedMiner, setSelectedMiner] =
+    useState<Slot | null>(null);
   const [message, setMessage] = useState('');
 
   const load = useCallback(async () => {
@@ -83,7 +85,6 @@ export default function RoomDetailPage() {
       );
 
       if (result.error) throw result.error;
-
       setData(result.data as RoomsSnapshot);
     } catch (error) {
       setMessage(
@@ -120,8 +121,7 @@ export default function RoomDetailPage() {
   const room = useMemo(
     () =>
       data?.rooms.find(
-        (candidate) =>
-          candidate.room_number === roomNumber,
+        (candidate) => candidate.room_number === roomNumber,
       ) ?? null,
     [data, roomNumber],
   );
@@ -162,7 +162,9 @@ export default function RoomDetailPage() {
     }
   }
 
-  function selectMiner(slot: Slot) {
+  function selectForMerge(slot: Slot) {
+    if (selectedMiner) return;
+
     setMessage('');
 
     if (selectedIds.includes(slot.user_miner_id)) {
@@ -294,6 +296,46 @@ export default function RoomDetailPage() {
         error instanceof Error
           ? error.message
           : 'Auto merge failed.',
+      );
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function moveMinerToInventory(slot: Slot) {
+    if (busy) return;
+
+    setBusy('move');
+    setMessage('');
+
+    try {
+      const result = await createClient().rpc(
+        'nextgen_return_miner_to_inventory',
+        {
+          p_user_miner_id: slot.user_miner_id,
+        },
+      );
+
+      if (result.error) throw result.error;
+
+      setSelectedMiner(null);
+      setSelectedIds((current) =>
+        current.filter(
+          (id) => id !== slot.user_miner_id,
+        ),
+      );
+
+      setMessage(
+        `${slot.name} moved to Inventory.`,
+      );
+
+      window.dispatchEvent(new Event('nextgen:sync'));
+      await load();
+    } catch (error) {
+      setMessage(
+        error instanceof Error
+          ? error.message
+          : 'Unable to move miner to Inventory.',
       );
     } finally {
       setBusy(null);
@@ -520,7 +562,8 @@ export default function RoomDetailPage() {
             </button>
           ) : (
             <div className={styles.manualHint}>
-              Tap two matching miners at the same level to merge.
+              Tap a miner to inspect it. Select two identical
+              miners at the same level to prepare a merge.
             </div>
           )}
         </section>
@@ -552,16 +595,14 @@ export default function RoomDetailPage() {
                       ? styles.slotSelected
                       : ''
                   }`}
-                  onClick={() => selectMiner(slot)}
-                  title={`${slot.name} · LV ${
-                    slot.level
-                  } · ${num(
-                    slot.hashrate,
-                    1,
-                  )} H/s · +${num(
-                    slot.bonus_hashrate_percent,
-                    1,
-                  )}%`}
+                  onClick={() => {
+                    if (selectedIds.length > 0) {
+                      selectForMerge(slot);
+                    } else {
+                      setSelectedMiner(slot);
+                    }
+                  }}
+                  title={`Inspect ${slot.name}`}
                 >
                   <img
                     src={imagePath(
@@ -574,20 +615,18 @@ export default function RoomDetailPage() {
                   <div className={styles.slotShade} />
 
                   <b>LV {slot.level}</b>
+
                   <small>
                     #{String(index + 1).padStart(2, '0')}
                   </small>
 
                   <em>
-                    {num(
-                      slot.hashrate,
-                      1,
-                    )}{' '}
-                    H/s · +{num(
-                      slot.bonus_hashrate_percent,
-                      1,
-                    )}%
+                    {num(slot.hashrate, 1)} H/s
                   </em>
+
+                  <span className={styles.slotInfoIcon}>
+                    <Info size={11} />
+                  </span>
                 </button>
               ) : (
                 <div
@@ -595,15 +634,151 @@ export default function RoomDetailPage() {
                   className={`${styles.slot} ${styles.slotEmpty}`}
                 >
                   <span>+</span>
+
                   <small>
                     #{String(index + 1).padStart(2, '0')}
                   </small>
+
                   <em>EMPTY</em>
                 </div>
               ),
             )}
           </div>
         </section>
+
+        {selectedMiner ? (
+          <div
+            className={styles.minerModalOverlay}
+            role="presentation"
+            onMouseDown={(event) => {
+              if (
+                event.target === event.currentTarget &&
+                busy !== 'move'
+              ) {
+                setSelectedMiner(null);
+              }
+            }}
+          >
+            <section
+              className={styles.minerModal}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="room-miner-detail-title"
+            >
+              <button
+                type="button"
+                className={styles.minerModalClose}
+                aria-label="Close miner details"
+                disabled={busy === 'move'}
+                onClick={() => setSelectedMiner(null)}
+              >
+                <X size={18} />
+              </button>
+
+              <div className={styles.minerModalArt}>
+                <img
+                  src={imagePath(
+                    selectedMiner.image_path,
+                    selectedMiner.slug,
+                  )}
+                  alt={`${selectedMiner.name} virtual miner`}
+                />
+
+                <span className={styles.minerModalTier}>
+                  {selectedMiner.tier}
+                </span>
+
+                <span className={styles.minerModalLevel}>
+                  LV {selectedMiner.level}/10
+                </span>
+              </div>
+
+              <div className={styles.minerModalBody}>
+                <div className={styles.kicker}>
+                  MINER DETAILS
+                </div>
+
+                <h2 id="room-miner-detail-title">
+                  {selectedMiner.name}
+                </h2>
+
+                <p>
+                  This miner is currently mining inside Room{' '}
+                  {String(room.room_number).padStart(2, '0')}.
+                  Its effective hashrate uses the NextGen level
+                  hashrate plus this miner's persisted random
+                  bonus.
+                </p>
+
+                <div className={styles.minerModalStats}>
+                  <div>
+                    <small>LEVEL</small>
+                    <strong>
+                      LV {selectedMiner.level}/10
+                    </strong>
+                  </div>
+
+                  <div>
+                    <small>HASHRATE</small>
+                    <strong>
+                      {num(selectedMiner.hashrate, 1)} H/s
+                    </strong>
+                  </div>
+
+                  <div>
+                    <small>BONUS HASHRATE</small>
+                    <strong className={styles.bonusText}>
+                      +{num(
+                        selectedMiner.bonus_hashrate_percent,
+                        1,
+                      )}%
+                    </strong>
+                  </div>
+
+                  <div>
+                    <small>STATE</small>
+                    <strong>
+                      {selectedMiner.status === 'active'
+                        ? 'MINING'
+                        : 'PAUSED'}
+                    </strong>
+                  </div>
+                </div>
+
+                <div className={styles.minerModalFormula}>
+                  <span>EFFECTIVE HASHRATE</span>
+                  <b>
+                    Base Level Hashrate × (1 + Bonus%)
+                  </b>
+                </div>
+
+                <div className={styles.minerModalActions}>
+                  <button
+                    type="button"
+                    className={styles.secondaryBtn}
+                    disabled={busy === 'move'}
+                    onClick={() =>
+                      void moveMinerToInventory(selectedMiner)
+                    }
+                  >
+                    <ArrowLeft size={15} />
+                    {busy === 'move'
+                      ? 'MOVING…'
+                      : 'MOVE TO INVENTORY'}
+                  </button>
+
+                  <button
+                    type="button"
+                    className={styles.minerModalDone}
+                    onClick={() => setSelectedMiner(null)}
+                  >
+                    DONE
+                  </button>
+                </div>
+              </div>
+            </section>
+          </div>
+        ) : null}
 
         {selectedIds.length ? (
           <div className={styles.selectionNote}>
