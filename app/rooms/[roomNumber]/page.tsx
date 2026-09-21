@@ -121,7 +121,8 @@ export default function RoomDetailPage() {
   const room = useMemo(
     () =>
       data?.rooms.find(
-        (candidate) => candidate.room_number === roomNumber,
+        (candidate) =>
+          candidate.room_number === roomNumber,
       ) ?? null,
     [data, roomNumber],
   );
@@ -163,8 +164,6 @@ export default function RoomDetailPage() {
   }
 
   function selectForMerge(slot: Slot) {
-    if (selectedMiner) return;
-
     setMessage('');
 
     if (selectedIds.includes(slot.user_miner_id)) {
@@ -267,6 +266,7 @@ export default function RoomDetailPage() {
 
     setBusy('merge');
     setSelectedIds([]);
+    setSelectedMiner(null);
     setMessage('');
 
     try {
@@ -562,8 +562,7 @@ export default function RoomDetailPage() {
             </button>
           ) : (
             <div className={styles.manualHint}>
-              Tap a miner to inspect it. Select two identical
-              miners at the same level to prepare a merge.
+              Tap a miner to select it for merge. Tap <b>(i)</b> for details.
             </div>
           )}
         </section>
@@ -585,49 +584,67 @@ export default function RoomDetailPage() {
           <div className={styles.rackGrid}>
             {slots.map((slot, index) =>
               slot ? (
-                <button
+                <div
                   key={slot.slot_index}
-                  type="button"
-                  className={`${styles.slot} ${
-                    selectedIds.includes(
-                      slot.user_miner_id,
-                    )
-                      ? styles.slotSelected
-                      : ''
-                  }`}
-                  onClick={() => {
-                    if (selectedIds.length > 0) {
-                      selectForMerge(slot);
-                    } else {
-                      setSelectedMiner(slot);
-                    }
-                  }}
-                  title={`Inspect ${slot.name}`}
+                  className={
+                    styles.slotWrap +
+                    (selectedIds.includes(slot.user_miner_id)
+                      ? ` ${styles.slotWrapSelected}`
+                      : '')
+                  }
                 >
-                  <img
-                    src={imagePath(
-                      slot.image_path,
-                      slot.slug,
-                    )}
-                    alt=""
-                  />
+                  <button
+                    type="button"
+                    className={
+                      styles.slot +
+                      (selectedIds.includes(slot.user_miner_id)
+                        ? ` ${styles.slotSelected}`
+                        : '')
+                    }
+                    onClick={() => selectForMerge(slot)}
+                    title={
+                      selectedIds.includes(
+                        slot.user_miner_id,
+                      )
+                        ? 'Selected for merge'
+                        : 'Select miner for merge'
+                    }
+                  >
+                    <img
+                      src={imagePath(
+                        slot.image_path,
+                        slot.slug,
+                      )}
+                      alt=""
+                    />
 
-                  <div className={styles.slotShade} />
+                    <div className={styles.slotShade} />
 
-                  <b>LV {slot.level}</b>
+                    <b>LV {slot.level}</b>
 
-                  <small>
-                    #{String(index + 1).padStart(2, '0')}
-                  </small>
+                    <small>
+                      #{String(index + 1).padStart(2, '0')}
+                    </small>
 
-                  <em>
-                    {num(slot.hashrate, 1)} H/s
-                  </em>
+                    <em>
+                      {num(slot.hashrate, 1)} H/s
+                    </em>
+                  </button>
 
-                  <span className={styles.slotInfoIcon}>
+                  <button
+                    type="button"
+                    className={styles.slotInfoButton}
+                    aria-label={`View details for ${slot.name}`}
+                    title="Miner details"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      setSelectedIds([]);
+                      setSelectedMiner(slot);
+                    }}
+                  >
                     <Info size={11} />
-                  </span>
-                </button>
+                  </button>
+                </div>
               ) : (
                 <div
                   key={`empty-${index}`}
