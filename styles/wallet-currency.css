@@ -1,0 +1,39 @@
+
+/* Wallet currency selector */
+.wallet-currency-picker{
+  position:relative;
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  min-height:42px;
+  padding:0 9px 0 11px;
+  border:1px solid rgba(255,255,255,.13);
+  border-radius:11px;
+  background:#111;
+  color:#ddd;
+}
+.wallet-currency-symbol{color:#bcbcbc;font-size:14px;pointer-events:none}
+.wallet-currency-picker .wallet-currency{
+  appearance:none;
+  -webkit-appearance:none;
+  min-width:120px;
+  min-height:40px;
+  padding:0 18px 0 2px;
+  border:0;
+  outline:0;
+  background:transparent;
+  color:#ddd;
+  font:700 13px Rajdhani,sans-serif;
+}
+.wallet-currency-picker .wallet-currency option{color:#111;background:#fff}
+.wallet-currency-chevron{position:absolute;right:8px;pointer-events:none;color:#999}
+
+@media(max-width:430px){
+  .wallet-simple-header{align-items:flex-start}
+  .wallet-currency-picker{min-height:38px;padding-left:8px}
+  .wallet-currency-picker .wallet-currency{min-width:86px;max-width:105px;font-size:12px}
+}
+
+/* Remove old technical footer/trust copy from deposit and wallet. */
+.deposit-simple-trust,
+.wallet-simple-security{display:none !important;}
