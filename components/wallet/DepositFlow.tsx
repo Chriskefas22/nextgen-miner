@@ -1,200 +1,35 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import {
-  ArrowLeft,
-  Check,
-  CircleCheck,
-  Copy,
-  ExternalLink,
-  Loader2,
-  ShieldAlert,
-  ShieldCheck,
-  Sparkles,
-} from "lucide-react";
+import { useEffect, useState } from "react";
+import { ArrowRight, CheckCircle2, Loader2, ShieldCheck, WalletCards } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
-type O = {
-  id: string;
-  asset: string;
-  network: string;
-  destination: string;
-  warningMessage: string | null;
-  firstDepositNote: string | null;
-  displayName: string;
-  minDeposit: number;
-  confirmationsRequired: number;
-};
-
-const IDS: Record<string, string> = {
-  BCH: "bitcoin-cash",
-  BNB: "binancecoin",
-  BTC: "bitcoin",
-  DASH: "dash",
-  DGB: "digibyte",
-  DOGE: "dogecoin",
-  ETH: "ethereum",
-  FEY: "feyorra",
-  LTC: "litecoin",
-  SOL: "solana",
-  TRX: "tron",
-  USDC: "usd-coin",
-  USDT: "tether",
-  ZEC: "zcash",
-};
-
-const nominal = [1, 5, 10, 25, 50, 100];
-
-function formatCrypto(value: number | null, asset: string) {
-  if (value === null || !Number.isFinite(value)) return "—";
-  return value.toLocaleString(undefined, {
-    maximumSignificantDigits: asset === "BTC" || asset === "ETH" ? 9 : 12,
-  });
-}
+const presets = [1, 5, 10, 20, 50, 100];
 
 export function DepositFlow() {
-  const [opts, setOpts] = useState<O[]>([]);
-  const [sel, setSel] = useState<O | null>(null);
-  const [usd, setUsd] = useState(1);
+  const [amount, setAmount] = useState(20);
   const [custom, setCustom] = useState("");
-  const [price, setPrice] = useState<number | null>(null);
-  const [at, setAt] = useState<number | null>(null);
-  const [qr, setQr] = useState("");
   const [busy, setBusy] = useState(false);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [hash, setHash] = useState("");
-  const [done, setDone] = useState(false);
-  const [copied, setCopied] = useState(false);
-  const [oxapayUrl, setOxapayUrl] = useState("");
-  const [oxapayTrackId, setOxapayTrackId] = useState("");
+  const [returned, setReturned] = useState(false);
 
   useEffect(() => {
-    let live = true;
-
-    fetch("/api/deposit/options", { cache: "no-store" })
-      .then(async (r) => {
-        const d = await r.json();
-        if (!r.ok) throw Error(d.error || "Unable to load assets");
-        if (live) setOpts(d.options || []);
-      })
-      .catch((e) => live && setError(e.message || "Unable to load deposit assets."))
-      .finally(() => live && setLoading(false));
-
-    return () => {
-      live = false;
-    };
+    const params = new URLSearchParams(window.location.search);
+    setReturned(params.get("deposit") === "success");
   }, []);
 
-  const uniqueOptions = useMemo(() => {
-    const seen = new Set<string>();
-    const result: O[] = [];
+  const depositAmount = Number(custom || amount);
+  const validAmount = Number.isFinite(depositAmount) && depositAmount >= 0.01;
 
-    for (const option of opts) {
-      const asset = option.asset.toUpperCase();
-
-      if (asset === "USDT") {
-        if (seen.has("USDT_OXAPAY")) continue;
-        seen.add("USDT_OXAPAY");
-        result.push({
-          ...option,
-          id: "oxapay-usdt",
-          network: "OxaPay hosted checkout",
-          destination: "",
-          displayName: option.displayName || "Tether",
-        });
-        continue;
-      }
-
-      const key = asset + ":" + option.network;
-      if (seen.has(key)) continue;
-      seen.add(key);
-      result.push(option);
-    }
-
-    return result;
-  }, [opts]);
-
-  useEffect(() => {
-    if (!sel) {
-      setPrice(null);
-      setAt(null);
-      setQr("");
-      setOxapayUrl("");
-      setOxapayTrackId("");
-      return;
-    }
-
-    if (sel.asset === "USDT" && sel.id === "oxapay-usdt") return;
-
-    let live = true;
-    const id = IDS[sel.asset];
-
-    if (!id) {
-      setError("Price source is not configured for " + sel.asset + ".");
-      return () => {
-        live = false;
-      };
-    }
-
-    fetch(
-      "https://api.coingecko.com/api/v3/simple/price?ids=" + id + "&vs_currencies=usd",
-      { cache: "no-store" },
-    )
-      .then((r) => r.json())
-      .then((d) => {
-        const p = Number(d?.[id]?.usd);
-        if (!p) throw Error("No valid USD quote");
-        if (live) {
-          setPrice(p);
-          setAt(Date.now());
-        }
-      })
-      .catch((e) => live && setError(e.message || "Unable to load crypto rate."))
-      .finally(() => live && setLoading(false));
-
-    import("qrcode")
-      .then(({ default: QRCode }) =>
-        QRCode.toDataURL(sel.destination, { width: 280, margin: 2 }),
-      )
-      .then((u) => live && setQr(u))
-      .catch(() => {});
-
-    return () => {
-      live = false;
-    };
-  }, [sel]);
-
-  const amount = useMemo(() => {
-    const n = custom ? Number(custom) : usd;
-    return Number.isFinite(n) ? Math.max(0, n) : 0;
-  }, [custom, usd]);
-
-  const crypto = price && amount > 0 ? amount / price : null;
-  const fresh = !!at && Date.now() - at < 60000;
-  const isOxaPay = sel?.asset === "USDT" && sel.id === "oxapay-usdt";
-
-  function selectAsset(option: O) {
-    setSel(option);
+  function choosePreset(value: number) {
+    setAmount(value);
+    setCustom("");
     setError("");
-    setDone(false);
-    setHash("");
-    setOxapayUrl("");
-    setOxapayTrackId("");
   }
 
-  function back() {
-    setSel(null);
-    setDone(false);
-    setHash("");
-    setError("");
-    setOxapayUrl("");
-    setOxapayTrackId("");
-  }
-
-  async function createOxaPayInvoice() {
-    if (!amount || amount < 0.01) {
-      setError("Minimum deposit is $0.01.");
+  async function continueToOxaPay() {
+    if (!validAmount) {
+      setError("Minimum setoran adalah $0.01.");
       return;
     }
 
@@ -205,373 +40,185 @@ export function DepositFlow() {
       const supabase = createClient();
       const { data, error: invokeError } = await supabase.functions.invoke(
         "oxapay-create-invoice",
-        { body: { usd_amount: amount } },
+        { body: { usd_amount: Number(depositAmount.toFixed(2)) } },
       );
 
       if (invokeError) {
-        throw Error(invokeError.message || "Unable to create OxaPay invoice.");
+        throw Error(invokeError.message || "Gagal membuat pembayaran OxaPay.");
       }
 
       const paymentUrl = String(
         data?.provider_payment_url ?? data?.payment_url ?? "",
       );
-      const trackId = String(
-        data?.provider_track_id ?? data?.track_id ?? "",
-      );
 
-      if (!paymentUrl || !trackId) {
-        throw Error("OxaPay returned an incomplete payment session.");
+      if (!paymentUrl) {
+        throw Error("OxaPay tidak mengembalikan halaman pembayaran.");
       }
 
-      setOxapayUrl(paymentUrl);
-      setOxapayTrackId(trackId);
+      window.location.assign(paymentUrl);
     } catch (e) {
       setError(
         e instanceof Error
           ? e.message
-          : "Unable to create OxaPay invoice.",
+          : "Gagal membuat pembayaran OxaPay.",
       );
-    } finally {
       setBusy(false);
     }
-  }
-
-  async function submitManual() {
-    if (!sel || !crypto || !price || !at || !fresh || !hash.trim()) {
-      setError("Lengkapi nominal, kurs terbaru, dan transaction hash.");
-      return;
-    }
-
-    setBusy(true);
-    setError("");
-
-    try {
-      const r = await fetch("/api/deposit/submit", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          asset: sel.asset,
-          network: sel.network,
-          amount: crypto,
-          usdAmount: amount,
-          quoteId: IDS[sel.asset],
-          quotePrice: price,
-          quoteTimestamp: at,
-          txHash: hash.trim(),
-        }),
-      });
-
-      const d = await r.json();
-      if (!r.ok) throw Error(d.error || "Deposit submission failed");
-      setDone(true);
-    } catch (e) {
-      setError(
-        e instanceof Error ? e.message : "Deposit submission failed",
-      );
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  if (loading) {
-    return (
-      <div className="deposit-flow">
-        <div className="wallet-loading">
-          <Loader2 className="spin" size={18} />
-          Loading deposit options…
-        </div>
-      </div>
-    );
-  }
-
-  if (error && !uniqueOptions.length) {
-    return (
-      <div className="deposit-flow">
-        <div className="wallet-message error">{error}</div>
-      </div>
-    );
-  }
-
-  if (!sel) {
-    return (
-      <div className="deposit-flow">
-        <div className="wallet-section-head">
-          <div>
-            <div className="eyebrow">ADD REAL CRYPTO</div>
-            <h2>Select deposit asset</h2>
-            <p className="muted">
-              Choose an asset below. USDT uses the OxaPay hosted checkout;
-              other assets keep the existing verified manual flow.
-            </p>
-          </div>
-          <div className="wallet-secure-chip">
-            <ShieldCheck size={15} />
-            Server verified
-          </div>
-        </div>
-
-        <div className="deposit-method-grid">
-          {uniqueOptions.map((o) => {
-            const oxa = o.asset === "USDT" && o.id === "oxapay-usdt";
-            return (
-              <button
-                className="deposit-asset-card"
-                key={o.id}
-                onClick={() => selectAsset(o)}
-                type="button"
-              >
-                <span
-                  className={
-                    "deposit-asset-icon " + (oxa ? "is-oxa" : "")
-                  }
-                >
-                  {oxa ? "O" : o.asset.slice(0, 3)}
-                </span>
-                <span className="deposit-asset-copy">
-                  <b>{o.asset}</b>
-                  <small>{oxa ? "OxaPay hosted checkout" : o.network}</small>
-                </span>
-                <span className="deposit-asset-arrow">›</span>
-              </button>
-            );
-          })}
-        </div>
-
-        {!uniqueOptions.length && (
-          <div className="wallet-empty">
-            <Sparkles size={20} />
-            <b>No deposit destination is active yet.</b>
-            <span>
-              Enable a verified asset destination in Supabase before accepting
-              deposits.
-            </span>
-          </div>
-        )}
-      </div>
-    );
   }
 
   return (
-    <div className="deposit-flow">
-      <button className="deposit-back" onClick={back} type="button">
-        <ArrowLeft size={17} /> Back to assets
-      </button>
+    <div className="deposit-simple">
+      <style jsx>{`
+        .deposit-simple{display:grid;gap:12px;max-width:720px;margin:0 auto}
+        .deposit-simple-hero{display:flex;align-items:center;gap:12px;padding:4px 2px 10px}
+        .deposit-simple-icon{width:48px;height:48px;flex:0 0 48px;display:grid;place-items:center;border-radius:15px;background:linear-gradient(135deg,#1f63ff,#7c35ff);color:#fff;box-shadow:0 0 28px rgba(91,70,255,.22)}
+        .deposit-simple-hero h2{font:900 18px/1.15 Orbitron,sans-serif;margin:3px 0 6px}
+        .deposit-simple-hero p{margin:0;color:#7896a9;font-size:10px;line-height:1.5}
+        .deposit-simple-card{padding:16px;border:1px solid rgba(70,132,190,.22);border-radius:18px;background:linear-gradient(145deg,rgba(7,18,32,.98),rgba(3,10,18,.98));box-shadow:0 16px 36px rgba(0,0,0,.18)}
+        .deposit-simple-label{color:#7795aa;font-size:9px;font-weight:900;letter-spacing:.13em;margin-bottom:9px}
+        .deposit-quick-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+        .deposit-quick-grid button{min-height:44px;border:1px solid rgba(54,121,169,.24);border-radius:11px;background:#06121f;color:#a4bac7;font-weight:900;font-size:11px;cursor:pointer;transition:.16s ease}
+        .deposit-quick-grid button:hover{transform:translateY(-1px);border-color:rgba(66,213,255,.34);color:#fff}
+        .deposit-quick-grid button.active{color:#fff;border-color:rgba(143,110,255,.56);background:linear-gradient(135deg,#245fff,#8738ff);box-shadow:0 7px 24px rgba(73,69,255,.18)}
+        .deposit-custom-wrap{margin-top:12px}
+        .deposit-custom-wrap label{display:block;color:#7895a8;font-size:9px;font-weight:900;margin-bottom:6px}
+        .deposit-custom-input{display:flex;align-items:center;gap:9px;padding:0 12px;border:1px solid rgba(54,120,164,.26);border-radius:11px;background:#030a14}
+        .deposit-custom-input:focus-within{border-color:rgba(62,215,255,.45);box-shadow:0 0 0 3px rgba(62,215,255,.06)}
+        .deposit-custom-input span{color:#88a6b7;font-weight:900}
+        .deposit-custom-input input{width:100%;min-width:0;padding:12px 0;border:0;outline:0;background:transparent;color:#f0fbff;font-size:13px}
+        .deposit-simple-summary{display:grid;gap:7px;margin-top:13px}
+        .deposit-simple-summary>div{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 11px;border-radius:11px;background:rgba(8,20,34,.74);border:1px solid rgba(53,112,151,.16)}
+        .deposit-simple-summary span{color:#718ea2;font-size:9px}
+        .deposit-simple-summary strong{color:#eefaff;font-size:10px}
+        .deposit-continue-btn{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:13px;min-height:48px;border:0;border-radius:13px;background:linear-gradient(135deg,#2764ff,#8738ff);color:#fff;font-size:12px;font-weight:900;cursor:pointer;box-shadow:0 11px 30px rgba(70,71,255,.2)}
+        .deposit-continue-btn:hover:not(:disabled){transform:translateY(-1px)}
+        .deposit-continue-btn:disabled{opacity:.58;cursor:not-allowed}
+        .deposit-simple-trust{display:flex;flex-wrap:wrap;justify-content:center;gap:9px;margin-top:10px}
+        .deposit-simple-trust span{display:inline-flex;align-items:center;gap:4px;color:#70a895;font-size:8px;font-weight:800}
+        .deposit-returned{display:flex;align-items:flex-start;gap:9px;padding:11px 12px;border-radius:12px;border:1px solid rgba(53,243,180,.18);background:rgba(53,243,180,.05);color:#8fe6c7}
+        .deposit-returned svg{margin-top:1px}
+        .deposit-returned b,.deposit-returned span{display:block}
+        .deposit-returned b{font-size:10px;color:#b7f4de}
+        .deposit-returned span{margin-top:3px;color:#719c91;font-size:8px;line-height:1.45}
+        .deposit-simple-help{padding:12px 13px;border-radius:13px;border:1px solid rgba(53,124,171,.16);background:rgba(6,16,28,.55)}
+        .deposit-simple-help b{font-size:10px;color:#dff4fa}
+        .deposit-simple-help p{margin:5px 0 0;color:#708e9f;font-size:9px;line-height:1.55}
+        @media(max-width:430px){
+          .deposit-simple-hero{align-items:flex-start}
+          .deposit-simple-hero h2{font-size:16px}
+          .deposit-quick-grid{grid-template-columns:repeat(2,1fr)}
+          .deposit-simple-card{padding:13px}
+        }
+      `}</style>
 
-      <div className="deposit-payment-card">
-        <div className="deposit-payment-head">
+      <div className="deposit-simple-hero">
+        <div className="deposit-simple-icon">
+          <WalletCards size={24} />
+        </div>
+        <div>
+          <div className="eyebrow">SETORAN CRYPTO</div>
+          <h2>Tambah saldo dengan mudah</h2>
+          <p>Masukkan nominal. Kami akan membuka halaman pembayaran OxaPay untuk pilihan crypto dan network.</p>
+        </div>
+      </div>
+
+      {returned && (
+        <div className="deposit-returned">
+          <CheckCircle2 size={18} />
           <div>
-            <div className="eyebrow">
-              {isOxaPay ? "OXAPAY CHECKOUT" : "MANUAL DEPOSIT"}
-            </div>
-            <h2>{sel.displayName || sel.asset}</h2>
-            <span className="muted">
-              {isOxaPay
-                ? "USDT • Hosted payment page"
-                : sel.asset + " • " + sel.network}
-            </span>
+            <b>Kembali dari OxaPay</b>
+            <span>Pembayaran sedang diverifikasi server. Refresh Wallet untuk melihat saldo terbaru.</span>
           </div>
-          <span className="deposit-step">
-            {isOxaPay ? "PROVIDER" : "LIVE RATE"}
-          </span>
+        </div>
+      )}
+
+      <div className="deposit-simple-card">
+        <div className="deposit-simple-label">JUMLAH SETORAN (USD)</div>
+
+        <div className="deposit-quick-grid">
+          {presets.map((value) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => choosePreset(value)}
+              className={!custom && amount === value ? "active" : ""}
+            >
+              {"$" + value}
+            </button>
+          ))}
         </div>
 
-        <div className="deposit-payment-grid">
-          <div className="deposit-payment-left">
-            <div className="deposit-label">SELECT DEPOSIT NOMINAL</div>
-            <div className="deposit-amounts">
-              {nominal.map((v) => (
-                <button
-                  key={v}
-                  onClick={() => {
-                    setUsd(v);
-                    setCustom("");
-                    setError("");
-                  }}
-                  className={!custom && usd === v ? "active" : ""}
-                  type="button"
-                >
-                  ${v.toFixed(2)}
-                </button>
-              ))}
-            </div>
-
-            <div className="deposit-field">
-              <label>CUSTOM AMOUNT (USD)</label>
-              <input
-                type="number"
-                min="0.01"
-                step="0.01"
-                value={custom}
-                onChange={(e) => {
-                  setCustom(e.target.value);
-                  setError("");
-                }}
-                inputMode="decimal"
-              />
-            </div>
-
-            <div className="deposit-summary">
-              <div>
-                <span>Deposit amount</span>
-                <b>${amount.toFixed(2)}</b>
-              </div>
-              <div>
-                <span>Crypto amount</span>
-                <b>
-                  {isOxaPay
-                    ? "Calculated securely by server"
-                    : formatCrypto(crypto, sel.asset) + " " + sel.asset}
-                </b>
-              </div>
-              <div>
-                <span>Diamond credit</span>
-                <b>💎 {(amount * 10000).toLocaleString()}</b>
-              </div>
-            </div>
-
-            <div className="deposit-trust-row">
-              <span>
-                <ShieldCheck size={14} /> Server-side validation
-              </span>
-              <span>
-                <CircleCheck size={14} /> Idempotent settlement
-              </span>
-            </div>
-          </div>
-
-          <div className="deposit-payment-right">
-            {isOxaPay ? (
-              <div className="oxa-checkout-panel">
-                <div className="oxa-logo-mark">O</div>
-                <div className="eyebrow">PAYMENT PROVIDER</div>
-                <h3>OxaPay hosted payment</h3>
-                <p className="muted">
-                  Complete the USDT payment on OxaPay. NextGenMiner credits the
-                  balance only after the server verifies the provider callback.
-                </p>
-
-                {!oxapayUrl ? (
-                  <button
-                    className="btn btn-primary wallet-full-btn"
-                    disabled={busy || amount < 0.01}
-                    onClick={createOxaPayInvoice}
-                    type="button"
-                  >
-                    {busy ? (
-                      <>
-                        <Loader2 className="spin" size={16} /> Creating
-                        payment…
-                      </>
-                    ) : (
-                      "Create OxaPay Payment"
-                    )}
-                  </button>
-                ) : (
-                  <div className="oxa-ready">
-                    <div className="oxa-ready-row">
-                      <span className="status-dot live" />
-                      <div>
-                        <b>Payment session ready</b>
-                        <small>Track ID: {oxapayTrackId}</small>
-                      </div>
-                    </div>
-                    <a
-                      className="btn btn-primary wallet-full-btn"
-                      href={oxapayUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      Open OxaPay Checkout <ExternalLink size={16} />
-                    </a>
-                    <div className="wallet-message info">
-                      Do not create a second invoice for the same deposit. After
-                      payment, return to NextGenMiner and refresh your wallet.
-                    </div>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <>
-                <div className="deposit-qr">
-                  {qr ? (
-                    <img src={qr} alt={sel.asset + " deposit QR"} />
-                  ) : (
-                    <span>Generating QR…</span>
-                  )}
-                </div>
-
-                <div className="deposit-address-title">DEPOSIT ADDRESS</div>
-                <div className="deposit-address">
-                  <code>{sel.destination}</code>
-                  <button
-                    onClick={async () => {
-                      await navigator.clipboard.writeText(sel.destination);
-                      setCopied(true);
-                      setTimeout(() => setCopied(false), 1500);
-                    }}
-                    type="button"
-                    aria-label="Copy deposit address"
-                  >
-                    {copied ? <Check size={17} /> : <Copy size={17} />}
-                  </button>
-                </div>
-
-                <div className="deposit-warning">
-                  <ShieldAlert size={16} />
-                  <span>
-                    {sel.warningMessage ||
-                      "Send only " +
-                        sel.asset +
-                        " on " +
-                        sel.network +
-                        "."}
-                  </span>
-                </div>
-
-                {sel.firstDepositNote && (
-                  <div className="deposit-note">{sel.firstDepositNote}</div>
-                )}
-
-                <div className="deposit-field">
-                  <label>TRANSACTION HASH</label>
-                  <input
-                    value={hash}
-                    onChange={(e) => setHash(e.target.value)}
-                    placeholder="Paste transaction hash"
-                    autoComplete="off"
-                  />
-                </div>
-
-                {error && <div className="wallet-message error">{error}</div>}
-
-                {done ? (
-                  <div className="wallet-message success">
-                    Deposit submitted. The balance remains pending until
-                    verification.
-                  </div>
-                ) : (
-                  <button
-                    className="btn btn-primary wallet-full-btn"
-                    disabled={busy || !fresh || !crypto}
-                    onClick={submitManual}
-                    type="button"
-                  >
-                    {busy ? "Submitting…" : "Submit Deposit"}
-                  </button>
-                )}
-              </>
-            )}
+        <div className="deposit-custom-wrap">
+          <label htmlFor="deposit-custom">Nominal lain</label>
+          <div className="deposit-custom-input">
+            <span>$</span>
+            <input
+              id="deposit-custom"
+              type="number"
+              min="0.01"
+              step="0.01"
+              inputMode="decimal"
+              placeholder="Contoh: 25"
+              value={custom}
+              onChange={(e) => {
+                setCustom(e.target.value);
+                setError("");
+              }}
+            />
           </div>
         </div>
 
-        <div className="deposit-footer-note">
-          <span>
-            <ShieldCheck size={14} /> Never share private keys or API credentials.
-          </span>
-          <span>
-            Minimum deposit: ${Math.max(0.01, Number(sel.minDeposit || 0.01)).toFixed(2)}
-          </span>
+        <div className="deposit-simple-summary">
+          <div>
+            <span>Setoran</span>
+            <strong>{"$" + (validAmount ? depositAmount.toFixed(2) : "0.00")}</strong>
+          </div>
+          <div>
+            <span>Pembayaran</span>
+            <strong>OxaPay</strong>
+          </div>
+          <div>
+            <span>Crypto</span>
+            <strong>Dipilih di OxaPay</strong>
+          </div>
         </div>
+
+        {error && <div className="wallet-message error">{error}</div>}
+
+        <button
+          className="deposit-continue-btn"
+          type="button"
+          disabled={busy || !validAmount}
+          onClick={() => void continueToOxaPay()}
+        >
+          {busy ? (
+            <>
+              <Loader2 className="spin" size={18} />
+              Menyiapkan pembayaran…
+            </>
+          ) : (
+            <>
+              Lanjut ke pembayaran
+              <ArrowRight size={18} />
+            </>
+          )}
+        </button>
+
+        <div className="deposit-simple-trust">
+          <span><ShieldCheck size={14} /> OxaPay hosted checkout</span>
+          <span><ShieldCheck size={14} /> Verifikasi server-side</span>
+          <span><ShieldCheck size={14} /> Tanpa transaction hash</span>
+        </div>
+      </div>
+
+      <div className="deposit-simple-help">
+        <b>Bagaimana prosesnya?</b>
+        <p>
+          Setelah menekan tombol di atas, Anda langsung masuk ke halaman OxaPay.
+          Di sana Anda dapat memilih BTC, ETH, USDT, BNB, SOL, dan opsi pembayaran
+          lain yang tersedia untuk invoice. NextGenMiner hanya menambahkan saldo
+          setelah callback pembayaran diverifikasi.
+        </p>
       </div>
     </div>
   );
