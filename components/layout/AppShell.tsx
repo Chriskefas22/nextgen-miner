@@ -9,6 +9,7 @@ import '../../styles/dashboard-shell.css';
 import '../../styles/home-premium-polish.css';
 import '../../styles/navigation-final.css';
 import '../../styles/wallet-premium.css';
+import '../../styles/wallet-simple.css';
 
 export function AppShell({
   children,
