@@ -38,12 +38,25 @@ export function DepositFlow() {
       );
 
       if (invokeError) {
-        const details = typeof invokeError.context === "object" ? invokeError.context : null;
-        throw new Error(
-          details && "error" in details && typeof (details as any).error === "string"
-            ? String((details as any).error)
-            : invokeError.message || "Gagal membuat pembayaran.",
-        );
+        let message = invokeError.message || "Gagal membuat pembayaran.";
+        const context = invokeError.context as unknown;
+
+        try {
+          if (context && typeof (context as Response).clone === "function") {
+            const raw = await (context as Response).clone().text();
+            const payload = JSON.parse(raw);
+            const provider = payload?.provider_error;
+            if (provider?.message) {
+              message = `OxaPay: ${String(provider.message)}${provider.code ? ` (${provider.code})` : ""}`;
+            } else if (payload?.error) {
+              message = String(payload.error);
+            }
+          }
+        } catch {
+          // Keep Supabase's original message when the response body is unavailable.
+        }
+
+        throw new Error(message);
       }
 
       const paymentUrl = String(data?.provider_payment_url ?? data?.payment_url ?? "");
