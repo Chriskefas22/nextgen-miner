@@ -284,8 +284,8 @@ export default function Wallet() {
               onChange={(e) => setDisplayCurrency(e.target.value as CurrencyCode)}
               aria-label="Pilih mata uang tampilan"
             >
-              {Object.entries(CURRENCIES).map(([code, meta]) => (
-                <option key={code} value={code}>{code} — {meta.label}</option>
+              {(["USD","IDR","CNY","EUR","GBP","SGD"] as CurrencyCode[]).map((code) => (
+                <option key={code} value={code}>{code}</option>
               ))}
             </select>
             <ChevronDown size={15} className="wallet-currency-chevron" />
