@@ -1,7 +1,7 @@
-"use client";
+ "use client";
 
 import { useEffect, useState } from "react";
-import { ArrowRight, CheckCircle2, Loader2, ShieldCheck, WalletCards } from "lucide-react";
+import { ArrowRight, CheckCircle2, Loader2, WalletCards } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
 const presets = [1, 5, 10, 20, 50, 100];
@@ -34,24 +34,24 @@ export function DepositFlow() {
       const supabase = createClient();
       const { data, error: invokeError } = await supabase.functions.invoke(
         "oxapay-create-invoice",
-        { body: { usd_amount: Number(depositAmount.toFixed(2)) } }
+        { body: { usd_amount: Number(depositAmount.toFixed(2)) } },
       );
 
       if (invokeError) {
-        throw new Error(invokeError.message || "Gagal membuat pembayaran OxaPay.");
+        const details = typeof invokeError.context === "object" ? invokeError.context : null;
+        throw new Error(
+          details && "error" in details && typeof (details as any).error === "string"
+            ? String((details as any).error)
+            : invokeError.message || "Gagal membuat pembayaran.",
+        );
       }
 
-      const paymentUrl = String(
-        data?.provider_payment_url ?? data?.payment_url ?? ""
-      );
-
-      if (!paymentUrl) {
-        throw new Error("OxaPay tidak mengembalikan halaman pembayaran.");
-      }
+      const paymentUrl = String(data?.provider_payment_url ?? data?.payment_url ?? "");
+      if (!paymentUrl) throw new Error("OxaPay tidak mengembalikan halaman pembayaran.");
 
       window.location.assign(paymentUrl);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Gagal membuat pembayaran OxaPay.");
+      setError(e instanceof Error ? e.message : "Gagal membuat pembayaran.");
       setBusy(false);
     }
   }
@@ -59,42 +59,32 @@ export function DepositFlow() {
   return (
     <div className="deposit-simple">
       <div className="deposit-simple-hero">
-        <div className="deposit-simple-icon">
-          <WalletCards size={23} />
-        </div>
+        <div className="deposit-simple-icon"><WalletCards size={23} /></div>
         <div>
           <div className="eyebrow">SETORAN</div>
           <h2>Tambah saldo</h2>
-          <p>Pilih nominal lalu langsung lanjut ke OxaPay.</p>
+          <p>Pilih nominal lalu lanjut ke pembayaran.</p>
         </div>
       </div>
 
       {returned && (
         <div className="deposit-returned">
           <CheckCircle2 size={18} />
-          <div>
-            <b>Kembali dari OxaPay</b>
-            <span>Pembayaran sedang diverifikasi. Refresh wallet untuk melihat saldo terbaru.</span>
-          </div>
+          <div><b>Kembali dari OxaPay</b><span>Pembayaran sedang diproses. Periksa saldo beberapa saat lagi.</span></div>
         </div>
       )}
 
       <div className="deposit-simple-card">
         <div className="deposit-simple-label">JUMLAH SETORAN (USD)</div>
-
         <div className="deposit-quick-grid">
           {presets.map((value) => (
             <button
               key={value}
               type="button"
-              onClick={() => {
-                setAmount(value);
-                setCustom("");
-                setError("");
-              }}
+              onClick={() => { setAmount(value); setCustom(""); setError(""); }}
               className={!custom && amount === value ? "active" : ""}
             >
-              {"$" + value}
+              ${value}
             </button>
           ))}
         </div>
@@ -110,27 +100,15 @@ export function DepositFlow() {
               inputMode="decimal"
               placeholder="Contoh: 25"
               value={custom}
-              onChange={(e) => {
-                setCustom(e.target.value);
-                setError("");
-              }}
+              onChange={(e) => { setCustom(e.target.value); setError(""); }}
             />
           </div>
         </label>
 
         <div className="deposit-simple-summary">
-          <div>
-            <span>Setoran</span>
-            <strong>{"$" + (validAmount ? depositAmount.toFixed(2) : "0.00")}</strong>
-          </div>
-          <div>
-            <span>Pembayaran</span>
-            <strong>OxaPay</strong>
-          </div>
-          <div>
-            <span>Crypto</span>
-            <strong>Pilih di OxaPay</strong>
-          </div>
+          <div><span>Setoran</span><strong>${validAmount ? depositAmount.toFixed(2) : "0.00"}</strong></div>
+          <div><span>Pembayaran</span><strong>OxaPay</strong></div>
+          <div><span>Crypto</span><strong>Pilih di OxaPay</strong></div>
         </div>
 
         {error && <div className="wallet-simple-message error">{error}</div>}
@@ -141,23 +119,8 @@ export function DepositFlow() {
           disabled={busy || !validAmount}
           onClick={() => void continueToOxaPay()}
         >
-          {busy ? (
-            <>
-              <Loader2 className="spin" size={18} />
-              Menyiapkan…
-            </>
-          ) : (
-            <>
-              Lanjut ke pembayaran
-              <ArrowRight size={18} />
-            </>
-          )}
+          {busy ? <><Loader2 className="spin" size={18} /> Menyiapkan…</> : <>Lanjut ke pembayaran <ArrowRight size={18} /></>}
         </button>
-
-        <div className="deposit-simple-trust">
-          <span><ShieldCheck size={13} /> OxaPay hosted checkout</span>
-          <span><ShieldCheck size={13} /> Tanpa transaction hash</span>
-        </div>
       </div>
     </div>
   );
