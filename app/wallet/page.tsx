@@ -7,6 +7,7 @@ import {
   Clock3,
   Gem,
   History,
+  Loader2,
   LockKeyhole,
   RefreshCw,
   ShieldCheck,
