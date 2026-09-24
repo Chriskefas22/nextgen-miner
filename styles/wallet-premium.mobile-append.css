@@ -1,0 +1,115 @@
+/* NEXTGEN MINER — OxaPay mobile-first deposit UX append
+   Append this file to styles/wallet-premium.css.
+   It keeps the desktop layout intact while making <=760px genuinely mobile-first. */
+
+.deposit-mobile-flow{display:grid;gap:12px;max-width:880px;margin:0 auto;padding:2px 0 8px}
+.deposit-mobile-header{display:grid;gap:10px}
+.deposit-mobile-title-row{display:flex;align-items:flex-start;gap:11px}
+.deposit-mobile-title-icon{width:42px;height:42px;flex:0 0 42px;display:grid;place-items:center;border-radius:13px;color:#fff;background:linear-gradient(135deg,#2e68ff,#8538ff);box-shadow:0 0 24px rgba(84,76,255,.20)}
+.deposit-mobile-title-row h2{font:900 17px/1.15 Orbitron,sans-serif;margin:3px 0 5px;color:#f1fbff}
+.deposit-mobile-title-row p{margin:0;color:#7896aa;font-size:10px;line-height:1.45}
+.deposit-mobile-tabs{display:grid;grid-template-columns:1fr 1fr;gap:7px;padding:5px;border:1px solid rgba(55,119,164,.18);border-radius:14px;background:#04101b}
+.deposit-mobile-tabs button{min-height:42px;border:0;border-radius:10px;background:transparent;color:#7895a7;font-size:10px;font-weight:900;cursor:pointer}
+.deposit-mobile-tabs button.active{color:#fff;background:linear-gradient(135deg,rgba(35,101,255,.95),rgba(126,54,240,.95));box-shadow:0 6px 20px rgba(76,67,255,.18)}
+.deposit-mobile-metrics{display:grid;grid-template-columns:1fr 1.15fr;gap:8px}
+.deposit-mobile-metrics>div{padding:11px 12px;border:1px solid rgba(52,122,169,.17);border-radius:12px;background:rgba(5,16,28,.80)}
+.deposit-mobile-metrics span{display:block;color:#6e8ba0;font-size:8px;letter-spacing:.11em;font-weight:900}
+.deposit-mobile-metrics b{display:block;margin-top:5px;color:#eefaff;font-size:11px}
+.deposit-mobile-card{padding:13px;border:1px solid rgba(52,122,169,.20);border-radius:15px;background:linear-gradient(145deg,rgba(6,17,30,.96),rgba(3,10,18,.98));box-shadow:0 10px 28px rgba(0,0,0,.16)}
+.deposit-mobile-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:11px}
+.deposit-mobile-card-head.compact{margin-bottom:8px}
+.deposit-mobile-card-head span{display:block;color:#6d8aa0;font-size:8px;letter-spacing:.12em;font-weight:900}
+.deposit-mobile-card-head b{display:block;margin-top:4px;color:#e7f8fe;font-size:10px}
+.deposit-status-pill{padding:5px 7px;border-radius:999px;border:1px solid rgba(126,84,255,.28);color:#cdbdff;background:rgba(113,67,255,.06);font-size:8px!important;letter-spacing:.04em!important}
+.deposit-preset-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.deposit-preset-grid button{min-height:42px;border:1px solid rgba(49,117,165,.20);border-radius:10px;background:#06121f;color:#a5bcc8;font-size:10px;font-weight:900;cursor:pointer}
+.deposit-preset-grid button.active{color:#fff;border-color:rgba(145,112,255,.55);background:linear-gradient(135deg,#245fff,#8638ff);box-shadow:0 6px 18px rgba(71,72,255,.16)}
+.deposit-custom-label{display:block;margin-top:11px;margin-bottom:5px;color:#6d8aa0;font-size:8px;font-weight:900}
+.deposit-custom-box{display:flex;align-items:center;gap:9px;padding:0 11px;border:1px solid rgba(52,122,169,.24);border-radius:11px;background:#020914}
+.deposit-custom-box:focus-within{border-color:rgba(62,214,255,.45);box-shadow:0 0 0 3px rgba(62,214,255,.06)}
+.deposit-custom-box span{color:#91a9b8;font-weight:900}
+.deposit-custom-box input{width:100%;min-width:0;padding:11px 0;border:0;outline:0;background:transparent;color:#f1fbff;font-size:13px}
+.deposit-preview-card{display:grid;gap:7px}
+.deposit-preview-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px;border-radius:10px;background:rgba(6,16,28,.72);border:1px solid rgba(46,106,144,.14)}
+.deposit-preview-row span{color:#718da0;font-size:9px}
+.deposit-preview-row strong{color:#e9faff;font-size:10px;text-align:right}
+.deposit-preview-row.accent{border-color:rgba(124,84,255,.19);background:linear-gradient(90deg,rgba(43,88,255,.07),rgba(126,52,255,.08))}
+.deposit-preview-row.accent strong{color:#d8cbff}
+.deposit-info-card{display:flex;align-items:flex-start;gap:10px;background:linear-gradient(90deg,rgba(36,232,255,.045),rgba(94,53,255,.04))}
+.deposit-info-icon{width:27px;height:27px;flex:0 0 27px;display:grid;place-items:center;border:1px solid rgba(76,214,255,.26);border-radius:50%;color:#72e9ff;font-weight:900}
+.deposit-info-card b{display:block;color:#def6fd;font-size:10px}
+.deposit-info-card p{margin:4px 0 0;color:#7897a9;font-size:9px;line-height:1.5}
+.deposit-coins-card{padding-bottom:11px}
+.deposit-coin-strip{display:flex;gap:7px;overflow:auto;padding-bottom:2px;scrollbar-width:none}
+.deposit-coin-strip::-webkit-scrollbar{display:none}
+.deposit-coin-strip>span{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;padding:7px 9px;border:1px solid rgba(50,117,165,.18);border-radius:999px;background:#06121f;color:#9db5c2;font-size:8px;font-weight:900}
+.deposit-coin-strip i{width:21px;height:21px;display:grid;place-items:center;border-radius:50%;background:rgba(255,255,255,.06);color:#e9fbff;font-style:normal;font-size:8px}
+.deposit-security-row{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;padding:2px 2px 6px}
+.deposit-security-row span{display:inline-flex;align-items:center;gap:4px;color:#73ad98;font-size:8px;font-weight:800}
+.deposit-return-banner{display:flex;align-items:flex-start;gap:9px;padding:11px 12px;border:1px solid rgba(53,243,180,.18);border-radius:12px;background:rgba(53,243,180,.05);color:#95e9cb}
+.deposit-return-banner b,.deposit-return-banner span{display:block}
+.deposit-return-banner b{font-size:10px;color:#c4f8e5}
+.deposit-return-banner span{margin-top:3px;color:#76a494;font-size:8px;line-height:1.45}
+.deposit-mobile-continue{width:100%;min-height:49px;display:flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:13px;background:linear-gradient(135deg,#2764ff,#8738ff);color:#fff;font-size:12px;font-weight:900;cursor:pointer;box-shadow:0 12px 30px rgba(72,70,255,.20)}
+.deposit-mobile-continue:disabled{opacity:.55;cursor:not-allowed}
+.deposit-mobile-desktop-action{max-width:460px;width:100%;margin:0 auto}
+.deposit-history-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:9px}
+.deposit-history-head span,.deposit-history-head b{display:block}
+.deposit-history-head span{color:#6d8aa0;font-size:8px;letter-spacing:.12em;font-weight:900}
+.deposit-history-head b{margin-top:4px;color:#e9f8fe;font-size:10px}
+.deposit-history-head button{width:36px;height:36px;display:grid;place-items:center;border:1px solid rgba(51,121,167,.21);border-radius:10px;background:#06121f;color:#a4bfcc;cursor:pointer}
+.deposit-history-list{display:grid;gap:0}
+.deposit-history-item{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:9px;align-items:center;padding:10px 0;border-bottom:1px solid rgba(39,98,133,.13)}
+.deposit-history-item:last-child{border-bottom:0}
+.deposit-history-icon{width:31px;height:31px;display:grid;place-items:center;border-radius:10px;color:#75eec2;background:rgba(53,243,180,.06);border:1px solid rgba(53,243,180,.13)}
+.deposit-history-main{min-width:0}
+.deposit-history-main b{display:block;font-size:10px;color:#e6f8ff}
+.deposit-history-main small{display:block;margin-top:3px;color:#6f8ba0;font-size:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.deposit-history-right{text-align:right}
+.deposit-history-right b{display:block;color:#dffaff;font-size:9px}
+.deposit-history-right small{display:flex;align-items:center;justify-content:flex-end;gap:3px;margin-top:3px;color:#657f92;font-size:7px;white-space:nowrap}
+.deposit-history-empty{display:grid;place-items:center;gap:6px;min-height:160px;text-align:center;color:#7895a7;font-size:9px}
+.deposit-history-empty b{color:#dceff7;font-size:10px}
+.deposit-history-empty span{max-width:240px;line-height:1.45}
+
+/* Desktop expansion: same information, more air; never a desktop-width form on phones. */
+@media(min-width:761px){
+  .deposit-mobile-flow{padding:4px 2px 16px}
+  .deposit-mobile-card.amount-card{padding:17px}
+  .deposit-preset-grid{grid-template-columns:repeat(6,minmax(0,1fr))}
+  .deposit-mobile-continue{min-height:52px}
+  .deposit-mobile-desktop-action{max-width:520px}
+}
+
+/* Mobile-first overrides for the existing wallet shell. */
+@media(max-width:760px){
+  .wallet-v2-head{gap:8px;margin-bottom:2px}
+  .wallet-v2-head h1.page-title{font-size:20px!important;margin-bottom:3px!important}
+  .wallet-v2-head .muted{font-size:9px;line-height:1.45}
+  .wallet-refresh{width:auto!important;min-width:92px;align-self:flex-start!important}
+  .wallet-overview-grid{grid-template-columns:1fr 1fr!important;gap:8px!important}
+  .wallet-overview-card{min-height:74px;padding:10px!important;border-radius:13px!important}
+  .wallet-overview-card strong{font-size:12px!important}
+  .wallet-overview-card small{font-size:8px!important}
+  .wallet-overview-icon{width:32px!important;height:32px!important;flex-basis:32px!important;border-radius:10px!important}
+  .wallet-balance-shell{padding:11px!important;border-radius:15px!important}
+  .wallet-balance-head{margin-bottom:10px!important}
+  .wallet-balance-head h2{font-size:13px!important}
+  .wallet-balance-grid-v2{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:7px!important}
+  .wallet-asset-card-v2{padding:9px!important;border-radius:11px!important}
+  .wallet-asset-card-v2>strong{font-size:13px!important;margin-top:8px!important}
+  .wallet-main-shell{padding:10px!important;border-radius:15px!important}
+  .wallet-tabs-v2{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:5px!important;margin-bottom:11px!important;overflow-x:auto}
+  .wallet-tabs-v2 button{min-height:38px!important;padding:6px 7px!important;font-size:9px!important;white-space:nowrap}
+  .wallet-activity-shell{padding:11px!important;border-radius:15px!important}
+  .wallet-safety-banner{padding:10px 11px!important}
+}
+
+@media(max-width:430px){
+  .deposit-preset-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .deposit-mobile-metrics{grid-template-columns:1fr 1fr}
+  .wallet-overview-grid{grid-template-columns:1fr!important}
+  .wallet-balance-grid-v2{grid-template-columns:1fr 1fr!important}
+}
+
+/* The global OxaPay checkout remains provider-owned; this only controls our pre-checkout page. */
