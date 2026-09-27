@@ -13,6 +13,7 @@ import {
   LogOut,
   MessageCircle,
   Package,
+  Send,
   Settings,
   ShieldQuestion,
   ShoppingBag,
@@ -71,11 +72,13 @@ const system: NavItem[] = [
   ['How It Works', '/how-it-works', CircleHelp],
 ];
 
-function isActivePath(pathname: string, href: string) {
-  if (href === '/dashboard') {
-    return pathname === href;
-  }
+const community: NavItem[] = [
+  ['Telegram', 'https://t.me/nextgenminerapp', Send],
+];
 
+function isActivePath(pathname: string, href: string) {
+  if (href.startsWith('https://')) return false;
+  if (href === '/dashboard') return pathname === href;
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
@@ -84,8 +87,7 @@ export function Sidebar({ open, onClose }: Props) {
   const pathname = usePathname() ?? '';
 
   const [userName, setUserName] = useState('User');
-  const [membership, setMembership] =
-    useState('Standard Member');
+  const [membership, setMembership] = useState('Standard Member');
   const [avatarUrl, setAvatarUrl] = useState('');
   const [loggingOut, setLoggingOut] = useState(false);
 
@@ -108,19 +110,10 @@ export function Sidebar({ open, onClose }: Props) {
         ),
       );
 
-      setMembership(
-        String(
-          metadata.membership ||
-            'Standard Member',
-        ),
-      );
+      setMembership(String(metadata.membership || 'Standard Member'));
 
       setAvatarUrl(
-        String(
-          metadata.avatar_url ||
-            metadata.picture ||
-            '',
-        ),
+        String(metadata.avatar_url || metadata.picture || ''),
       );
     });
 
@@ -144,38 +137,46 @@ export function Sidebar({ open, onClose }: Props) {
   }
 
   function render(items: readonly NavItem[]) {
-    return items.map(([label, href, Icon]) => (
-      <Link
-        key={label}
-        href={href}
-        className={`nav-item ${
-          isActivePath(pathname, href)
-            ? 'active'
-            : ''
-        }`}
-        onClick={onClose}
-      >
-        <Icon size={18} strokeWidth={1.85} />
-        <span>{label}</span>
-      </Link>
-    ));
+    return items.map(([label, href, Icon]) => {
+      if (href.startsWith('https://')) {
+        return (
+          <a
+            key={label}
+            href={href}
+            className="nav-item"
+            onClick={onClose}
+            target="_blank"
+            rel="noreferrer noopener"
+          >
+            <Icon size={18} strokeWidth={1.85} />
+            <span>{label}</span>
+          </a>
+        );
+      }
+
+      return (
+        <Link
+          key={label}
+          href={href}
+          className={`nav-item ${isActivePath(pathname, href) ? 'active' : ''}`}
+          onClick={onClose}
+        >
+          <Icon size={18} strokeWidth={1.85} />
+          <span>{label}</span>
+        </Link>
+      );
+    });
   }
 
   const avatar = avatarUrl ? (
-    <img
-      src={avatarUrl}
-      alt=""
-      referrerPolicy="no-referrer"
-    />
+    <img src={avatarUrl} alt="" referrerPolicy="no-referrer" />
   ) : (
     userName.charAt(0).toUpperCase()
   );
 
   return (
     <aside
-      className={`sidebar ${
-        open ? 'open' : ''
-      } home-sidebar`}
+      className={`sidebar ${open ? 'open' : ''} home-sidebar`}
       aria-hidden={!open ? undefined : false}
     >
       <div className="sidebar-head home-sidebar-head">
@@ -192,25 +193,20 @@ export function Sidebar({ open, onClose }: Props) {
       </div>
 
       <nav className="sidebar-nav" aria-label="Main navigation">
-        <div className="sidebar-section-label">
-          CORE
-        </div>
+        <div className="sidebar-section-label">CORE</div>
         {render(core)}
 
-        <div className="sidebar-section-label">
-          EARN DIAMOND
-        </div>
+        <div className="sidebar-section-label">EARN DIAMOND</div>
         {render(earn)}
 
-        <div className="sidebar-section-label">
-          ACCOUNT
-        </div>
+        <div className="sidebar-section-label">ACCOUNT</div>
         {render(account)}
 
-        <div className="sidebar-section-label">
-          SYSTEM
-        </div>
+        <div className="sidebar-section-label">SYSTEM</div>
         {render(system)}
+
+        <div className="sidebar-section-label">COMMUNITY</div>
+        {render(community)}
 
         <button
           type="button"
@@ -219,23 +215,13 @@ export function Sidebar({ open, onClose }: Props) {
           disabled={loggingOut}
         >
           <LogOut size={18} strokeWidth={1.85} />
-          <span>
-            {loggingOut
-              ? 'Logging out…'
-              : 'Logout'}
-          </span>
+          <span>{loggingOut ? 'Logging out…' : 'Logout'}</span>
         </button>
       </nav>
 
       <div className="sidebar-footer">
-        <Link
-          href="/profile"
-          className="mini-user"
-          onClick={onClose}
-        >
-          <div className="avatar">
-            {avatar}
-          </div>
+        <Link href="/profile" className="mini-user" onClick={onClose}>
+          <div className="avatar">{avatar}</div>
 
           <div>
             <b>{userName}</b>
@@ -247,9 +233,7 @@ export function Sidebar({ open, onClose }: Props) {
 
         <div className="home-sidebar-version">
           <span className="version-label">v2.0.0</span>
-          <span className="version-status">
-            All Systems Operational
-          </span>
+          <span className="version-status">All Systems Operational</span>
         </div>
       </div>
     </aside>

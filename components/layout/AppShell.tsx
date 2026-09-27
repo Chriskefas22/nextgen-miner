@@ -10,6 +10,7 @@ import '../../styles/home-premium-polish.css';
 import '../../styles/navigation-final.css';
 import '../../styles/wallet-premium.css';
 import '../../styles/wallet-simple.css';
+import '../../styles-telegram-quest.css';
 
 export function AppShell({
   children,
