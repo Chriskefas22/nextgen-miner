@@ -1,20 +1,10 @@
-'use client';
+"use client";
 
-import { useCallback, useEffect, useState } from 'react';
-import { AppShell } from '@/components/layout/AppShell';
-import { createClient } from '@/lib/supabase/client';
-
-type Quest = {
-  id: number;
-  quest_key: string;
-  title: string;
-  description: string;
-  target_count: number | string;
-  reward_diamond: number | string;
-  progress: number | string;
-  claimed_at?: string | null;
-  period_key?: string;
-};
+import { useCallback, useEffect, useState } from "react";
+import { AppShell } from "@/components/layout/AppShell";
+import { createClient } from "@/lib/supabase/client";
+import TelegramQuest from "@/components/quests/TelegramQuest";
+import type { Quest } from "@/components/quests/types";
 
 type QuestSnapshot = {
   period_key: string;
@@ -24,16 +14,16 @@ type QuestSnapshot = {
 export default function Quests() {
   const [snapshot, setSnapshot] = useState<QuestSnapshot | null>(null);
   const [busyId, setBusyId] = useState<number | null>(null);
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState("");
 
   const load = useCallback(async () => {
     const supabase = createClient();
-    const { data, error } = await supabase.rpc('nextgen_quests_snapshot');
+    const { data, error } = await supabase.rpc("nextgen_quests_snapshot");
     if (error) {
-      setMessage(error.message || 'Unable to load quests.');
+      setMessage(error.message || "Unable to load quests.");
       return;
     }
-    setSnapshot((data ?? { period_key: '', quests: [] }) as QuestSnapshot);
+    setSnapshot((data ?? { period_key: "", quests: [] }) as QuestSnapshot);
   }, []);
 
   useEffect(() => {
@@ -43,19 +33,22 @@ export default function Quests() {
   const claim = async (quest: Quest) => {
     if (busyId !== null || quest.claimed_at) return;
     setBusyId(quest.id);
-    setMessage('');
+    setMessage("");
 
     try {
       const supabase = createClient();
-      const { data, error } = await supabase.rpc('nextgen_claim_quest', {
+      const { data, error } = await supabase.rpc("nextgen_claim_quest", {
         p_quest_id: quest.id,
       });
       if (error) throw error;
-      const reward = Number((data as { reward_diamond?: unknown } | null)?.reward_diamond ?? quest.reward_diamond);
+      const reward = Number(
+        (data as { reward_diamond?: unknown } | null)?.reward_diamond ??
+          quest.reward_diamond,
+      );
       setMessage(`${quest.title}: CLAIMED ✓ +${reward} Diamond`);
       await load();
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'Quest claim failed.');
+      setMessage(error instanceof Error ? error.message : "Quest claim failed.");
       await load();
     } finally {
       setBusyId(null);
@@ -67,13 +60,21 @@ export default function Quests() {
       <div className="page-head">
         <div>
           <div className="eyebrow">MISSIONS</div>
-          <h1 className="page-title">Daily Quests</h1>
-          <div className="muted">Progress and claim eligibility are measured by the server.</div>
+          <h1 className="page-title">Quests</h1>
+          <div className="muted">
+            Progress and claim eligibility are measured by the server.
+          </div>
         </div>
-        {snapshot?.period_key ? <div className="muted">Cycle: {snapshot.period_key}</div> : null}
+        {snapshot?.period_key ? (
+          <div className="muted">Cycle: {snapshot.period_key}</div>
+        ) : null}
       </div>
 
-      {message ? <div className="glass section" style={{ marginBottom: 14 }}>{message}</div> : null}
+      {message ? (
+        <div className="glass section" style={{ marginBottom: 14 }}>
+          {message}
+        </div>
+      ) : null}
 
       {!snapshot ? (
         <div className="glass section">SYNCING QUEST ENGINE…</div>
@@ -81,13 +82,30 @@ export default function Quests() {
         <div className="glass section">
           <div className="eyebrow">NO QUESTS</div>
           <h2>No active quests</h2>
-          <p className="muted">The server has not published any enabled daily quests for this cycle.</p>
+          <p className="muted">
+            The server has not published any enabled quests for this cycle.
+          </p>
         </div>
       ) : (
         <div className="grid grid-2">
           {snapshot.quests.map((quest) => {
+            if (quest.quest_key === "telegram_join_like") {
+              return (
+                <TelegramQuest
+                  key={quest.id}
+                  quest={quest}
+                  busy={busyId !== null}
+                  onClaim={claim}
+                  onRefresh={load}
+                />
+              );
+            }
+
             const target = Number(quest.target_count || 0);
-            const progress = Math.min(target, Math.max(0, Number(quest.progress || 0)));
+            const progress = Math.min(
+              target,
+              Math.max(0, Number(quest.progress || 0)),
+            );
             const pct = target > 0 ? Math.round((progress / target) * 100) : 0;
             const complete = progress >= target;
             const claimed = Boolean(quest.claimed_at);
@@ -117,7 +135,7 @@ export default function Quests() {
                   disabled={claimed || !complete || busyId !== null}
                   onClick={() => void claim(quest)}
                 >
-                  {claimed ? 'CLAIMED ✓' : complete ? 'CLAIM REWARD' : 'IN PROGRESS'}
+                  {claimed ? "CLAIMED ✓" : complete ? "CLAIM REWARD" : "IN PROGRESS"}
                 </button>
               </section>
             );
