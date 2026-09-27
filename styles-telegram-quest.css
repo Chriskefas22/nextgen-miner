@@ -1,0 +1,40 @@
+.telegram-quest-grid{
+  display:grid;
+  grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);
+  gap:16px;
+  margin-top:16px;
+}
+.telegram-quest-steps{
+  display:grid;
+  align-content:start;
+  gap:9px;
+}
+.telegram-check-list{
+  display:grid;
+  gap:8px;
+  margin-top:4px;
+  padding:12px;
+  border:1px solid rgba(47,138,188,.2);
+  border-radius:12px;
+  background:rgba(4,14,24,.72);
+}
+.telegram-check{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  color:#8ea8bb;
+  font-size:11px;
+}
+.telegram-check span:first-child{
+  width:18px;
+  text-align:center;
+  color:#617f93;
+}
+.telegram-check.done{color:#cffff0}
+.telegram-check.done span:first-child{
+  color:#35f3b4;
+  text-shadow:0 0 9px rgba(53,243,180,.35);
+}
+@media(max-width:720px){
+  .telegram-quest-grid{grid-template-columns:1fr}
+}
