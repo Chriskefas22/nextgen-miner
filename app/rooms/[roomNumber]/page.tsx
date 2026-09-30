@@ -215,12 +215,7 @@ export default function RoomDetailPage() {
       setData(roomsResult.data as RoomsSnapshot);
       setDiamondBalance(Number(walletResult.data?.diamond_balance ?? 0));
 
-      const feeRows = parseRpcRows<{
-        miner_id: number | string;
-        from_level: number | string;
-        to_level: number | string;
-        fee_diamond: number | string;
-      }>(feeResult.data);
+      const feeRows = Array.isArray(feeResult.data) ? feeResult.data : [];
 
       const levelRows = Array.isArray(levelResult.data) ? levelResult.data : [];
 
