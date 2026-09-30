@@ -1,0 +1,144 @@
+/* NextGen Miner Room mobile rack + merge matching behavior fix.
+   Append this block to the END of app/rooms/RoomsPage.module.css. */
+
+/* The selected miner is a selection anchor, not the flashing target. */
+.slotWrapSelected .slot {
+  border-color: rgba(255,255,255,.28);
+  box-shadow: none;
+}
+
+.slotFirst .slot {
+  animation: none;
+}
+
+.slotSelected img {
+  transform: none;
+}
+
+/* Only valid matching miners should visibly blink/pulse. */
+.slotMatching .slot {
+  animation: none;
+}
+
+.slotMatching img {
+  animation: match-miner-blink .82s ease-in-out infinite;
+  transform: none;
+}
+
+.slotMatching .matchBadge {
+  animation: match-badge-pulse .82s ease-in-out infinite;
+}
+
+@keyframes match-miner-blink {
+  0%, 100% {
+    opacity: .68;
+    filter: saturate(1.05) contrast(1.02)
+      brightness(.78)
+      drop-shadow(0 5px 10px rgba(0,0,0,.38));
+  }
+  50% {
+    opacity: 1;
+    filter: saturate(1.18) contrast(1.06)
+      brightness(1.30)
+      drop-shadow(0 0 16px rgba(111,255,169,.46));
+  }
+}
+
+@keyframes match-badge-pulse {
+  0%, 100% {
+    transform: scale(.96);
+    opacity: .72;
+  }
+  50% {
+    transform: scale(1.04);
+    opacity: 1;
+  }
+}
+
+/* Three columns on mobile, including 360/390 CSS-pixel screens. */
+@media (max-width:390px) {
+  .rackGrid {
+    grid-template-columns: repeat(3, minmax(0,1fr));
+    gap: 6px;
+  }
+
+  .slot {
+    min-height: 132px;
+    border-radius: 12px;
+    border-width: 1.5px;
+  }
+
+  .slotIndex {
+    top: 5px;
+    left: 6px;
+    font-size: 7px;
+  }
+
+  .levelFrame {
+    top: 5px;
+    left: 5px;
+    min-width: 38px;
+    padding: 3px 5px;
+    border-radius: 6px;
+    font-size: 8px;
+  }
+
+  .slot img {
+    inset: 11px 5px 29px;
+    width: calc(100% - 10px);
+    height: calc(100% - 42px);
+  }
+
+  .slotText {
+    left: 6px;
+    right: 6px;
+    bottom: 6px;
+  }
+
+  .slotText b {
+    font-size: 9px;
+    line-height: 1.05;
+  }
+
+  .slotText small {
+    margin-top: 2px;
+    font-size: 6px;
+    line-height: 1.15;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .slotInfoButton {
+    top: 5px;
+    right: 5px;
+    width: 22px;
+    height: 22px;
+  }
+
+  .matchBadge {
+    top: 27px;
+    right: 4px;
+    padding: 3px 4px;
+    font-size: 6px;
+  }
+
+  .emptyPlus {
+    font-size: 22px;
+  }
+
+  .slotEmpty b {
+    font-size: 8px;
+  }
+
+  .slotEmpty small {
+    font-size: 7px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .slotMatching img,
+  .slotMatching .matchBadge {
+    animation: none !important;
+  }
+}
