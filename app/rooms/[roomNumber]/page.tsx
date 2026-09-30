@@ -170,28 +170,6 @@ function statusText(status: string) {
   return status.toLowerCase() === 'active' ? 'MINING' : 'PAUSED';
 }
 
-function parseRpcRows<T>(value: unknown): T[] {
-  if (Array.isArray(value)) return value as T[];
-
-  if (typeof value === 'string') {
-    try {
-      const parsed = JSON.parse(value);
-      return Array.isArray(parsed) ? (parsed as T[]) : [];
-    } catch {
-      return [];
-    }
-  }
-
-  if (value && typeof value === 'object') {
-    const record = value as Record<string, unknown>;
-    for (const key of ['data', 'rows', 'items', 'result']) {
-      const nested = record[key];
-      if (Array.isArray(nested)) return nested as T[];
-    }
-  }
-
-  return [];
-}
 
 export default function RoomDetailPage() {
   const params = useParams<{ roomNumber: string }>();
@@ -219,11 +197,9 @@ export default function RoomDetailPage() {
       const [roomsResult, feeResult, levelResult, walletResult] = await Promise.all([
         sb.rpc('nextgen_rooms_snapshot'),
 
-        // IMPORTANT:
-        // Production exposes the miner-specific function signature:
-        // nextgen_merge_fee_snapshot(p_miner_id bigint)
-        // Passing null explicitly returns the full fee matrix for all miners.
-        sb.rpc('nextgen_merge_fee_snapshot', {
+        // Table-returning RPC gives PostgREST a normal row array.
+        // This avoids JSONB decoding differences in the browser client.
+        sb.rpc('nextgen_merge_fee_rows', {
           p_miner_id: null,
         }),
 
