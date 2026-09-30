@@ -170,6 +170,29 @@ function statusText(status: string) {
   return status.toLowerCase() === 'active' ? 'MINING' : 'PAUSED';
 }
 
+function parseRpcRows<T>(value: unknown): T[] {
+  if (Array.isArray(value)) return value as T[];
+
+  if (typeof value === 'string') {
+    try {
+      const parsed = JSON.parse(value);
+      return Array.isArray(parsed) ? (parsed as T[]) : [];
+    } catch {
+      return [];
+    }
+  }
+
+  if (value && typeof value === 'object') {
+    const record = value as Record<string, unknown>;
+    for (const key of ['data', 'rows', 'items', 'result']) {
+      const nested = record[key];
+      if (Array.isArray(nested)) return nested as T[];
+    }
+  }
+
+  return [];
+}
+
 export default function RoomDetailPage() {
   const params = useParams<{ roomNumber: string }>();
   const roomNumber = Number(params?.roomNumber ?? 0);
@@ -216,8 +239,17 @@ export default function RoomDetailPage() {
       setData(roomsResult.data as RoomsSnapshot);
       setDiamondBalance(Number(walletResult.data?.diamond_balance ?? 0));
 
+      const feeRows = parseRpcRows<{
+        miner_id: number | string;
+        from_level: number | string;
+        to_level: number | string;
+        fee_diamond: number | string;
+      }>(feeResult.data);
+
+      const levelRows = Array.isArray(levelResult.data) ? levelResult.data : [];
+
       setFees(
-        (Array.isArray(feeResult.data) ? feeResult.data : []).map((row) => ({
+        feeRows.map((row) => ({
           miner_id: Number(row.miner_id),
           from_level: Number(row.from_level),
           to_level: Number(row.to_level),
@@ -226,12 +258,18 @@ export default function RoomDetailPage() {
       );
 
       setLevels(
-        (levelResult.data ?? []).map((row) => ({
+        levelRows.map((row) => ({
           miner_id: Number(row.miner_id),
           level: Number(row.level),
           hashrate: Number(row.hashrate),
         })),
       );
+
+      if (feeRows.length === 0) {
+        setMessage(
+          'Merge fee data is unavailable. Merge is temporarily disabled until the server fee table is synchronized.',
+        );
+      }
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'Unable to load Room.');
     } finally {
@@ -294,17 +332,17 @@ export default function RoomDetailPage() {
     );
   }, [room, firstSelected]);
 
-  const mergeFee = useMemo(() => {
-    if (!firstSelected) return 0;
+  const mergeFee = useMemo<number | null>(() => {
+    if (!firstSelected) return null;
 
-    return (
-      fees.find(
-        (row) =>
-          row.miner_id === firstSelected.miner_id &&
-          row.from_level === firstSelected.level &&
-          row.to_level === firstSelected.level + 1,
-      )?.fee_diamond ?? 0
-    );
+    const fee = fees.find(
+      (row) =>
+        row.miner_id === firstSelected.miner_id &&
+        row.from_level === firstSelected.level &&
+        row.to_level === firstSelected.level + 1,
+    )?.fee_diamond;
+
+    return fee == null ? null : Number(fee);
   }, [fees, firstSelected]);
 
   const nextBaseHashrate = useMemo(() => {
@@ -326,7 +364,7 @@ export default function RoomDetailPage() {
     );
   }, [firstSelected, nextBaseHashrate]);
 
-  const mergeAffordable = diamondBalance >= mergeFee;
+  const mergeAffordable = mergeFee != null && mergeFee > 0 && diamondBalance >= mergeFee;
 
   async function unlockRoom() {
     if (busy || !isNextLockedRoom) return;
@@ -399,6 +437,11 @@ export default function RoomDetailPage() {
   async function mergeSelected() {
     if (!room || busy || selectedIds.length !== 2 || !selectedPair) return;
 
+    if (mergeFee == null || mergeFee <= 0) {
+      setMessage('Merge fee data is unavailable for this miner level. Refresh before merging.');
+      return;
+    }
+
     if (!mergeAffordable) {
       setMessage(
         `Insufficient Diamond. Merge needs ${num(mergeFee, 0)} 💎 and your balance is ${num(diamondBalance, 0)} 💎.`,
@@ -429,7 +472,7 @@ export default function RoomDetailPage() {
       setSelectedMiner(null);
 
       setPurchaseSuccess({
-        title: 'Purchase Successful!',
+        title: 'Merge Successful!',
         detail: `${selectedPair[0].name} has been merged to Level ${payload?.to_level ?? selectedPair[0].level + 1}. Fee paid: ${num(mergeFee, 0)} 💎.`,
       });
 
@@ -952,8 +995,8 @@ export default function RoomDetailPage() {
                 </b>
                 <ChevronRight size={15} />
                 <b>LV {selectedPair[0].level + 1}</b>
-                <span className={mergeAffordable ? styles.affordable : styles.insufficient}>
-                  💎 {num(mergeFee, 0)}
+                <span className={mergeFee != null ? (mergeAffordable ? styles.affordable : styles.insufficient) : styles.insufficient}>
+                  {mergeFee == null ? 'FEE UNAVAILABLE' : `💎 ${num(mergeFee, 0)}`}
                 </span>
               </div>
             ) : null}
@@ -1071,7 +1114,9 @@ export default function RoomDetailPage() {
                   <WalletCards size={15} />
                   <span>MERGE COST</span>
                 </div>
-                <strong>💎 {num(mergeFee, 0)}</strong>
+                <strong>
+                  {mergeFee == null ? 'FEE UNAVAILABLE' : `💎 ${num(mergeFee, 0)}`}
+                </strong>
               </div>
 
               <div className={styles.balanceLine}>
@@ -1088,7 +1133,11 @@ export default function RoomDetailPage() {
                 </span>
               </div>
 
-              {!mergeAffordable ? (
+              {mergeFee == null ? (
+                <div className={styles.insufficientBox}>
+                  Merge fee data is unavailable for this miner level. Refresh before merging.
+                </div>
+              ) : !mergeAffordable ? (
                 <div className={styles.insufficientBox}>
                   Insufficient Diamond. You need {num(Math.max(mergeFee - diamondBalance, 0), 0)} 💎 more.
                 </div>
@@ -1098,15 +1147,17 @@ export default function RoomDetailPage() {
                 <button
                   type="button"
                   className={styles.primaryBtn}
-                  disabled={busy === 'merge' || !mergeAffordable}
+                  disabled={busy === 'merge' || !mergeAffordable || mergeFee == null}
                   onClick={() => void mergeSelected()}
                 >
                   <GitMerge size={15} />
                   {busy === 'merge'
-                    ? 'PURCHASING…'
-                    : mergeAffordable
-                      ? `MERGE · 💎 ${num(mergeFee, 0)}`
-                      : 'INSUFFICIENT DIAMOND'}
+                    ? 'MERGING…'
+                    : mergeFee == null
+                      ? 'FEE UNAVAILABLE'
+                      : mergeAffordable
+                        ? `MERGE · 💎 ${num(mergeFee, 0)}`
+                        : 'INSUFFICIENT DIAMOND'}
                 </button>
 
                 <button
