@@ -69,17 +69,13 @@ type RoomsSnapshot = {
   rooms: Room[];
 };
 
-type MergeFee = {
+type MergePreview = {
   miner_id: number;
-  from_level: number;
-  to_level: number;
-  fee_diamond: number;
-};
-
-type MinerLevel = {
-  miner_id: number;
-  level: number;
-  hashrate: number;
+  current_level: number;
+  next_level: number;
+  fee_diamond: number | null;
+  next_hashrate: number;
+  room_bonus_percent: number;
 };
 
 const ROOM_TIER_META: Record<number, {
@@ -176,8 +172,8 @@ export default function RoomDetailPage() {
   const roomNumber = Number(params?.roomNumber ?? 0);
 
   const [data, setData] = useState<RoomsSnapshot | null>(null);
-  const [fees, setFees] = useState<MergeFee[]>([]);
-  const [levels, setLevels] = useState<MinerLevel[]>([]);
+  const [mergePreview, setMergePreview] = useState<MergePreview | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
   const [diamondBalance, setDiamondBalance] = useState(0);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState<'unlock' | 'merge' | 'move' | null>(null);
@@ -194,53 +190,16 @@ export default function RoomDetailPage() {
     setLoading(true);
     try {
       const sb = createClient();
-      const [roomsResult, feeResult, levelResult, walletResult] = await Promise.all([
+      const [roomsResult, walletResult] = await Promise.all([
         sb.rpc('nextgen_rooms_snapshot'),
-
-        // Table-returning RPC gives PostgREST a normal row array.
-        // This avoids JSONB decoding differences in the browser client.
-        sb.rpc('nextgen_merge_fee_rows', {
-          p_miner_id: null,
-        }),
-
-        sb.from('nextgen_miner_levels').select('miner_id,level,hashrate'),
         sb.from('nextgen_wallets').select('diamond_balance').maybeSingle(),
       ]);
 
       if (roomsResult.error) throw roomsResult.error;
-      if (feeResult.error) throw feeResult.error;
-      if (levelResult.error) throw levelResult.error;
       if (walletResult.error) throw walletResult.error;
 
       setData(roomsResult.data as RoomsSnapshot);
       setDiamondBalance(Number(walletResult.data?.diamond_balance ?? 0));
-
-      const feeRows = Array.isArray(feeResult.data) ? feeResult.data : [];
-
-      const levelRows = Array.isArray(levelResult.data) ? levelResult.data : [];
-
-      setFees(
-        feeRows.map((row) => ({
-          miner_id: Number(row.miner_id),
-          from_level: Number(row.from_level),
-          to_level: Number(row.to_level),
-          fee_diamond: Number(row.fee_diamond),
-        })),
-      );
-
-      setLevels(
-        levelRows.map((row) => ({
-          miner_id: Number(row.miner_id),
-          level: Number(row.level),
-          hashrate: Number(row.hashrate),
-        })),
-      );
-
-      if (feeRows.length === 0) {
-        setMessage(
-          'Merge fee data is unavailable. Merge is temporarily disabled until the server fee table is synchronized.',
-        );
-      }
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'Unable to load Room.');
     } finally {
@@ -280,40 +239,50 @@ export default function RoomDetailPage() {
     return room.slots.find((slot) => slot.user_miner_id === selectedIds[0]) ?? null;
   }, [room, selectedIds]);
 
-  async function loadFeesForMiner(minerId: number) {
+  const loadMergePreview = useCallback(async (userMinerId: number) => {
+    setPreviewLoading(true);
+    setMessage('');
+
     try {
-      const result = await createClient().rpc('nextgen_merge_fee_rows', {
-        p_miner_id: minerId,
+      const result = await createClient().rpc('nextgen_merge_preview', {
+        p_user_miner_id: userMinerId,
       });
 
       if (result.error) throw result.error;
 
-      const rows = Array.isArray(result.data) ? result.data : [];
-      if (rows.length === 0) {
-        setMessage('Merge fee data is unavailable for this miner level. Refresh before merging.');
-        return;
+      const row = Array.isArray(result.data) ? result.data[0] : null;
+      if (!row) {
+        setMergePreview(null);
+        setMessage(
+          'Merge preview data is unavailable for this miner. Refresh before merging.',
+        );
+        return null;
       }
 
-      setFees((current) => {
-        const next = current.filter((row) => row.miner_id !== minerId);
-        return [
-          ...next,
-          ...rows.map((row) => ({
-            miner_id: Number(row.miner_id),
-            from_level: Number(row.from_level),
-            to_level: Number(row.to_level),
-            fee_diamond: Number(row.fee_diamond),
-          })),
-        ];
-      });
+      const preview: MergePreview = {
+        miner_id: Number(row.miner_id),
+        current_level: Number(row.current_level),
+        next_level: Number(row.next_level),
+        fee_diamond:
+          row.fee_diamond == null ? null : Number(row.fee_diamond),
+        next_hashrate: Number(row.next_hashrate ?? 0),
+        room_bonus_percent: Number(row.room_bonus_percent ?? 0),
+      };
+
+      setMergePreview(preview);
+      return preview;
     } catch (error) {
+      setMergePreview(null);
       setMessage(
         error instanceof Error
-          ? `Unable to load merge fee: ${error.message}`
-          : 'Unable to load merge fee data.',
+          ? `Unable to load merge preview: ${error.message}`
+          : 'Unable to load merge preview data.',
       );
+      return null;
+    } finally {
+      setPreviewLoading(false);
     }
-  }
+  }, []);
 
   const selectedPair = useMemo(() => {
     if (!room || selectedIds.length !== 2) return null;
@@ -339,28 +308,34 @@ export default function RoomDetailPage() {
   }, [room, firstSelected]);
 
   const mergeFee = useMemo<number | null>(() => {
-    if (!firstSelected) return null;
+    if (!firstSelected || !mergePreview) return null;
 
-    const fee = fees.find(
-      (row) =>
-        row.miner_id === firstSelected.miner_id &&
-        row.from_level === firstSelected.level &&
-        row.to_level === firstSelected.level + 1,
-    )?.fee_diamond;
+    if (
+      mergePreview.miner_id !== firstSelected.miner_id ||
+      mergePreview.current_level !== firstSelected.level ||
+      mergePreview.next_level !== firstSelected.level + 1
+    ) {
+      return null;
+    }
 
-    return fee == null ? null : Number(fee);
-  }, [fees, firstSelected]);
+    return mergePreview.fee_diamond == null
+      ? null
+      : Number(mergePreview.fee_diamond);
+  }, [firstSelected, mergePreview]);
 
   const nextBaseHashrate = useMemo(() => {
-    if (!firstSelected) return 0;
-    return (
-      levels.find(
-        (row) =>
-          row.miner_id === firstSelected.miner_id &&
-          row.level === firstSelected.level + 1,
-      )?.hashrate ?? 0
-    );
-  }, [firstSelected, levels]);
+    if (!firstSelected || !mergePreview) return 0;
+
+    if (
+      mergePreview.miner_id !== firstSelected.miner_id ||
+      mergePreview.current_level !== firstSelected.level ||
+      mergePreview.next_level !== firstSelected.level + 1
+    ) {
+      return 0;
+    }
+
+    return Number(mergePreview.next_hashrate ?? 0);
+  }, [firstSelected, mergePreview]);
 
   const nextEffectiveHashrate = useMemo(() => {
     if (!firstSelected) return 0;
@@ -396,7 +371,7 @@ export default function RoomDetailPage() {
     }
   }
 
-  function selectForMerge(slot: Slot) {
+  async function selectForMerge(slot: Slot) {
     setMessage('');
     setSelectedMiner(slot);
 
@@ -405,18 +380,21 @@ export default function RoomDetailPage() {
         current.filter((id) => id !== slot.user_miner_id),
       );
       setMergeOpen(false);
+      setMergePreview(null);
       return;
     }
 
     if (selectedIds.length === 0) {
       setSelectedIds([slot.user_miner_id]);
-      void loadFeesForMiner(slot.miner_id);
+      setMergeOpen(false);
+      await loadMergePreview(slot.user_miner_id);
       return;
     }
 
     if (selectedIds.length >= 2) {
       setSelectedIds([slot.user_miner_id]);
       setMergeOpen(false);
+      await loadMergePreview(slot.user_miner_id);
       return;
     }
 
@@ -430,9 +408,17 @@ export default function RoomDetailPage() {
       first.level === slot.level,
     );
 
-    if (matches) {
+    if (matches && first) {
       setSelectedIds((current) => [...current, slot.user_miner_id]);
-      setMergeOpen(true);
+
+      const preview = await loadMergePreview(first.user_miner_id);
+      setMergeOpen(
+        Boolean(
+          preview &&
+          preview.current_level === first.level &&
+          preview.next_level === first.level + 1,
+        ),
+      );
       return;
     }
 
@@ -477,6 +463,7 @@ export default function RoomDetailPage() {
       setMergeOpen(false);
       setSelectedIds([]);
       setSelectedMiner(null);
+      setMergePreview(null);
 
       setPurchaseSuccess({
         title: 'Merge Successful!',
@@ -863,7 +850,7 @@ export default function RoomDetailPage() {
                       selected ? styles.slotSelected : '',
                       isMatch ? styles.slotMatching : '',
                     ].join(' ')}
-                    onClick={() => selectForMerge(slot)}
+                    onClick={() => void selectForMerge(slot)}
                     aria-label={`Select ${slot.name}, level ${slot.level}, slot ${index + 1}`}
                   >
                     {isMatch ? (
@@ -906,6 +893,7 @@ export default function RoomDetailPage() {
                       setSelectedMiner(slot);
                       setSelectedIds([slot.user_miner_id]);
                       setMergeOpen(false);
+                      void loadMergePreview(slot.user_miner_id);
                       window.setTimeout(() => {
                         document
                           .getElementById('selected-miner-panel')
@@ -1122,7 +1110,11 @@ export default function RoomDetailPage() {
                   <span>MERGE COST</span>
                 </div>
                 <strong>
-                  {mergeFee == null ? 'FEE UNAVAILABLE' : `💎 ${num(mergeFee, 0)}`}
+                  {previewLoading
+                    ? 'LOADING…'
+                    : mergeFee == null
+                      ? 'FEE UNAVAILABLE'
+                      : `💎 ${num(mergeFee, 0)}`}
                 </strong>
               </div>
 
@@ -1140,7 +1132,11 @@ export default function RoomDetailPage() {
                 </span>
               </div>
 
-              {mergeFee == null ? (
+              {previewLoading ? (
+                <div className={styles.insufficientBox}>
+                  Loading the server merge fee…
+                </div>
+              ) : mergeFee == null ? (
                 <div className={styles.insufficientBox}>
                   Merge fee data is unavailable for this miner level. Refresh before merging.
                 </div>
@@ -1154,17 +1150,24 @@ export default function RoomDetailPage() {
                 <button
                   type="button"
                   className={styles.primaryBtn}
-                  disabled={busy === 'merge' || !mergeAffordable || mergeFee == null}
+                  disabled={
+                    busy === 'merge' ||
+                    previewLoading ||
+                    !mergeAffordable ||
+                    mergeFee == null
+                  }
                   onClick={() => void mergeSelected()}
                 >
                   <GitMerge size={15} />
                   {busy === 'merge'
                     ? 'MERGING…'
-                    : mergeFee == null
-                      ? 'FEE UNAVAILABLE'
-                      : mergeAffordable
-                        ? `MERGE · 💎 ${num(mergeFee, 0)}`
-                        : 'INSUFFICIENT DIAMOND'}
+                    : previewLoading
+                      ? 'LOADING…'
+                      : mergeFee == null
+                        ? 'FEE UNAVAILABLE'
+                        : mergeAffordable
+                          ? `MERGE · 💎 ${num(mergeFee, 0)}`
+                          : 'INSUFFICIENT DIAMOND'}
                 </button>
 
                 <button
