@@ -1258,3 +1258,191 @@ button.slot {
 .roomPage_premium .rackPanel { background:linear-gradient(150deg,rgba(55,27,65,.98),rgba(22,19,29,.98)); }
 .roomPage_legendary .rackPanel { background:linear-gradient(150deg,rgba(65,39,13,.98),rgba(24,19,13,.98)); }
 .roomPage_mythical .rackPanel { background:linear-gradient(150deg,rgba(22,57,60,.98),rgba(25,22,45,.98)); }
+
+/* ================================================================
+   NEXTGEN MINER — FINAL MERGE SELECTION BEHAVIOR
+   ================================================================
+   First selected miner = anchor only.
+   Matching same-type + same-level miners = the only miners that pulse.
+   The matching miner image itself blinks/pulses so the user knows exactly
+   which second miner can be tapped.
+   ================================================================ */
+
+/* The first selected miner must remain visually stable. */
+.slotWrapSelected .slot {
+  border-color: #fff7d1;
+  box-shadow:
+    0 0 0 2px rgba(255,244,166,.20),
+    0 0 34px rgba(255,191,66,.24),
+    inset 0 0 26px rgba(255,222,113,.10);
+}
+
+.slotFirst .slot {
+  animation: none !important;
+}
+
+/* Do not scale the selected anchor image. */
+.slotFirst .slot img,
+.slotSelected.slotMatching img {
+  transform: none;
+}
+
+/* Matching miners get the attention animation.
+   The card breathes subtly while the actual miner artwork pulses. */
+.slotMatching .slot {
+  animation: ngm-match-card-breathe 1.05s ease-in-out infinite;
+}
+
+.slotMatching img {
+  animation: ngm-match-image-pulse .82s ease-in-out infinite;
+  transform-origin: center center;
+}
+
+.slotMatching .matchBadge {
+  animation: ngm-match-badge-pulse .82s ease-in-out infinite;
+}
+
+@keyframes ngm-match-card-breathe {
+  0%,100% {
+    border-color: rgba(93,255,154,.62);
+    box-shadow:
+      0 0 0 1px rgba(99,255,160,.20),
+      0 0 22px rgba(69,255,155,.16);
+  }
+  50% {
+    border-color: #91ffc0;
+    box-shadow:
+      0 0 0 3px rgba(111,255,168,.18),
+      0 0 38px rgba(69,255,155,.32);
+  }
+}
+
+@keyframes ngm-match-image-pulse {
+  0%,100% {
+    opacity: .72;
+    transform: scale(.97);
+    filter:
+      saturate(1.02)
+      contrast(1.02)
+      brightness(.80)
+      drop-shadow(0 6px 10px rgba(0,0,0,.38));
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.045);
+    filter:
+      saturate(1.20)
+      contrast(1.06)
+      brightness(1.30)
+      drop-shadow(0 0 17px rgba(111,255,169,.52));
+  }
+}
+
+@keyframes ngm-match-badge-pulse {
+  0%,100% {
+    transform: scale(.96);
+    opacity: .72;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 1;
+  }
+}
+
+/* ================================================================
+   MOBILE ROOM RACK
+   Always keep Room capacity at 12 visible slots = 3 × 4.
+   This overrides the old <=390px 2-column rule.
+   ================================================================ */
+
+@media (max-width:390px) {
+  .rackGrid {
+    grid-template-columns: repeat(3,minmax(0,1fr)) !important;
+    gap: 6px;
+  }
+
+  .slot {
+    min-height: 132px;
+    border-radius: 12px;
+    border-width: 1.5px;
+  }
+
+  .slotIndex {
+    top: 5px;
+    left: 6px;
+    font-size: 7px;
+  }
+
+  .levelFrame {
+    top: 5px;
+    left: 5px;
+    min-width: 38px;
+    padding: 3px 5px;
+    border-radius: 6px;
+    font-size: 8px;
+  }
+
+  .slot img {
+    inset: 11px 5px 29px;
+    width: calc(100% - 10px);
+    height: calc(100% - 42px);
+  }
+
+  .slotText {
+    left: 6px;
+    right: 6px;
+    bottom: 6px;
+  }
+
+  .slotText b {
+    font-size: 9px;
+    line-height: 1.05;
+  }
+
+  .slotText small {
+    margin-top: 2px;
+    font-size: 6px;
+    line-height: 1.15;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .slotInfoButton {
+    top: 5px;
+    right: 5px;
+    width: 22px;
+    height: 22px;
+  }
+
+  .matchBadge {
+    top: 27px;
+    right: 4px;
+    padding: 3px 4px;
+    font-size: 6px;
+  }
+
+  .emptyPlus {
+    font-size: 22px;
+  }
+
+  .slotEmpty b {
+    font-size: 8px;
+  }
+
+  .slotEmpty small {
+    font-size: 7px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .slotFirst .slot {
+    animation: none !important;
+  }
+
+  .slotMatching .slot,
+  .slotMatching img,
+  .slotMatching .matchBadge {
+    animation: none !important;
+  }
+}
