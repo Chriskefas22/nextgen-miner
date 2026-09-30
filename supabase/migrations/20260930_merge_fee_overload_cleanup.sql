@@ -1,16 +1,9 @@
 -- NextGenMiner
--- CP: merge fee overload cleanup
---
--- The production database now uses the miner-specific signature:
--- nextgen_merge_fee_snapshot(bigint)
---
--- This removes the legacy no-argument overload so future callers
--- cannot accidentally read a level-only/global fee snapshot.
+-- Remove the legacy no-argument merge-fee overload.
+-- Keep the miner-specific function as the only signature.
 
 drop function if exists public.nextgen_merge_fee_snapshot();
 
--- Keep the miner-specific function authoritative.
--- Recreate it defensively so its output contract is explicit.
 create or replace function public.nextgen_merge_fee_snapshot(
   p_miner_id bigint default null
 )
