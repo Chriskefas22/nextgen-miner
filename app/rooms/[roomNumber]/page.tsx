@@ -68,6 +68,63 @@ type RoomsSnapshot = {
   rooms: Room[];
 };
 
+
+const ROOM_TIER_META: Record<number, {
+  name: string;
+  key: string;
+  subtitle: string;
+  bonus: number;
+  price: number;
+  description: string;
+  features: string[];
+}> = {
+  1: {
+    name: 'STANDARD ROOM',
+    key: 'standard',
+    subtitle: 'Basic Starter Room',
+    bonus: 0,
+    price: 0,
+    description: 'The free starter room. A simple 12-slot mining workspace where new users can deploy their first miner, experience mining, and begin building hashrate.',
+    features: ['12 miner slots', 'Simple industrial environment', 'Starter lighting and cooling', 'Room bonus +0% H/s'],
+  },
+  2: {
+    name: 'ADVANCED ROOM',
+    key: 'advanced',
+    subtitle: 'Enhanced Mining Facility',
+    bonus: 5,
+    price: 25000,
+    description: 'A high-tech mining facility designed as the first paid progression step, with active cooling, monitoring and brighter technology lighting.',
+    features: ['12 miner slots', '+5% Room H/s', 'Advanced cooling system', 'Live monitoring screens', 'Dynamic fans and vents'],
+  },
+  3: {
+    name: 'PREMIUM ROOM',
+    key: 'premium',
+    subtitle: 'Elite Reactor Chamber',
+    bonus: 10,
+    price: 75000,
+    description: 'A neon reactor chamber with holographic controls, energy tubes and floating particles that visibly transforms the mining environment.',
+    features: ['12 miner slots', '+10% Room H/s', 'Neon reactor core', 'Holographic displays', 'Energy tubes and particles'],
+  },
+  4: {
+    name: 'LEGENDARY ROOM',
+    key: 'legendary',
+    subtitle: 'Legendary Power Chamber',
+    bonus: 20,
+    price: 250000,
+    description: 'A powerful reactor chamber with golden energy, dynamic beams and a high-output atmosphere for advanced mining fleets.',
+    features: ['12 miner slots', '+20% Room H/s', 'Golden reactor core', 'Dynamic energy beams', 'Legendary aura lighting'],
+  },
+  5: {
+    name: 'MYTHICAL ROOM',
+    key: 'mythical',
+    subtitle: 'Mythical Living Environment',
+    bonus: 35,
+    price: 750000,
+    description: 'A living cosmic mining environment where nature, energy, crystals, floating elements and nebula effects make the room feel alive.',
+    features: ['12 miner slots', '+35% Room H/s', 'Living cosmic environment', 'Energy crystals and flowing light', 'Floating islands and nebula effects'],
+  },
+};
+
 const num = (value: number, digits = 1) =>
   Number(value || 0).toLocaleString('en-US', {
     maximumFractionDigits: digits,
@@ -299,14 +356,20 @@ export default function RoomDetailPage() {
     return (
       <AppShell>
         <div className={styles.page}>
-          <section className={`${styles.lockPanel} ${styles.lockScene}`}>
+          <section className={`${styles.lockPanel} ${styles.lockScene} ${styles[`theme_${ROOM_TIER_META[roomNumber]?.key ?? 'standard'}`]}`}>
             <div className={styles.lockOrb}><LockKeyhole size={28} /></div>
             <div className={styles.kicker}>ROOM {String(roomNumber).padStart(2, '0')} · LOCKED</div>
-            <h1>{tier}</h1>
-            <p>Unlock this 12-slot Room to activate its unique visual environment and Room H/s bonus.</p>
+            <h1>{ROOM_TIER_META[roomNumber]?.name ?? tier}</h1>
+            <p>{ROOM_TIER_META[roomNumber]?.description ?? 'Unlock this 12-slot Room to activate its unique visual environment and Room H/s bonus.'}</p>
             <div className={styles.lockBenefits}>
               <span><Boxes size={14} /> 12 slots</span>
-              <span><Zap size={14} /> +{num(bonus)}% H/s</span>
+              <span><Zap size={14} /> +{num(ROOM_TIER_META[roomNumber]?.bonus ?? bonus)}% H/s</span>
+              <span>{ROOM_TIER_META[roomNumber]?.subtitle ?? tier}</span>
+            </div>
+            <div className={styles.lockFeatureGrid}>
+              {(ROOM_TIER_META[roomNumber]?.features ?? []).map((feature) => (
+                <span key={feature}><Sparkles size={12} /> {feature}</span>
+              ))}
             </div>
             {isNextLockedRoom ? (
               <>
@@ -361,7 +424,7 @@ export default function RoomDetailPage() {
 
           <div className={styles.roomHeroContent}>
             <div>
-              <div className={styles.kicker}>ROOM {String(room.room_number).padStart(2, '0')} · LEVEL {room.room_level}</div>
+              <div className={styles.kicker}>ROOM {String(room.room_number).padStart(2, '0')} · {ROOM_TIER_META[room.room_number]?.name ?? room.name}</div>
               <h1>{room.name}</h1>
               <p>{room.room_description}</p>
               <div className={styles.heroTags}>
