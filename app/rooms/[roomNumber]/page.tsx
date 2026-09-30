@@ -235,7 +235,7 @@ export default function RoomDetailPage() {
   const isNextLockedRoom = !room && nextRoom === roomNumber;
 
   const firstSelected = useMemo(() => {
-    if (!room || selectedIds.length !== 1) return null;
+    if (!room || selectedIds.length === 0) return null;
     return room.slots.find((slot) => slot.user_miner_id === selectedIds[0]) ?? null;
   }, [room, selectedIds]);
 
@@ -314,7 +314,7 @@ export default function RoomDetailPage() {
   }, [room, selectedIds]);
 
   const matchingIds = useMemo(() => {
-    if (!room || !firstSelected) return new Set<number>();
+    if (!room || !firstSelected || selectedIds.length !== 1) return new Set<number>();
 
     return new Set(
       room.slots
