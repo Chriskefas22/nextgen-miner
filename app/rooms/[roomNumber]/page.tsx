@@ -70,6 +70,7 @@ type RoomsSnapshot = {
 };
 
 type MergeFee = {
+  miner_id: number;
   from_level: number;
   to_level: number;
   fee_diamond: number;
@@ -194,7 +195,15 @@ export default function RoomDetailPage() {
       const sb = createClient();
       const [roomsResult, feeResult, levelResult, walletResult] = await Promise.all([
         sb.rpc('nextgen_rooms_snapshot'),
-        sb.rpc('nextgen_merge_fee_snapshot'),
+
+        // IMPORTANT:
+        // Production exposes the miner-specific function signature:
+        // nextgen_merge_fee_snapshot(p_miner_id bigint)
+        // Passing null explicitly returns the full fee matrix for all miners.
+        sb.rpc('nextgen_merge_fee_snapshot', {
+          p_miner_id: null,
+        }),
+
         sb.from('nextgen_miner_levels').select('miner_id,level,hashrate'),
         sb.from('nextgen_wallets').select('diamond_balance').maybeSingle(),
       ]);
@@ -206,13 +215,16 @@ export default function RoomDetailPage() {
 
       setData(roomsResult.data as RoomsSnapshot);
       setDiamondBalance(Number(walletResult.data?.diamond_balance ?? 0));
+
       setFees(
         (Array.isArray(feeResult.data) ? feeResult.data : []).map((row) => ({
+          miner_id: Number(row.miner_id),
           from_level: Number(row.from_level),
           to_level: Number(row.to_level),
           fee_diamond: Number(row.fee_diamond),
         })),
       );
+
       setLevels(
         (levelResult.data ?? []).map((row) => ({
           miner_id: Number(row.miner_id),
@@ -284,9 +296,11 @@ export default function RoomDetailPage() {
 
   const mergeFee = useMemo(() => {
     if (!firstSelected) return 0;
+
     return (
       fees.find(
         (row) =>
+          row.miner_id === firstSelected.miner_id &&
           row.from_level === firstSelected.level &&
           row.to_level === firstSelected.level + 1,
       )?.fee_diamond ?? 0
@@ -444,7 +458,9 @@ export default function RoomDetailPage() {
 
       if (result.error) throw result.error;
 
-      const count = Number((result.data as { merged_count?: number } | null)?.merged_count ?? 0);
+      const count = Number(
+        (result.data as { merged_count?: number } | null)?.merged_count ?? 0,
+      );
 
       if (count > 0) {
         setPurchaseSuccess({
