@@ -96,8 +96,8 @@ const ROOM_TIER_META: Record<number, {
     subtitle: 'Basic Starter Room',
     bonus: 0,
     price: 0,
-    description: 'The free starter room. A simple 12-slot mining workspace where new users can deploy their first miner, experience mining, and begin building hashrate.',
-    features: ['12 miner slots', 'Simple industrial environment', 'Starter lighting and cooling', 'Room bonus +0% H/s'],
+    description: 'Free 12-slot starter workspace. This is where every miner begins and where the first hashrate experience happens.',
+    features: ['12 miner slots', 'Simple mining environment', 'Starter lighting + cooling', 'Room bonus +0% H/s'],
   },
   2: {
     name: 'ADVANCED ROOM',
@@ -105,8 +105,8 @@ const ROOM_TIER_META: Record<number, {
     subtitle: 'Enhanced Mining Facility',
     bonus: 5,
     price: 25000,
-    description: 'A high-tech mining facility designed as the first paid progression step, with active cooling, monitoring and brighter technology lighting.',
-    features: ['12 miner slots', '+5% Room H/s', 'Advanced cooling system', 'Live monitoring screens', 'Dynamic fans and vents'],
+    description: 'A brighter high-tech facility with active cooling, monitoring screens and moving equipment.',
+    features: ['12 miner slots', '+5% Room H/s', 'Advanced cooling', 'Live monitoring', 'Dynamic fans + vents'],
   },
   3: {
     name: 'PREMIUM ROOM',
@@ -114,8 +114,8 @@ const ROOM_TIER_META: Record<number, {
     subtitle: 'Elite Reactor Chamber',
     bonus: 10,
     price: 75000,
-    description: 'A neon reactor chamber with holographic controls, energy tubes and floating particles that visibly transforms the mining environment.',
-    features: ['12 miner slots', '+10% Room H/s', 'Neon reactor core', 'Holographic displays', 'Energy tubes and particles'],
+    description: 'A neon reactor chamber with holographic displays, energy tubes and visible energy particles.',
+    features: ['12 miner slots', '+10% Room H/s', 'Neon reactor core', 'Holographic controls', 'Energy tubes + particles'],
   },
   4: {
     name: 'LEGENDARY ROOM',
@@ -123,8 +123,8 @@ const ROOM_TIER_META: Record<number, {
     subtitle: 'Legendary Power Chamber',
     bonus: 20,
     price: 250000,
-    description: 'A powerful reactor chamber with golden energy, dynamic beams and a high-output atmosphere for advanced mining fleets.',
-    features: ['12 miner slots', '+20% Room H/s', 'Golden reactor core', 'Dynamic energy beams', 'Legendary aura lighting'],
+    description: 'A high-output reactor environment with golden energy, stronger lighting and dynamic power beams.',
+    features: ['12 miner slots', '+20% Room H/s', 'Golden reactor core', 'Dynamic energy beams', 'Legendary aura'],
   },
   5: {
     name: 'MYTHICAL ROOM',
@@ -132,8 +132,8 @@ const ROOM_TIER_META: Record<number, {
     subtitle: 'Mythical Living Environment',
     bonus: 35,
     price: 750000,
-    description: 'A living cosmic mining environment where nature, energy, crystals, floating elements and nebula effects make the room feel alive.',
-    features: ['12 miner slots', '+35% Room H/s', 'Living cosmic environment', 'Energy crystals and flowing light', 'Floating islands and nebula effects'],
+    description: 'A living cosmic mining world filled with flowing energy, crystals, floating structures and nebula effects.',
+    features: ['12 miner slots', '+35% Room H/s', 'Living cosmic environment', 'Energy crystals', 'Floating elements + nebula'],
   },
 };
 
@@ -161,16 +161,12 @@ function imagePath(path: string | null, slug: string) {
   return `/assets/miners/${slug}.webp`;
 }
 
-function roomTheme(level: number, visualKey: string) {
-  return `${styles.roomScene} ${styles[`theme_${visualKey || `level${level}`}`] ?? styles.theme_standard}`;
+function minerLevelTone(level: number) {
+  return LEVEL_TONE[Math.max(1, Math.min(10, Number(level) || 1))] ?? 'level1';
 }
 
 function statusText(status: string) {
   return status.toLowerCase() === 'active' ? 'MINING' : 'PAUSED';
-}
-
-function minerLevelTone(level: number) {
-  return LEVEL_TONE[Math.max(1, Math.min(10, level))] ?? 'level1';
 }
 
 export default function RoomDetailPage() {
@@ -180,38 +176,50 @@ export default function RoomDetailPage() {
   const [data, setData] = useState<RoomsSnapshot | null>(null);
   const [fees, setFees] = useState<MergeFee[]>([]);
   const [levels, setLevels] = useState<MinerLevel[]>([]);
+  const [diamondBalance, setDiamondBalance] = useState(0);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState<'unlock' | 'merge' | 'move' | null>(null);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [selectedMiner, setSelectedMiner] = useState<Slot | null>(null);
   const [mergeOpen, setMergeOpen] = useState(false);
+  const [purchaseSuccess, setPurchaseSuccess] = useState<{
+    title: string;
+    detail: string;
+  } | null>(null);
   const [message, setMessage] = useState('');
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const supabase = createClient();
-      const [roomsResult, feeResult, levelResult] = await Promise.all([
-        supabase.rpc('nextgen_rooms_snapshot'),
-        supabase.rpc('nextgen_merge_fee_snapshot'),
-        supabase.from('nextgen_miner_levels').select('miner_id,level,hashrate'),
+      const sb = createClient();
+      const [roomsResult, feeResult, levelResult, walletResult] = await Promise.all([
+        sb.rpc('nextgen_rooms_snapshot'),
+        sb.rpc('nextgen_merge_fee_snapshot'),
+        sb.from('nextgen_miner_levels').select('miner_id,level,hashrate'),
+        sb.from('nextgen_wallets').select('diamond_balance').maybeSingle(),
       ]);
 
       if (roomsResult.error) throw roomsResult.error;
       if (feeResult.error) throw feeResult.error;
       if (levelResult.error) throw levelResult.error;
+      if (walletResult.error) throw walletResult.error;
 
       setData(roomsResult.data as RoomsSnapshot);
-      setFees((Array.isArray(feeResult.data) ? feeResult.data : []).map((row) => ({
-        from_level: Number(row.from_level),
-        to_level: Number(row.to_level),
-        fee_diamond: Number(row.fee_diamond),
-      })));
-      setLevels((levelResult.data ?? []).map((row) => ({
-        miner_id: Number(row.miner_id),
-        level: Number(row.level),
-        hashrate: Number(row.hashrate),
-      })));
+      setDiamondBalance(Number(walletResult.data?.diamond_balance ?? 0));
+      setFees(
+        (Array.isArray(feeResult.data) ? feeResult.data : []).map((row) => ({
+          from_level: Number(row.from_level),
+          to_level: Number(row.to_level),
+          fee_diamond: Number(row.fee_diamond),
+        })),
+      );
+      setLevels(
+        (levelResult.data ?? []).map((row) => ({
+          miner_id: Number(row.miner_id),
+          level: Number(row.level),
+          hashrate: Number(row.hashrate),
+        })),
+      );
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'Unable to load Room.');
     } finally {
@@ -221,12 +229,15 @@ export default function RoomDetailPage() {
 
   useEffect(() => {
     void load();
+
     const sync = () => {
       if (!document.hidden) void load();
     };
+
     window.addEventListener('focus', sync);
     document.addEventListener('visibilitychange', sync);
     window.addEventListener('nextgen:sync', sync as EventListener);
+
     return () => {
       window.removeEventListener('focus', sync);
       document.removeEventListener('visibilitychange', sync);
@@ -239,8 +250,14 @@ export default function RoomDetailPage() {
     [data, roomNumber],
   );
 
+  const roomMeta = ROOM_TIER_META[roomNumber] ?? ROOM_TIER_META[1];
   const nextRoom = data?.next_room_number ?? null;
   const isNextLockedRoom = !room && nextRoom === roomNumber;
+
+  const firstSelected = useMemo(() => {
+    if (!room || selectedIds.length !== 1) return null;
+    return room.slots.find((slot) => slot.user_miner_id === selectedIds[0]) ?? null;
+  }, [room, selectedIds]);
 
   const selectedPair = useMemo(() => {
     if (!room || selectedIds.length !== 2) return null;
@@ -250,27 +267,9 @@ export default function RoomDetailPage() {
     return pair.length === 2 ? pair : null;
   }, [room, selectedIds]);
 
-  const firstSelected = useMemo(() => {
-    if (!room || selectedIds.length !== 1) return null;
-    return room.slots.find((slot) => slot.user_miner_id === selectedIds[0]) ?? null;
-  }, [room, selectedIds]);
-
-  const mergeFee = useMemo(() => {
-    if (!firstSelected) return 0;
-    return fees.find(
-      (row) => row.from_level === firstSelected.level && row.to_level === firstSelected.level + 1,
-    )?.fee_diamond ?? 0;
-  }, [fees, firstSelected]);
-
-  const nextBaseHashrate = useMemo(() => {
-    if (!firstSelected) return 0;
-    return levels.find(
-      (row) => row.miner_id === firstSelected.miner_id && row.level === firstSelected.level + 1,
-    )?.hashrate ?? 0;
-  }, [firstSelected, levels]);
-
   const matchingIds = useMemo(() => {
-    if (!firstSelected || !room) return new Set<number>();
+    if (!room || !firstSelected) return new Set<number>();
+
     return new Set(
       room.slots
         .filter(
@@ -281,16 +280,55 @@ export default function RoomDetailPage() {
         )
         .map((slot) => slot.user_miner_id),
     );
-  }, [firstSelected, room]);
+  }, [room, firstSelected]);
+
+  const mergeFee = useMemo(() => {
+    if (!firstSelected) return 0;
+    return (
+      fees.find(
+        (row) =>
+          row.from_level === firstSelected.level &&
+          row.to_level === firstSelected.level + 1,
+      )?.fee_diamond ?? 0
+    );
+  }, [fees, firstSelected]);
+
+  const nextBaseHashrate = useMemo(() => {
+    if (!firstSelected) return 0;
+    return (
+      levels.find(
+        (row) =>
+          row.miner_id === firstSelected.miner_id &&
+          row.level === firstSelected.level + 1,
+      )?.hashrate ?? 0
+    );
+  }, [firstSelected, levels]);
+
+  const nextEffectiveHashrate = useMemo(() => {
+    if (!firstSelected) return 0;
+    return (
+      nextBaseHashrate *
+      (1 + Number(firstSelected.room_bonus_percent ?? 0) / 100)
+    );
+  }, [firstSelected, nextBaseHashrate]);
+
+  const mergeAffordable = diamondBalance >= mergeFee;
 
   async function unlockRoom() {
     if (busy || !isNextLockedRoom) return;
+
     setBusy('unlock');
     setMessage('');
+
     try {
       const result = await createClient().rpc('nextgen_create_room');
       if (result.error) throw result.error;
-      setMessage(`Room ${String(result.data?.room_number ?? roomNumber).padStart(2, '0')} unlocked.`);
+
+      setPurchaseSuccess({
+        title: 'Purchase Successful!',
+        detail: `Room ${String(result.data?.room_number ?? roomNumber).padStart(2, '0')} has been unlocked and is ready for your miners.`,
+      });
+
       window.dispatchEvent(new Event('nextgen:sync'));
       await load();
     } catch (error) {
@@ -302,9 +340,12 @@ export default function RoomDetailPage() {
 
   function selectForMerge(slot: Slot) {
     setMessage('');
+    setSelectedMiner(slot);
 
     if (selectedIds.includes(slot.user_miner_id)) {
-      setSelectedIds((current) => current.filter((id) => id !== slot.user_miner_id));
+      setSelectedIds((current) =>
+        current.filter((id) => id !== slot.user_miner_id),
+      );
       setMergeOpen(false);
       return;
     }
@@ -315,12 +356,15 @@ export default function RoomDetailPage() {
     }
 
     if (selectedIds.length >= 2) {
-      setMergeOpen(false);
       setSelectedIds([slot.user_miner_id]);
+      setMergeOpen(false);
       return;
     }
 
-    const first = room?.slots.find((candidate) => candidate.user_miner_id === selectedIds[0]);
+    const first = room?.slots.find(
+      (candidate) => candidate.user_miner_id === selectedIds[0],
+    );
+
     const matches = Boolean(
       first &&
       first.miner_id === slot.miner_id &&
@@ -333,11 +377,21 @@ export default function RoomDetailPage() {
       return;
     }
 
-    setMessage('This miner is not a valid merge partner. Matching miners are highlighted in the rack.');
+    setMessage(
+      'This miner is not a valid partner. Matching miners are highlighted automatically.',
+    );
   }
 
   async function mergeSelected() {
-    if (!room || busy || selectedIds.length !== 2) return;
+    if (!room || busy || selectedIds.length !== 2 || !selectedPair) return;
+
+    if (!mergeAffordable) {
+      setMessage(
+        `Insufficient Diamond. Merge needs ${num(mergeFee, 0)} 💎 and your balance is ${num(diamondBalance, 0)} 💎.`,
+      );
+      return;
+    }
+
     setBusy('merge');
     setMessage('');
 
@@ -346,21 +400,25 @@ export default function RoomDetailPage() {
         p_first_user_miner_id: selectedIds[0],
         p_second_user_miner_id: selectedIds[1],
       });
+
       if (result.error) throw result.error;
 
       const payload = result.data as {
         to_level?: number;
         hashrate?: number;
         bonus_hashrate_percent?: number;
-        merge_fee_diamond?: number;
         room_bonus_percent?: number;
       } | null;
 
       setMergeOpen(false);
       setSelectedIds([]);
-      setMessage(
-        `Merge complete · Level ${payload?.to_level ?? 'next'} · ${num(payload?.hashrate ?? 0)} H/s · Miner +${num(payload?.bonus_hashrate_percent ?? 0)}% · Room +${num(payload?.room_bonus_percent ?? room.room_bonus_percent)}%.`,
-      );
+      setSelectedMiner(null);
+
+      setPurchaseSuccess({
+        title: 'Purchase Successful!',
+        detail: `${selectedPair[0].name} has been merged to Level ${payload?.to_level ?? selectedPair[0].level + 1}. Fee paid: ${num(mergeFee, 0)} 💎.`,
+      });
+
       window.dispatchEvent(new Event('nextgen:sync'));
       await load();
     } catch (error) {
@@ -372,20 +430,31 @@ export default function RoomDetailPage() {
 
   async function autoMerge() {
     if (!room || busy) return;
+
     setBusy('merge');
     setSelectedIds([]);
-    setMergeOpen(false);
     setSelectedMiner(null);
+    setMergeOpen(false);
     setMessage('');
+
     try {
-      const result = await createClient().rpc('nextgen_merge_all_ready', { p_room_id: room.id });
+      const result = await createClient().rpc('nextgen_merge_all_ready', {
+        p_room_id: room.id,
+      });
+
       if (result.error) throw result.error;
-      const payload = result.data as { merged_count?: number } | null;
-      setMessage(
-        payload?.merged_count
-          ? `${payload.merged_count} merge${payload.merged_count === 1 ? '' : 's'} completed.`
-          : 'No ready matching pairs in this Room.',
-      );
+
+      const count = Number((result.data as { merged_count?: number } | null)?.merged_count ?? 0);
+
+      if (count > 0) {
+        setPurchaseSuccess({
+          title: 'Purchase Successful!',
+          detail: `${count} merge${count === 1 ? '' : 's'} completed automatically.`,
+        });
+      } else {
+        setMessage('No matching pairs are ready in this Room.');
+      }
+
       window.dispatchEvent(new Event('nextgen:sync'));
       await load();
     } catch (error) {
@@ -397,39 +466,49 @@ export default function RoomDetailPage() {
 
   async function moveMinerToInventory(slot: Slot) {
     if (busy) return;
+
     setBusy('move');
     setMessage('');
+
     try {
       const result = await createClient().rpc('nextgen_return_miner_to_inventory', {
         p_user_miner_id: slot.user_miner_id,
       });
+
       if (result.error) throw result.error;
+
+      setSelectedIds((current) =>
+        current.filter((id) => id !== slot.user_miner_id),
+      );
       setSelectedMiner(null);
-      setSelectedIds((current) => current.filter((id) => id !== slot.user_miner_id));
+      setMergeOpen(false);
       setMessage(`${slot.name} moved to Inventory.`);
       window.dispatchEvent(new Event('nextgen:sync'));
       await load();
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'Unable to move miner to Inventory.');
+      setMessage(
+        error instanceof Error
+          ? error.message
+          : 'Unable to move miner to Inventory.',
+      );
     } finally {
       setBusy(null);
     }
   }
 
-  if (!loading && !data) {
+  if (loading) {
     return (
       <AppShell>
         <div className={styles.page}>
-          <section className={styles.emptyPanel}>
-            <div className={styles.kicker}>ROOM DATA UNAVAILABLE</div>
-            <h1>Unable to load Room</h1>
+          <section className={styles.loadingPanel}>
+            SYNCING ROOM {String(roomNumber).padStart(2, '0')}…
           </section>
         </div>
       </AppShell>
     );
   }
 
-  if (!loading && (roomNumber < 1 || roomNumber > (data?.max_rooms ?? 5))) {
+  if (!data || roomNumber < 1 || roomNumber > data.max_rooms) {
     return (
       <AppShell>
         <div className={styles.page}>
@@ -446,121 +525,219 @@ export default function RoomDetailPage() {
     );
   }
 
-  if (loading) {
-    return (
-      <AppShell>
-        <div className={styles.page}>
-          <section className={styles.loadingPanel}>SYNCING ROOM {String(roomNumber).padStart(2, '0')}…</section>
-        </div>
-      </AppShell>
-    );
-  }
-
   if (!room) {
-    const price = data?.next_room_unlock_price_diamond ?? 0;
-    const bonus = data?.next_room_bonus_percent ?? 0;
-    const tier = data?.next_room_label ?? 'ROOM';
     const meta = ROOM_TIER_META[roomNumber] ?? ROOM_TIER_META[2];
 
     return (
       <AppShell>
         <div className={styles.page}>
-          <section className={`${styles.lockPanel} ${styles.lockScene} ${styles[`theme_${meta.key}`]}`}>
-            <div className={styles.lockOrb}><LockKeyhole size={28} /></div>
-            <div className={styles.kicker}>ROOM {String(roomNumber).padStart(2, '0')} · LOCKED</div>
+          <section
+            className={`${styles.lockPanel} ${styles[`theme_${meta.key}`]}`}
+          >
+            <div className={styles.lockOrb}>
+              <LockKeyhole size={28} />
+            </div>
+
+            <div className={styles.kicker}>
+              ROOM {String(roomNumber).padStart(2, '0')} · LOCKED
+            </div>
+
             <h1>{meta.name}</h1>
             <p>{meta.description}</p>
+
             <div className={styles.lockBenefits}>
               <span><Boxes size={14} /> 12 slots</span>
-              <span><Zap size={14} /> +{num(meta.bonus || bonus)}% H/s</span>
+              <span><Zap size={14} /> +{meta.bonus}% Room H/s</span>
               <span>{meta.subtitle}</span>
             </div>
+
             <div className={styles.lockFeatureGrid}>
-              {meta.features.map((feature) => <span key={feature}><Sparkles size={12} /> {feature}</span>)}
+              {meta.features.map((feature) => (
+                <span key={feature}>
+                  <Sparkles size={12} />
+                  {feature}
+                </span>
+              ))}
             </div>
+
             {isNextLockedRoom ? (
               <>
-                <div className={styles.lockPrice}>💎 {num(price, 0)}</div>
-                <button type="button" className={styles.openRoomBtn} disabled={busy === 'unlock'} onClick={() => void unlockRoom()}>
+                <div className={styles.lockPrice}>
+                  💎 {num(data.next_room_unlock_price_diamond, 0)}
+                </div>
+
+                <button
+                  type="button"
+                  className={styles.openRoomBtn}
+                  disabled={busy === 'unlock'}
+                  onClick={() => void unlockRoom()}
+                >
                   <LockKeyhole size={15} />
-                  {busy === 'unlock' ? 'UNLOCKING…' : `UNLOCK ${tier}`}
+                  {busy === 'unlock'
+                    ? 'UNLOCKING…'
+                    : `UNLOCK ${meta.name}`}
                 </button>
               </>
             ) : (
-              <div className={styles.sequenceNote}>Unlock the previous Room first.</div>
+              <div className={styles.sequenceNote}>
+                Unlock the previous Room first.
+              </div>
             )}
-            <Link href="/rooms/1" className={styles.secondaryBtn}><ArrowLeft size={15} /> BACK TO ROOM 01</Link>
+
+            <Link href="/rooms/1" className={styles.secondaryBtn}>
+              <ArrowLeft size={15} />
+              BACK TO ROOM 01
+            </Link>
           </section>
         </div>
+
+        {purchaseSuccess ? (
+          <SuccessToast
+            title={purchaseSuccess.title}
+            detail={purchaseSuccess.detail}
+            onClose={() => setPurchaseSuccess(null)}
+          />
+        ) : null}
       </AppShell>
     );
   }
 
-  const roomMeta = ROOM_TIER_META[room.room_number] ?? ROOM_TIER_META[1];
-  const slots = Array.from({ length: 12 }, (_, index) => room.slots.find((slot) => slot.slot_index === index + 1) ?? null);
+  const slots = Array.from(
+    { length: 12 },
+    (_, index) =>
+      room.slots.find((slot) => slot.slot_index === index + 1) ?? null,
+  );
 
   return (
     <AppShell>
-      <div className={styles.page}>
+      <div
+        className={`${styles.page} ${styles[`roomPage_${roomMeta.key}`]}`}
+      >
         <nav className={styles.roomNav} aria-label="Room selector">
-          {Array.from({ length: data?.max_rooms ?? 5 }, (_, index) => index + 1).map((number) => {
-            const unlocked = data?.rooms.some((candidate) => candidate.room_number === number);
-            return (
-              <Link key={number} href={`/rooms/${number}`} className={number === room.room_number ? styles.roomNavItem : styles.backLink}>
-                {unlocked ? <Sparkles size={11} /> : <LockKeyhole size={11} />}
-                ROOM {String(number).padStart(2, '0')}
-              </Link>
-            );
-          })}
+          {Array.from({ length: data.max_rooms }, (_, index) => index + 1).map(
+            (number) => {
+              const unlocked = data.rooms.some(
+                (candidate) => candidate.room_number === number,
+              );
+
+              return (
+                <Link
+                  key={number}
+                  href={`/rooms/${number}`}
+                  className={
+                    number === room.room_number
+                      ? styles.roomNavItem
+                      : styles.backLink
+                  }
+                >
+                  {unlocked ? (
+                    <Sparkles size={11} />
+                  ) : (
+                    <LockKeyhole size={11} />
+                  )}
+                  ROOM {String(number).padStart(2, '0')}
+                </Link>
+              );
+            },
+          )}
         </nav>
 
         {message ? <section className={styles.message}>{message}</section> : null}
 
-        <section className={roomTheme(room.room_level, room.visual_key)}>
+        <section
+          className={`${styles.roomScene} ${styles[`theme_${roomMeta.key}`]}`}
+        >
           <div className={styles.sceneOverlay} />
           <div className={styles.sceneParticles} />
           <div className={styles.sceneStars} />
+
           <div className={styles.roomHeroContent}>
             <div>
-              <div className={styles.kicker}>ROOM {String(room.room_number).padStart(2, '0')} · {roomMeta.name}</div>
+              <div className={styles.kicker}>
+                ROOM {String(room.room_number).padStart(2, '0')} ·{' '}
+                {roomMeta.name}
+              </div>
+
               <h1>{roomMeta.name}</h1>
               <p>{roomMeta.description}</p>
+
               <div className={styles.heroTags}>
                 <span>{roomMeta.subtitle}</span>
-                <span><Zap size={13} /> +{num(roomMeta.bonus)}% ROOM H/S</span>
-                <span><Boxes size={13} /> 12 SLOTS</span>
+                <span>
+                  <Zap size={13} /> +{roomMeta.bonus}% ROOM H/S
+                </span>
+                <span>
+                  <Boxes size={13} /> 12 SLOTS
+                </span>
               </div>
             </div>
-            <div className={styles.heroOrbit}>
+
+            <div className={styles.heroOrbit} aria-hidden="true">
               <div className={styles.heroOrbitRing} />
-              <div className={styles.heroCore}><Sparkles size={26} /></div>
+              <div className={styles.heroCore}>
+                <Sparkles size={26} />
+              </div>
             </div>
           </div>
+
           <div className={styles.roomStats}>
-            <div><span>ACTIVE</span><b>{room.active_miners}</b></div>
-            <div><span>SLOTS</span><b>{room.used_slots}/12</b></div>
-            <div><span>ROOM EFFECTIVE H/S</span><b>{num(room.hashrate)} H/s</b></div>
-            <div><span>POWER</span><b>{num(room.power_watts, 0)} W</b></div>
+            <div>
+              <span>ACTIVE</span>
+              <b>{room.active_miners}</b>
+            </div>
+            <div>
+              <span>SLOTS</span>
+              <b>{room.used_slots}/12</b>
+            </div>
+            <div>
+              <span>ROOM EFFECTIVE H/S</span>
+              <b>{num(room.hashrate)} H/s</b>
+            </div>
+            <div>
+              <span>POWER</span>
+              <b>{num(room.power_watts, 0)} W</b>
+            </div>
           </div>
         </section>
 
         <section className={styles.manualMergePanel}>
           <div>
             <div className={styles.kicker}>MANUAL MERGE</div>
-            <h2>{selectedIds.length === 1 ? 'Matching miners are highlighted' : 'Tap a miner to find its merge partner'}</h2>
+            <h2>
+              {selectedIds.length === 0
+                ? 'Tap a miner to find its match'
+                : selectedIds.length === 1
+                  ? 'Matching miners are flashing'
+                  : 'Two miners selected'}
+            </h2>
             <p>
-              Tap one deployed miner. Compatible miners at the same level will pulse. Tap a highlighted partner to open the merge purchase confirmation.
+              Tap one miner. Matching miners of the same type and level will
+              glow and pulse. Tap the highlighted second miner to open the
+              purchase confirmation.
             </p>
           </div>
+
           <div className={styles.mergeActions}>
-            <button type="button" className={styles.secondaryBtn} disabled={busy === 'merge'} onClick={() => void autoMerge()}>
+            <button
+              type="button"
+              className={styles.secondaryBtn}
+              disabled={busy === 'merge'}
+              onClick={() => void autoMerge()}
+            >
               <GitMerge size={15} />
               {busy === 'merge' ? 'MERGING…' : 'AUTO MERGE ALL'}
             </button>
+
             {selectedIds.length === 1 ? (
-              <span className={styles.selectionHelp}><Sparkles size={12} /> {matchingIds.size} matching partner{matchingIds.size === 1 ? '' : 's'} highlighted</span>
+              <span className={styles.selectionHelp}>
+                <Sparkles size={12} />
+                {matchingIds.size} matching miner
+                {matchingIds.size === 1 ? '' : 's'} highlighted
+              </span>
             ) : (
-              <span className={styles.selectionHelp}>{selectedIds.length}/2 selected</span>
+              <span className={styles.selectionHelp}>
+                {selectedIds.length}/2 selected
+              </span>
             )}
           </div>
         </section>
@@ -571,18 +748,24 @@ export default function RoomDetailPage() {
               <div className={styles.kicker}>12-SLOT MINING RACK</div>
               <h2>{roomMeta.name}</h2>
             </div>
-            <Link href="/items" className={styles.secondaryBtn}><Boxes size={14} /> INVENTORY</Link>
+
+            <Link href="/items" className={styles.secondaryBtn}>
+              <Boxes size={14} />
+              INVENTORY
+            </Link>
           </div>
 
-          {selectedIds.length === 1 ? (
-            <div className={styles.matchBanner}><Sparkles size={14} /><span><b>PAIR SEARCH:</b> matching miners are pulsing below. They must share the same miner type and level.</span></div>
-          ) : null}
-
-          <div className={styles.rackGrid} aria-label={`${roomMeta.name} 12 slot rack`}>
+          <div
+            className={styles.rackGrid}
+            aria-label={`${roomMeta.name} 12 slot rack`}
+          >
             {slots.map((slot, index) => {
               if (!slot) {
                 return (
-                  <div key={`empty-${index}`} className={`${styles.slot} ${styles.slotEmpty}`}>
+                  <div
+                    key={`empty-${index}`}
+                    className={`${styles.slot} ${styles.slotEmpty}`}
+                  >
                     <span className={styles.emptyPlus}>+</span>
                     <b>#{String(index + 1).padStart(2, '0')}</b>
                     <small>EMPTY SLOT</small>
@@ -590,42 +773,78 @@ export default function RoomDetailPage() {
                 );
               }
 
-              const selected = selectedIds.includes(slot.user_miner_id);
-              const matching = matchingIds.has(slot.user_miner_id);
               const levelTone = minerLevelTone(slot.level);
+              const selected = selectedIds.includes(slot.user_miner_id);
+              const isMatch = matchingIds.has(slot.user_miner_id);
+              const isFirst = firstSelected?.user_miner_id === slot.user_miner_id;
 
               return (
-                <div key={slot.slot_index} className={`${styles.slotWrap} ${selected ? styles.slotWrapSelected : ''} ${matching ? styles.slotWrapMatch : ''}`}>
+                <div
+                  key={slot.slot_index}
+                  className={[
+                    styles.slotWrap,
+                    selected ? styles.slotWrapSelected : '',
+                    isMatch ? styles.slotMatch : '',
+                    isFirst ? styles.slotFirst : '',
+                  ].join(' ')}
+                >
                   <button
                     type="button"
-                    className={`${styles.slot} ${styles.slotFilled} ${styles[`miner_${levelTone}`]} ${selected ? styles.slotSelected : ''} ${matching ? styles.slotMatchCandidate : ''}`}
+                    className={[
+                      styles.slot,
+                      styles.slotFilled,
+                      styles[levelTone],
+                      selected ? styles.slotSelected : '',
+                      isMatch ? styles.slotMatching : '',
+                    ].join(' ')}
                     onClick={() => selectForMerge(slot)}
                     aria-label={`Select ${slot.name}, level ${slot.level}, slot ${index + 1}`}
                   >
+                    {isMatch ? (
+                      <span className={styles.matchBadge}>
+                        <Sparkles size={10} />
+                        MATCH
+                      </span>
+                    ) : null}
+
+                    <div className={styles.slotIndex}>
+                      #{String(index + 1).padStart(2, '0')}
+                    </div>
+
                     <div className={styles.levelFrame}>
                       <span>LV {slot.level}</span>
-                      {matching ? <em>MATCH</em> : null}
                     </div>
-                    <div className={styles.slotIndex}>#{String(index + 1).padStart(2, '0')}</div>
-                    <img src={imagePath(slot.image_path, slot.slug)} alt="" />
+
+                    <img
+                      src={imagePath(slot.image_path, slot.slug)}
+                      alt=""
+                    />
+
                     <div className={styles.slotShade} />
+
                     <div className={styles.slotText}>
-                      <span>{statusText(slot.status)}</span>
                       <b>{num(slot.room_effective_hashrate)} H/s</b>
-                      <small>Miner +{num(slot.bonus_hashrate_percent)}% · Room +{num(room.room_bonus_percent)}%</small>
+                      <small>
+                        {statusText(slot.status)} · Miner +{num(slot.bonus_hashrate_percent)}% · Room +{num(slot.room_bonus_percent)}%
+                      </small>
                     </div>
                   </button>
 
                   <button
                     type="button"
                     className={styles.slotInfoButton}
-                    aria-label={`Details for ${slot.name}`}
+                    aria-label={`Show details for ${slot.name}`}
                     title="Miner details"
                     onClick={(event) => {
                       event.stopPropagation();
-                      setSelectedIds([]);
-                      setMergeOpen(false);
                       setSelectedMiner(slot);
+                      setSelectedIds([slot.user_miner_id]);
+                      setMergeOpen(false);
+                      window.setTimeout(() => {
+                        document
+                          .getElementById('selected-miner-panel')
+                          ?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                      }, 30);
                     }}
                   >
                     <Info size={12} />
@@ -636,105 +855,290 @@ export default function RoomDetailPage() {
           </div>
         </section>
 
+        {selectedMiner ? (
+          <section
+            id="selected-miner-panel"
+            className={`${styles.selectedMinerPanel} ${styles[`panel_${minerLevelTone(selectedMiner.level)}`]}`}
+          >
+            <div className={styles.selectedMinerHeader}>
+              <div>
+                <div className={styles.kicker}>SELECTED MINER</div>
+                <h2>{selectedMiner.name}</h2>
+              </div>
+
+              <button
+                type="button"
+                className={styles.selectedMinerClose}
+                onClick={() => {
+                  setSelectedMiner(null);
+                  setSelectedIds([]);
+                  setMergeOpen(false);
+                }}
+                aria-label="Clear selected miner"
+              >
+                <X size={15} />
+              </button>
+            </div>
+
+            <div className={styles.selectedMinerGrid}>
+              <div className={styles.selectedMinerArt}>
+                <img
+                  src={imagePath(selectedMiner.image_path, selectedMiner.slug)}
+                  alt=""
+                />
+                <span className={`${styles.levelChip} ${styles[minerLevelTone(selectedMiner.level)]}`}>
+                  LV {selectedMiner.level}/10
+                </span>
+              </div>
+
+              <div className={styles.selectedMinerDetails}>
+                <div>
+                  <span>BASE HASHRATE</span>
+                  <b>{num(selectedMiner.hashrate)} H/s</b>
+                </div>
+                <div>
+                  <span>MINER BONUS</span>
+                  <b>+{num(selectedMiner.bonus_hashrate_percent)}%</b>
+                </div>
+                <div>
+                  <span>ROOM BONUS</span>
+                  <b>+{num(selectedMiner.room_bonus_percent)}%</b>
+                </div>
+                <div>
+                  <span>EFFECTIVE H/S</span>
+                  <b>{num(selectedMiner.room_effective_hashrate)} H/s</b>
+                </div>
+                <div>
+                  <span>POWER</span>
+                  <b>{num(selectedMiner.power_watts, 0)} W</b>
+                </div>
+                <div>
+                  <span>STATUS</span>
+                  <b>{statusText(selectedMiner.status)}</b>
+                </div>
+              </div>
+            </div>
+
+            {selectedIds.length === 1 ? (
+              <div className={styles.selectedMinerHint}>
+                <Sparkles size={14} />
+                {matchingIds.size > 0
+                  ? 'Matching miners are glowing above. Tap one to continue.'
+                  : 'No matching miner is currently available in this Room.'}
+              </div>
+            ) : null}
+
+            {selectedPair ? (
+              <div className={styles.inlinePair}>
+                <span>READY</span>
+                <b>
+                  {selectedPair[0].name} · LV {selectedPair[0].level}
+                </b>
+                <ChevronRight size={15} />
+                <b>LV {selectedPair[0].level + 1}</b>
+                <span className={mergeAffordable ? styles.affordable : styles.insufficient}>
+                  💎 {num(mergeFee, 0)}
+                </span>
+              </div>
+            ) : null}
+
+            <button
+              type="button"
+              className={styles.moveButton}
+              disabled={busy === 'move'}
+              onClick={() => void moveMinerToInventory(selectedMiner)}
+            >
+              <Boxes size={14} />
+              {busy === 'move' ? 'MOVING…' : 'MOVE TO INVENTORY'}
+            </button>
+          </section>
+        ) : null}
+
         <section className={styles.formulaPanel}>
           <div className={styles.formulaHeader}>
             <Sparkles size={17} />
-            <div><div className={styles.kicker}>HASHRATE PIPELINE</div><h2>One Room bonus, no double counting</h2></div>
+            <div>
+              <div className={styles.kicker}>HASHRATE PIPELINE</div>
+              <h2>Miner H/s → Room bonus → funded pool</h2>
+            </div>
           </div>
+
           <div className={styles.formulaFlow}>
-            <span>Miner Level H/s</span><ChevronRight size={14} />
-            <span>Miner Bonus</span><ChevronRight size={14} />
-            <span>Room +{num(roomMeta.bonus)}%</span><ChevronRight size={14} />
-            <span>Efficiency × Energy</span><ChevronRight size={14} />
+            <span>Miner Level H/s</span>
+            <ChevronRight size={14} />
+            <span>Miner Bonus</span>
+            <ChevronRight size={14} />
+            <span>Room +{roomMeta.bonus}%</span>
+            <ChevronRight size={14} />
+            <span>Efficiency × Energy</span>
+            <ChevronRight size={14} />
             <span>Funded Pool Weight</span>
           </div>
         </section>
 
-        {selectedMiner ? (
-          <div className={styles.minerModalOverlay} role="presentation" onMouseDown={(event) => {
-            if (event.target === event.currentTarget && busy !== 'move') setSelectedMiner(null);
-          }}>
-            <section className={styles.minerModal} role="dialog" aria-modal="true" aria-labelledby="room-miner-detail-title">
-              <button type="button" className={styles.minerModalClose} aria-label="Close miner details" disabled={busy === 'move'} onClick={() => setSelectedMiner(null)}><X size={18} /></button>
-              <div className={`${styles.minerModalArt} ${styles[`modal_${minerLevelTone(selectedMiner.level)}`]}`}>
-                <img src={imagePath(selectedMiner.image_path, selectedMiner.slug)} alt={`${selectedMiner.name} virtual miner`} />
-                <span className={styles.minerModalTier}>{selectedMiner.tier}</span>
-                <span className={styles.minerModalLevel}>LV {selectedMiner.level}/10</span>
-              </div>
-              <div className={styles.minerModalBody}>
-                <div className={styles.kicker}>MINER DETAILS</div>
-                <h2 id="room-miner-detail-title">{selectedMiner.name}</h2>
-                <p>This deployed miner contributes its persisted miner bonus first, then the Room bonus. Settlement continues through efficiency, energy, membership and the funded pool.</p>
-                <div className={styles.minerModalStats}>
-                  <div><small>LEVEL</small><strong>LV {selectedMiner.level}/10</strong></div>
-                  <div><small>MINER H/S</small><strong>{num(selectedMiner.hashrate)} H/s</strong></div>
-                  <div><small>MINER BONUS</small><strong>+{num(selectedMiner.bonus_hashrate_percent)}%</strong></div>
-                  <div><small>ROOM BONUS</small><strong>+{num(selectedMiner.room_bonus_percent)}%</strong></div>
-                  <div><small>EFFECTIVE H/S</small><strong>{num(selectedMiner.room_effective_hashrate)} H/s</strong></div>
-                  <div><small>STATE</small><strong>{statusText(selectedMiner.status)}</strong></div>
-                </div>
-                <button type="button" className={styles.returnBtn} disabled={busy === 'move'} onClick={() => void moveMinerToInventory(selectedMiner)}>
-                  <Boxes size={15} />
-                  {busy === 'move' ? 'MOVING…' : 'MOVE TO INVENTORY'}
-                </button>
-              </div>
-            </section>
-          </div>
-        ) : null}
-
         {mergeOpen && selectedPair ? (
-          <div className={styles.mergeModalOverlay} role="presentation" onMouseDown={(event) => {
-            if (event.target === event.currentTarget && busy !== 'merge') setMergeOpen(false);
-          }}>
-            <section className={styles.mergeConfirmModal} role="dialog" aria-modal="true" aria-labelledby="merge-confirm-title">
-              <button type="button" className={styles.minerModalClose} aria-label="Close merge confirmation" disabled={busy === 'merge'} onClick={() => setMergeOpen(false)}><X size={18} /></button>
+          <div
+            className={styles.mergeModalOverlay}
+            role="presentation"
+            onMouseDown={(event) => {
+              if (event.target === event.currentTarget && busy !== 'merge') {
+                setMergeOpen(false);
+              }
+            }}
+          >
+            <section
+              className={`${styles.mergeConfirmModal} ${styles[`modal_${minerLevelTone(selectedPair[0].level)}`]}`}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="merge-confirm-title"
+            >
+              <button
+                type="button"
+                className={styles.mergeModalClose}
+                aria-label="Close merge confirmation"
+                onClick={() => busy !== 'merge' && setMergeOpen(false)}
+                disabled={busy === 'merge'}
+              >
+                <X size={18} />
+              </button>
 
               <div className={styles.mergeConfirmHead}>
-                <div className={styles.mergeIcon}><GitMerge size={22} /></div>
+                <div className={styles.mergeIcon}>
+                  <GitMerge size={21} />
+                </div>
                 <div>
                   <div className={styles.kicker}>MERGE PURCHASE</div>
                   <h2 id="merge-confirm-title">Confirm Merge</h2>
-                  <p>Two matching miners are ready. Pay the server-configured merge fee to create the next level.</p>
+                  <p>
+                    Merge two {selectedPair[0].name} miners at Level {selectedPair[0].level} into Level {selectedPair[0].level + 1}.
+                  </p>
                 </div>
               </div>
 
               <div className={styles.mergePairGrid}>
-                {selectedPair.map((miner) => (
-                  <div key={miner.user_miner_id} className={`${styles.mergePairCard} ${styles[`miner_${minerLevelTone(miner.level)}`]}`}>
-                    <div className={styles.mergePairLevel}>LV {miner.level}</div>
-                    <img src={imagePath(miner.image_path, miner.slug)} alt="" />
-                    <b>{num(miner.hashrate)} H/s</b>
-                    <small>+{num(miner.bonus_hashrate_percent)}% miner bonus</small>
+                {selectedPair.map((slot) => (
+                  <div
+                    className={`${styles.mergePairCard} ${styles[minerLevelTone(slot.level)]}`}
+                    key={slot.user_miner_id}
+                  >
+                    <span>MINER</span>
+                    <img src={imagePath(slot.image_path, slot.slug)} alt="" />
+                    <b>LV {slot.level}</b>
+                    <small>{num(slot.room_effective_hashrate)} H/s effective</small>
                   </div>
                 ))}
               </div>
 
-              <div className={styles.mergeArrow}><GitMerge size={18} /><span>→</span><b>LV {selectedPair[0].level + 1}</b></div>
+              <div className={styles.mergeArrow}>
+                <span>LV {selectedPair[0].level}</span>
+                <ChevronRight size={18} />
+                <b>LV {selectedPair[0].level + 1}</b>
+              </div>
 
               <div className={styles.mergeResultCard}>
-                <div><span>NEXT MINER</span><strong>LEVEL {selectedPair[0].level + 1}</strong></div>
-                <div><span>BASE HASHRATE</span><strong>{num(nextBaseHashrate)} H/s</strong></div>
-                <div><span>ROOM BONUS</span><strong>+{num(room.room_bonus_percent)}%</strong></div>
+                <div>
+                  <span>NEXT BASE H/S</span>
+                  <strong>{num(nextBaseHashrate)} H/s</strong>
+                </div>
+                <div>
+                  <span>ROOM BONUS</span>
+                  <strong>+{num(selectedPair[0].room_bonus_percent)}%</strong>
+                </div>
+                <div>
+                  <span>NEXT EFFECTIVE H/S</span>
+                  <strong>{num(nextEffectiveHashrate)} H/s</strong>
+                </div>
               </div>
 
               <div className={styles.mergeCostBox}>
-                <div><WalletCards size={17} /><span>MERGE COST</span></div>
+                <div>
+                  <WalletCards size={15} />
+                  <span>MERGE COST</span>
+                </div>
                 <strong>💎 {num(mergeFee, 0)}</strong>
               </div>
 
-              <div className={styles.mergeGuarantee}><CheckCircle2 size={16} /><span><b>Success rate: 100%</b> · The transaction is validated server-side. The new miner bonus is rolled by the database after payment.</span></div>
+              <div className={styles.balanceLine}>
+                <span>YOUR BALANCE</span>
+                <b className={mergeAffordable ? styles.affordable : styles.insufficient}>
+                  💎 {num(diamondBalance, 0)}
+                </b>
+              </div>
+
+              <div className={styles.mergeGuarantee}>
+                <CheckCircle2 size={14} />
+                <span>
+                  Success rate: <b>100%</b> · New miner bonus is rolled by the server after a successful merge.
+                </span>
+              </div>
+
+              {!mergeAffordable ? (
+                <div className={styles.insufficientBox}>
+                  Insufficient Diamond. You need {num(Math.max(mergeFee - diamondBalance, 0), 0)} 💎 more.
+                </div>
+              ) : null}
 
               <div className={styles.mergeConfirmActions}>
-                <button type="button" className={styles.primaryBtn} disabled={busy === 'merge' || !mergeFee} onClick={() => void mergeSelected()}>
-                  <WalletCards size={16} />
-                  {busy === 'merge' ? 'MERGING…' : `CONFIRM & PAY · 💎 ${num(mergeFee, 0)}`}
+                <button
+                  type="button"
+                  className={styles.primaryBtn}
+                  disabled={busy === 'merge' || !mergeAffordable}
+                  onClick={() => void mergeSelected()}
+                >
+                  <GitMerge size={15} />
+                  {busy === 'merge'
+                    ? 'PURCHASING…'
+                    : mergeAffordable
+                      ? `MERGE · 💎 ${num(mergeFee, 0)}`
+                      : 'INSUFFICIENT DIAMOND'}
                 </button>
-                <button type="button" className={styles.cancelBtn} disabled={busy === 'merge'} onClick={() => setMergeOpen(false)}>CANCEL</button>
+
+                <button
+                  type="button"
+                  className={styles.cancelBtn}
+                  onClick={() => !busy && setMergeOpen(false)}
+                  disabled={busy === 'merge'}
+                >
+                  Cancel
+                </button>
               </div>
             </section>
           </div>
         ) : null}
+
+        {purchaseSuccess ? (
+          <SuccessToast
+            title={purchaseSuccess.title}
+            detail={purchaseSuccess.detail}
+            onClose={() => setPurchaseSuccess(null)}
+          />
+        ) : null}
       </div>
     </AppShell>
+  );
+}
+
+function SuccessToast({
+  title,
+  detail,
+  onClose,
+}: {
+  title: string;
+  detail: string;
+  onClose: () => void;
+}) {
+  return (
+    <div className={styles.successToast} role="status">
+      <div className={styles.successIcon}>
+        <CheckCircle2 size={21} />
+      </div>
+      <div className={styles.successCopy}>
+        <strong>{title}</strong>
+        <span>{detail}</span>
+      </div>
+      <button type="button" onClick={onClose} aria-label="Close success message">
+        <X size={15} />
+      </button>
+    </div>
   );
 }
