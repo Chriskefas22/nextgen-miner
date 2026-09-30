@@ -241,33 +241,54 @@ export default function RoomDetailPage() {
 
   const loadMergePreview = useCallback(async (userMinerId: number) => {
     setPreviewLoading(true);
+    setMergePreview(null);
     setMessage('');
 
     try {
-      const result = await createClient().rpc('nextgen_merge_preview', {
+      const sb = createClient();
+
+      // Scalar JSON RPC: do not depend on PostgREST table-return shape.
+      const result = await sb.rpc('nextgen_merge_preview_json', {
         p_user_miner_id: userMinerId,
       });
 
       if (result.error) throw result.error;
 
-      const row = Array.isArray(result.data) ? result.data[0] : null;
-      if (!row) {
-        setMergePreview(null);
+      const payload = result.data as {
+        ok?: boolean;
+        error_code?: string;
+        miner_id?: number | string;
+        current_level?: number | string;
+        next_level?: number | string;
+        fee_diamond?: number | string | null;
+        next_hashrate?: number | string | null;
+        room_bonus_percent?: number | string | null;
+      } | null;
+
+      if (!payload?.ok) {
         setMessage(
-          'Merge preview data is unavailable for this miner. Refresh before merging.',
+          'Merge preview was not returned by the server. The selected miner may no longer be eligible.',
         );
         return null;
       }
 
       const preview: MergePreview = {
-        miner_id: Number(row.miner_id),
-        current_level: Number(row.current_level),
-        next_level: Number(row.next_level),
+        miner_id: Number(payload.miner_id),
+        current_level: Number(payload.current_level),
+        next_level: Number(payload.next_level),
         fee_diamond:
-          row.fee_diamond == null ? null : Number(row.fee_diamond),
-        next_hashrate: Number(row.next_hashrate ?? 0),
-        room_bonus_percent: Number(row.room_bonus_percent ?? 0),
+          payload.fee_diamond == null ? null : Number(payload.fee_diamond),
+        next_hashrate: Number(payload.next_hashrate ?? 0),
+        room_bonus_percent: Number(payload.room_bonus_percent ?? 0),
       };
+
+      if (
+        !Number.isFinite(preview.miner_id) ||
+        !Number.isFinite(preview.current_level) ||
+        !Number.isFinite(preview.next_level)
+      ) {
+        throw new Error('INVALID_MERGE_PREVIEW_PAYLOAD');
+      }
 
       setMergePreview(preview);
       return preview;
