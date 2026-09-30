@@ -186,6 +186,16 @@ export default function RoomDetailPage() {
   } | null>(null);
   const [message, setMessage] = useState('');
 
+  useEffect(() => {
+    if (!purchaseSuccess) return;
+
+    const timeoutId = window.setTimeout(() => {
+      setPurchaseSuccess(null);
+    }, 4000);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [purchaseSuccess]);
+
   const load = useCallback(async () => {
     setLoading(true);
     try {
