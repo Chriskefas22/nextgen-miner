@@ -249,43 +249,6 @@ export default function RoomDetailPage() {
   }, []);
 
   useEffect(() => {
-    const minerId = firstSelected?.miner_id;
-    if (!minerId) return;
-
-    let cancelled = false;
-
-    const loadSelectedFee = async () => {
-      const result = await createClient().rpc('nextgen_merge_fee_rows', {
-        p_miner_id: minerId,
-      });
-
-      if (cancelled || result.error) return;
-
-      const rows = Array.isArray(result.data) ? result.data : [];
-      if (rows.length === 0) return;
-
-      setFees((current) => {
-        const next = current.filter((row) => row.miner_id !== Number(minerId));
-        return [
-          ...next,
-          ...rows.map((row) => ({
-            miner_id: Number(row.miner_id),
-            from_level: Number(row.from_level),
-            to_level: Number(row.to_level),
-            fee_diamond: Number(row.fee_diamond),
-          })),
-        ];
-      });
-    };
-
-    void loadSelectedFee();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [firstSelected?.miner_id]);
-
-  useEffect(() => {
     void load();
 
     const sync = () => {
@@ -316,6 +279,41 @@ export default function RoomDetailPage() {
     if (!room || selectedIds.length !== 1) return null;
     return room.slots.find((slot) => slot.user_miner_id === selectedIds[0]) ?? null;
   }, [room, selectedIds]);
+
+  async function loadFeesForMiner(minerId: number) {
+    try {
+      const result = await createClient().rpc('nextgen_merge_fee_rows', {
+        p_miner_id: minerId,
+      });
+
+      if (result.error) throw result.error;
+
+      const rows = Array.isArray(result.data) ? result.data : [];
+      if (rows.length === 0) {
+        setMessage('Merge fee data is unavailable for this miner level. Refresh before merging.');
+        return;
+      }
+
+      setFees((current) => {
+        const next = current.filter((row) => row.miner_id !== minerId);
+        return [
+          ...next,
+          ...rows.map((row) => ({
+            miner_id: Number(row.miner_id),
+            from_level: Number(row.from_level),
+            to_level: Number(row.to_level),
+            fee_diamond: Number(row.fee_diamond),
+          })),
+        ];
+      });
+    } catch (error) {
+      setMessage(
+        error instanceof Error
+          ? `Unable to load merge fee: ${error.message}`
+          : 'Unable to load merge fee data.',
+      );
+    }
+  }
 
   const selectedPair = useMemo(() => {
     if (!room || selectedIds.length !== 2) return null;
@@ -412,6 +410,7 @@ export default function RoomDetailPage() {
 
     if (selectedIds.length === 0) {
       setSelectedIds([slot.user_miner_id]);
+      void loadFeesForMiner(slot.miner_id);
       return;
     }
 
