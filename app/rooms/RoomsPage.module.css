@@ -661,3 +661,55 @@ button.slot {
   .roomNav { gap: 6px; }
   .backLink,.roomNavItem,.secondaryBtn,.primaryBtn,.openRoomBtn,.returnBtn { min-height: 38px; padding: 0 10px; font-size: 10px; }
 }
+
+.lockFeatureGrid {
+  width: min(720px, 100%);
+  margin: 4px auto 2px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.lockFeatureGrid span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 36px;
+  padding: 0 11px;
+  border-radius: 11px;
+  border: 1px solid rgba(255,255,255,.09);
+  background: rgba(255,255,255,.035);
+  color: rgba(255,255,255,.70);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.theme_standard .lockFeatureGrid span { border-color: rgba(244,185,68,.14); }
+.theme_advanced .lockFeatureGrid span { border-color: rgba(89,215,255,.15); }
+.theme_premium .lockFeatureGrid span { border-color: rgba(212,107,255,.17); }
+.theme_legendary .lockFeatureGrid span { border-color: rgba(255,197,61,.18); }
+.theme_mythical .lockFeatureGrid span { border-color: rgba(94,234,255,.17); }
+
+.theme_standard.lockPanel {
+  background: radial-gradient(circle at 80% 18%, rgba(244,185,68,.14), transparent 34%), linear-gradient(145deg,#221a12,#0b0d13 62%,#171109);
+}
+
+.theme_advanced.lockPanel {
+  background: radial-gradient(circle at 80% 16%, rgba(76,187,255,.25), transparent 32%), linear-gradient(145deg,#071825,#071019 55%,#0a1d2a);
+}
+
+.theme_premium.lockPanel {
+  background: radial-gradient(circle at 80% 16%, rgba(155,63,255,.30), transparent 36%), linear-gradient(145deg,#18081f,#0b0914 55%,#1a0b26);
+}
+
+.theme_legendary.lockPanel {
+  background: radial-gradient(circle at 78% 16%, rgba(255,166,44,.31), transparent 36%), linear-gradient(145deg,#251604,#100b06 58%,#281706);
+}
+
+.theme_mythical.lockPanel {
+  background: radial-gradient(circle at 74% 16%, rgba(55,224,255,.25), transparent 28%), radial-gradient(circle at 20% 85%, rgba(189,67,255,.22), transparent 30%), linear-gradient(145deg,#03191d,#09071a 54%,#071924);
+}
+
+@media (max-width: 620px) {
+  .lockFeatureGrid { grid-template-columns: 1fr; }
+}
