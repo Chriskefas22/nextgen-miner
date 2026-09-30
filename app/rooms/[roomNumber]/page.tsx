@@ -249,6 +249,43 @@ export default function RoomDetailPage() {
   }, []);
 
   useEffect(() => {
+    const minerId = firstSelected?.miner_id;
+    if (!minerId) return;
+
+    let cancelled = false;
+
+    const loadSelectedFee = async () => {
+      const result = await createClient().rpc('nextgen_merge_fee_rows', {
+        p_miner_id: minerId,
+      });
+
+      if (cancelled || result.error) return;
+
+      const rows = Array.isArray(result.data) ? result.data : [];
+      if (rows.length === 0) return;
+
+      setFees((current) => {
+        const next = current.filter((row) => row.miner_id !== Number(minerId));
+        return [
+          ...next,
+          ...rows.map((row) => ({
+            miner_id: Number(row.miner_id),
+            from_level: Number(row.from_level),
+            to_level: Number(row.to_level),
+            fee_diamond: Number(row.fee_diamond),
+          })),
+        ];
+      });
+    };
+
+    void loadSelectedFee();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [firstSelected?.miner_id]);
+
+  useEffect(() => {
     void load();
 
     const sync = () => {
