@@ -1,0 +1,325 @@
+.ngm-merge-enhancement {
+  width: 100%;
+  position: relative;
+}
+
+/*
+  IMPORTANT:
+  These selectors are fully scoped under .ngm-merge-enhancement.
+  They do not restyle the existing NextGenMiner site globally.
+*/
+
+.ngm-merge-grid {
+  display: contents;
+}
+
+.ngm-merge-miner-hook {
+  position: relative;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  outline: none;
+}
+
+.ngm-merge-miner-hook:focus-visible {
+  box-shadow: 0 0 0 2px rgba(124, 92, 255, 0.9);
+  border-radius: 12px;
+}
+
+.ngm-merge-miner-original {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+}
+
+.ngm-merge-miner-original img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.ngm-merge-level-badge,
+.ngm-merge-compatible-indicator {
+  position: absolute;
+  z-index: 4;
+  pointer-events: none;
+  font-size: 10px;
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.ngm-merge-level-badge {
+  left: 6px;
+  top: 6px;
+  padding: 4px 6px;
+  border-radius: 999px;
+  background: rgba(9, 12, 22, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(5px);
+}
+
+.ngm-merge-compatible-indicator {
+  right: 6px;
+  top: 6px;
+  padding: 4px 6px;
+  border-radius: 999px;
+  background: rgba(124, 92, 255, 0.9);
+  color: #fff;
+  box-shadow: 0 0 14px rgba(124, 92, 255, 0.6);
+  animation: ngmMergePulse 1.1s ease-in-out infinite;
+}
+
+.ngm-merge-selected {
+  z-index: 5;
+}
+
+.ngm-merge-selected::after {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: inherit;
+  border: 2px solid rgba(124, 92, 255, 0.96);
+  box-shadow:
+    0 0 0 2px rgba(124, 92, 255, 0.2),
+    0 0 20px rgba(124, 92, 255, 0.45);
+  pointer-events: none;
+}
+
+.ngm-merge-matchable {
+  animation: ngmMergeBlink 1.15s ease-in-out infinite;
+  z-index: 4;
+}
+
+.ngm-merge-matchable::after {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  border: 2px solid rgba(124, 92, 255, 0.8);
+  box-shadow: 0 0 18px rgba(124, 92, 255, 0.32);
+  pointer-events: none;
+}
+
+.ngm-merge-detail {
+  margin-top: 12px;
+  padding: 14px;
+  border-radius: 16px;
+  background: rgba(11, 15, 28, 0.84);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.16);
+  backdrop-filter: blur(10px);
+}
+
+.ngm-merge-detail-title {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.7;
+  margin-bottom: 10px;
+}
+
+.ngm-merge-detail-main {
+  display: grid;
+  grid-template-columns: 68px 1fr;
+  gap: 12px;
+  align-items: center;
+}
+
+.ngm-merge-detail-art {
+  width: 68px;
+  height: 68px;
+  border-radius: 14px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.ngm-merge-detail-art img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.ngm-merge-detail-placeholder {
+  width: 100%;
+  height: 100%;
+}
+
+.ngm-merge-detail-copy {
+  display: grid;
+  gap: 3px;
+  font-size: 12px;
+}
+
+.ngm-merge-detail-copy strong {
+  font-size: 14px;
+  margin-bottom: 2px;
+}
+
+.ngm-merge-detail-hint {
+  margin-top: 10px;
+  font-size: 11px;
+  opacity: 0.66;
+}
+
+.ngm-merge-toast,
+.ngm-merge-fee-loading {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10050;
+  max-width: min(92vw, 480px);
+  border-radius: 12px;
+  padding: 11px 14px;
+  font-size: 12px;
+  line-height: 1.35;
+  font-weight: 700;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(12px);
+}
+
+.ngm-merge-toast {
+  bottom: 22px;
+}
+
+.ngm-merge-toast-success {
+  background: rgba(17, 82, 52, 0.96);
+  color: #dffff0;
+  border: 1px solid rgba(92, 255, 182, 0.28);
+}
+
+.ngm-merge-toast-error {
+  background: rgba(95, 24, 37, 0.96);
+  color: #ffe8ec;
+  border: 1px solid rgba(255, 120, 145, 0.28);
+}
+
+.ngm-merge-fee-loading {
+  bottom: 22px;
+  background: rgba(9, 12, 22, 0.94);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+}
+
+.ngm-merge-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10040;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.58);
+  backdrop-filter: blur(6px);
+}
+
+.ngm-merge-modal {
+  width: min(92vw, 420px);
+  border-radius: 18px;
+  padding: 18px;
+  background: rgba(14, 18, 32, 0.98);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.42);
+}
+
+.ngm-merge-modal-title {
+  font-size: 17px;
+  font-weight: 900;
+}
+
+.ngm-merge-modal-subtitle {
+  margin-top: 7px;
+  font-size: 12px;
+  line-height: 1.45;
+  opacity: 0.78;
+}
+
+.ngm-merge-stat-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 10px;
+  padding: 9px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 12px;
+}
+
+.ngm-merge-stat-row:last-of-type {
+  border-bottom: 0;
+}
+
+.ngm-merge-stat-row strong {
+  text-align: right;
+}
+
+.ngm-merge-modal-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9px;
+  margin-top: 16px;
+}
+
+.ngm-merge-btn {
+  min-height: 42px;
+  border-radius: 11px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.ngm-merge-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.ngm-merge-btn-primary {
+  background: rgba(124, 92, 255, 0.96);
+  color: white;
+  box-shadow: 0 8px 24px rgba(124, 92, 255, 0.24);
+}
+
+.ngm-merge-btn-secondary {
+  background: rgba(255, 255, 255, 0.05);
+  color: inherit;
+}
+
+@keyframes ngmMergeBlink {
+  0%,
+  100% {
+    filter: brightness(1);
+    transform: scale(1);
+  }
+
+  50% {
+    filter: brightness(1.18);
+    transform: scale(1.018);
+  }
+}
+
+@keyframes ngmMergePulse {
+  0%,
+  100% {
+    opacity: 0.72;
+    transform: scale(0.98);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.03);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ngm-merge-matchable,
+  .ngm-merge-compatible-indicator {
+    animation: none;
+  }
+}
