@@ -9,9 +9,7 @@ import {
   Zap,
 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { AppShell } from '@/components/layout/AppShell';
-import { createClient } from '@/lib/supabase/client';
 import './inventory.css';
 
 type InventorySnapshotMiner = {
@@ -80,7 +78,6 @@ const tierColor = (level: number) => {
 };
 
 export default function InventoryPage() {
-  const router = useRouter();
   const [items, setItems] = useState<InventoryItem[]>([]);
   const [rooms, setRooms] = useState<Room[]>([]);
   const [selectedRoomId, setSelectedRoomId] = useState<number | null>(null);
@@ -106,7 +103,10 @@ export default function InventoryPage() {
         room_bonus_percent: Number(room.room_bonus_percent ?? 0),
         capacity_slots: 12,
         used_slots: Math.min(12, Math.max(0, Number(room.used_slots ?? 0))),
-        empty_slots: Math.max(0, 12 - Math.min(12, Math.max(0, Number(room.used_slots ?? 0)))),
+        empty_slots: Math.max(
+          0,
+          12 - Math.min(12, Math.max(0, Number(room.used_slots ?? 0))),
+        ),
         hashrate: Number(room.hashrate ?? 0),
       }));
 
@@ -114,7 +114,9 @@ export default function InventoryPage() {
       setSelectedRoomId((current) =>
         current && normalizedRooms.some((room) => room.id === current)
           ? current
-          : normalizedRooms.find((room) => room.used_slots < 12)?.id ?? normalizedRooms[0]?.id ?? null,
+          : normalizedRooms.find((room) => room.used_slots < 12)?.id ??
+            normalizedRooms[0]?.id ??
+            null,
       );
 
       setItems(
@@ -125,18 +127,30 @@ export default function InventoryPage() {
           current_level: Number(item.current_level || 1),
           status: String(item.status),
           is_merged: Boolean(item.is_merged),
-          deployment_state: item.deployment_state === 'deployed' ? 'deployed' : 'inventory',
-          bonus_hashrate_percent: Math.max(0, Math.min(5, Number(item.bonus_hashrate_percent ?? 0))),
+          deployment_state:
+            item.deployment_state === 'deployed'
+              ? 'deployed'
+              : 'inventory',
+          bonus_hashrate_percent: Math.max(
+            0,
+            Math.min(5, Number(item.bonus_hashrate_percent ?? 0)),
+          ),
           base_hashrate: Number(item.base_hashrate ?? 0),
           hashrate: Number(item.hashrate ?? 0),
           room_id: item.room_id == null ? null : Number(item.room_id),
-          room_number: item.room_number == null ? null : Number(item.room_number),
-          slot_index: item.slot_index == null ? null : Number(item.slot_index),
+          room_number:
+            item.room_number == null ? null : Number(item.room_number),
+          slot_index:
+            item.slot_index == null ? null : Number(item.slot_index),
           merge_ready: Boolean(item.merge_ready),
         })),
       );
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'Unable to load inventory.');
+      setMessage(
+        error instanceof Error
+          ? error.message
+          : 'Unable to load inventory.',
+      );
     } finally {
       setLoading(false);
     }
@@ -166,7 +180,8 @@ export default function InventoryPage() {
   );
 
   const nextEffectiveHashrate = (item: InventoryItem) =>
-    item.hashrate * (1 + Number(selectedRoom?.room_bonus_percent ?? 0) / 100);
+    item.hashrate *
+    (1 + Number(selectedRoom?.room_bonus_percent ?? 0) / 100);
 
   async function deploy(item: InventoryItem) {
     if (!selectedRoom) {
@@ -175,7 +190,9 @@ export default function InventoryPage() {
     }
 
     if (selectedRoom.used_slots >= 12) {
-      setMessage(`${selectedRoom.name} is full. Choose another unlocked Room.`);
+      setMessage(
+        `${selectedRoom.name} is full. Choose another unlocked Room.`,
+      );
       return;
     }
 
@@ -191,10 +208,35 @@ export default function InventoryPage() {
 
       if (result.error) throw result.error;
 
-      window.dispatchEvent(new Event('nextgen:sync'));
-      router.push(`/rooms/${selectedRoom.room_number}`);
+      const payload = (result.data ?? {}) as {
+        room_number?: number | string;
+        status?: string;
+        mining_active?: boolean;
+        capacity_guard?: string;
+        capacity_reason?: string | null;
+      };
+
+      const roomNumber = String(
+        payload.room_number ?? selectedRoom.room_number,
+      ).padStart(2, '0');
+
+      if (payload.mining_active) {
+        setMessage(
+          `${item.name} successfully deployed to Room ${roomNumber}. Mining is ACTIVE.`,
+        );
+      } else {
+        setMessage(
+          `${item.name} successfully placed in Room ${roomNumber}. Mining is PAUSED until funded capacity is available.`,
+        );
+      }
+
+      await load();
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'Unable to deploy miner.');
+      setMessage(
+        error instanceof Error
+          ? error.message
+          : 'Unable to deploy miner.',
+      );
     } finally {
       setBusyId(null);
     }
@@ -208,8 +250,9 @@ export default function InventoryPage() {
             <div className="inventory-kicker">MINER INVENTORY</div>
             <h1>Your Mining Inventory</h1>
             <p>
-              Miners stay here until you place them into an unlocked Room. Choose the destination Room first;
-              the server then assigns the next free 12-slot rack position.
+              Miners stay here until you place them into an unlocked Room. Choose
+              the destination Room first; the server assigns the next free
+              12-slot rack position.
             </p>
           </div>
 
@@ -225,7 +268,9 @@ export default function InventoryPage() {
           </div>
         </section>
 
-        {message ? <section className="inventory-message">{message}</section> : null}
+        {message ? (
+          <section className="inventory-message">{message}</section>
+        ) : null}
 
         {!loading && rooms.length ? (
           <section
@@ -236,18 +281,28 @@ export default function InventoryPage() {
               background: 'rgba(7,10,18,.78)',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                marginBottom: 10,
+              }}
+            >
               <Sparkles size={16} />
               <div>
                 <div className="inventory-kicker">DEPLOY DESTINATION</div>
-                <strong style={{ color: '#fff' }}>Choose an unlocked Room with an open slot</strong>
+                <strong style={{ color: '#fff' }}>
+                  Choose an unlocked Room with an open slot
+                </strong>
               </div>
             </div>
 
             <div
               style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+                gridTemplateColumns:
+                  'repeat(auto-fit, minmax(180px, 1fr))',
                 gap: 8,
               }}
             >
@@ -255,10 +310,12 @@ export default function InventoryPage() {
                 const full = room.used_slots >= 12;
                 const selected = room.id === selectedRoomId;
                 const levelColor = tierColor(room.room_level);
+
                 return (
                   <button
                     key={room.id}
                     type="button"
+                    disabled={full}
                     onClick={() => setSelectedRoomId(room.id)}
                     style={{
                       textAlign: 'left',
@@ -270,23 +327,55 @@ export default function InventoryPage() {
                       background: selected
                         ? `linear-gradient(145deg, rgba(255,255,255,.10), rgba(0,0,0,.20))`
                         : 'rgba(255,255,255,.03)',
-                      boxShadow: selected ? `0 0 30px ${levelColor}22` : 'none',
+                      boxShadow: selected
+                        ? `0 0 30px ${levelColor}22`
+                        : 'none',
                       color: '#fff',
-                      cursor: 'pointer',
-                      opacity: full ? .75 : 1,
+                      cursor: full ? 'not-allowed' : 'pointer',
+                      opacity: full ? 0.55 : 1,
                     }}
                   >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
-                      <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: '.12em', opacity: .55 }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        gap: 8,
+                      }}
+                    >
+                      <span
+                        style={{
+                          fontSize: 9,
+                          fontWeight: 900,
+                          letterSpacing: '.12em',
+                          opacity: .55,
+                        }}
+                      >
                         ROOM {String(room.room_number).padStart(2, '0')}
                       </span>
-                      <span style={{ fontSize: 9, fontWeight: 900, color: levelColor }}>
+                      <span
+                        style={{
+                          fontSize: 9,
+                          fontWeight: 900,
+                          color: levelColor,
+                        }}
+                      >
                         +{num(room.room_bonus_percent, 0)}% H/s
                       </span>
                     </div>
-                    <div style={{ marginTop: 7, fontWeight: 900 }}>{room.name}</div>
-                    <div style={{ marginTop: 3, fontSize: 10, opacity: .62 }}>
-                      {room.used_slots}/12 slots · {full ? 'FULL' : 'READY'}
+
+                    <div style={{ marginTop: 7, fontWeight: 900 }}>
+                      {room.name}
+                    </div>
+
+                    <div
+                      style={{
+                        marginTop: 3,
+                        fontSize: 10,
+                        opacity: .62,
+                      }}
+                    >
+                      {room.used_slots}/12 slots ·{' '}
+                      {full ? 'FULL' : 'READY'}
                     </div>
                   </button>
                 );
@@ -307,7 +396,10 @@ export default function InventoryPage() {
                 }}
               >
                 <Zap size={14} />
-                Selected: <strong style={{ color: '#fff' }}>{selectedRoom.name}</strong>
+                Selected:{' '}
+                <strong style={{ color: '#fff' }}>
+                  {selectedRoom.name}
+                </strong>{' '}
                 · Room bonus +{num(selectedRoom.room_bonus_percent, 0)}%
               </div>
             ) : null}
@@ -324,7 +416,8 @@ export default function InventoryPage() {
             <CheckCircle2 size={38} />
             <h2>Inventory Empty</h2>
             <p>
-              No miners are waiting in Inventory. Buy a miner from the Shop, or move one back from a Room.
+              No miners are waiting in Inventory. Buy a miner from the Shop,
+              or move one back from a Room.
             </p>
             <Link href="/miners" className="inventory-btn primary">
               <PackageOpen size={15} />
@@ -336,15 +429,26 @@ export default function InventoryPage() {
             {items.map((item) => (
               <article key={item.id} className="inventory-card">
                 <div className="inventory-art">
-                  <img src={imagePath(item.image_path, item.slug)} alt={`${item.name} virtual miner`} />
+                  <img
+                    src={imagePath(item.image_path, item.slug)}
+                    alt={`${item.name} virtual miner`}
+                  />
                   <span className="inventory-tier">{item.tier}</span>
-                  <span className="inventory-level">LV {item.current_level}/10</span>
-                  <span className="inventory-bonus-badge">+{num(item.bonus_hashrate_percent, 1)}% BONUS</span>
-                  <span className="inventory-state inventory">IN INVENTORY</span>
+                  <span className="inventory-level">
+                    LV {item.current_level}/10
+                  </span>
+                  <span className="inventory-bonus-badge">
+                    +{num(item.bonus_hashrate_percent, 1)}% BONUS
+                  </span>
+                  <span className="inventory-state inventory">
+                    IN INVENTORY
+                  </span>
                 </div>
 
                 <div className="inventory-copy">
-                  <div className="inventory-title"><h3>{item.name}</h3></div>
+                  <div className="inventory-title">
+                    <h3>{item.name}</h3>
+                  </div>
 
                   <div className="inventory-stats">
                     <div className="inventory-stat-hash">
@@ -353,7 +457,11 @@ export default function InventoryPage() {
                     </div>
                     <div className="inventory-stat-bonus">
                       <small>ROOM EFFECTIVE H/S</small>
-                      <b>{selectedRoom ? `${num(nextEffectiveHashrate(item))} H/s` : 'Choose a Room'}</b>
+                      <b>
+                        {selectedRoom
+                          ? `${num(nextEffectiveHashrate(item))} H/s`
+                          : 'Choose a Room'}
+                      </b>
                     </div>
                   </div>
 
@@ -361,20 +469,28 @@ export default function InventoryPage() {
                     <button
                       type="button"
                       className="inventory-btn primary wide"
-                      disabled={busyId === item.id || !selectedRoom || selectedRoom.used_slots >= 12}
+                      disabled={
+                        busyId === item.id ||
+                        !selectedRoom ||
+                        selectedRoom.used_slots >= 12
+                      }
                       onClick={() => void deploy(item)}
                     >
                       <Boxes size={15} />
                       {busyId === item.id
-                        ? 'PLACING & POWERING…'
+                        ? 'PLACING…'
                         : selectedRoom
-                          ? `PLACE IN ROOM ${String(selectedRoom.room_number).padStart(2, '0')}`
+                          ? `PLACE IN ROOM ${String(
+                              selectedRoom.room_number,
+                            ).padStart(2, '0')}`
                           : 'SELECT A ROOM'}
                     </button>
                   </div>
 
                   <div className="inventory-copy-hint">
-                    Deployment moves this miner out of Inventory. It contributes to funded mining only while deployed and active.
+                    Placement moves this miner out of Inventory. If funded
+                    capacity is unavailable, it remains deployed but mining is
+                    safely paused until capacity becomes available.
                   </div>
                 </div>
               </article>
