@@ -57,7 +57,7 @@ export function MinerCard({ miner, diamondBalance, onChanged }: Props) {
 
   useEffect(() => {
     if (!successOpen) return;
-    const timer = window.setTimeout(() => setSuccessOpen(false), 5200);
+    const timer = window.setTimeout(() => setSuccessOpen(false), 6500);
     return () => window.clearTimeout(timer);
   }, [successOpen]);
 
@@ -80,18 +80,25 @@ export function MinerCard({ miner, diamondBalance, onChanged }: Props) {
       );
 
       const bonus = Math.max(0, Math.min(5, rawBonus));
+      const pricePaid = isStarter ? 'FREE' : `${money(miner.purchasePrice)} 💎`;
 
       setConfirmOpen(false);
       setSuccessDetail(
-        `${miner.name} added to Inventory. Bonus +${bonus.toFixed(1)}%. Price paid: ${
-          isStarter ? 'FREE' : `${money(miner.purchasePrice)} 💎`
-        }.`,
+        `${miner.name} was purchased successfully and added to Inventory. Bonus +${bonus.toFixed(
+          1,
+        )}%. Price paid: ${pricePaid}.`,
       );
+
+      /*
+       * Show success BEFORE triggering the global refresh. The refresh is
+       * intentionally fire-and-forget so it cannot interfere with the
+       * purchase-success feedback state.
+       */
       setSuccessOpen(true);
       setMessage('');
 
       window.dispatchEvent(new Event('nextgen:sync'));
-      await onChanged?.();
+      void onChanged?.();
     } catch (error) {
       setMessage(actionError(error));
     } finally {
@@ -182,7 +189,9 @@ export function MinerCard({ miner, diamondBalance, onChanged }: Props) {
             )}
           </button>
 
-          {message ? <div className="miner-action-message error">{message}</div> : null}
+          {message ? (
+            <div className="miner-action-message error">{message}</div>
+          ) : null}
         </div>
       </article>
 
@@ -263,21 +272,48 @@ export function MinerCard({ miner, diamondBalance, onChanged }: Props) {
       ) : null}
 
       {successOpen ? (
-        <div className="miner-purchase-success" role="status">
-          <div className="miner-success-icon">
-            <CheckCircle2 size={21} />
-          </div>
-          <div className="miner-success-copy">
-            <strong>PURCHASE SUCCESSFUL! 🎉</strong>
-            <span>{successDetail}</span>
-          </div>
-          <button
-            type="button"
-            aria-label="Close success message"
-            onClick={() => setSuccessOpen(false)}
-          >
-            <X size={15} />
-          </button>
+        <div
+          className="miner-purchase-success-overlay"
+          role="status"
+          aria-live="polite"
+          aria-label="Purchase successful"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) {
+              setSuccessOpen(false);
+            }
+          }}
+        >
+          <section className="miner-purchase-success-modal">
+            <button
+              type="button"
+              className="miner-success-close"
+              aria-label="Close purchase success message"
+              onClick={() => setSuccessOpen(false)}
+            >
+              <X size={17} />
+            </button>
+
+            <div className="miner-success-icon">
+              <CheckCircle2 size={28} />
+            </div>
+
+            <div className="miner-success-kicker">PURCHASE COMPLETE</div>
+            <strong className="miner-success-title">PURCHASE SUCCESSFUL! 🎉</strong>
+            <span className="miner-success-detail">{successDetail}</span>
+
+            <div className="miner-success-status">
+              <CheckCircle2 size={15} />
+              <span>Miner is now in your Inventory</span>
+            </div>
+
+            <button
+              type="button"
+              className="miner-success-done"
+              onClick={() => setSuccessOpen(false)}
+            >
+              DONE
+            </button>
+          </section>
         </div>
       ) : null}
     </>

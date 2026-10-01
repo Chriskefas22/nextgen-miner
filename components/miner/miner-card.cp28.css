@@ -1,69 +1,149 @@
 
-
-/* CP28: clearer purchase-success feedback */
-.miner-purchase-success {
+/* CP28: clear purchase-success feedback */
+.miner-purchase-success-overlay {
   position: fixed;
-  left: 50%;
-  bottom: 88px;
-  transform: translateX(-50%);
-  z-index: 6000;
-  width: min(92vw, 520px);
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 13px;
-  border-radius: 15px;
-  border: 1px solid rgba(92,255,182,.42);
-  background: linear-gradient(145deg,#153d2e,#10261f 60%,#0d1a17);
-  box-shadow: 0 20px 60px rgba(0,0,0,.46), 0 0 36px rgba(62,232,161,.15);
-  animation: ng-purchase-success-in .24s ease-out both;
-}
-
-.miner-success-icon {
-  width: 39px;
-  height: 39px;
-  flex: 0 0 39px;
+  inset: 0;
+  z-index: 10000;
   display: grid;
   place-items: center;
-  border-radius: 12px;
-  color: #6dffc0;
-  background: rgba(70,238,160,.10);
-  border: 1px solid rgba(91,250,171,.28);
+  padding: 20px;
+  background: rgba(1, 6, 12, 0.76);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  animation: ng-purchase-success-overlay-in .2s ease-out both;
 }
 
-.miner-success-copy {
-  min-width: 0;
-  display: grid;
-  gap: 3px;
+.miner-purchase-success-modal {
+  position: relative;
+  width: min(92vw, 430px);
+  padding: 25px 20px 20px;
+  border-radius: 20px;
+  border: 1px solid rgba(92, 255, 182, .48);
+  background:
+    radial-gradient(circle at 50% 0%, rgba(55, 255, 185, .13), transparent 45%),
+    linear-gradient(145deg, #153d2e, #0d201a 60%, #071411);
+  box-shadow:
+    0 30px 90px rgba(0,0,0,.65),
+    0 0 55px rgba(62,232,161,.18),
+    inset 0 1px 0 rgba(255,255,255,.08);
+  text-align: center;
+  animation: ng-purchase-success-in .28s cubic-bezier(.18,.88,.28,1.12) both;
 }
 
-.miner-success-copy strong {
-  color: #e9fff5;
-  font-size: 12px;
-  font-weight: 1000;
-  letter-spacing: .04em;
-}
-
-.miner-success-copy span {
-  color: rgba(222,255,240,.72);
-  font-size: 9px;
-  line-height: 1.4;
-}
-
-.miner-purchase-success > button {
-  margin-left: auto;
-  width: 31px;
-  height: 31px;
+.miner-success-close {
+  position: absolute;
+  top: 11px;
+  right: 11px;
+  width: 33px;
+  height: 33px;
   display: grid;
   place-items: center;
   border-radius: 9px;
   border: 1px solid rgba(255,255,255,.10);
   background: rgba(0,0,0,.18);
   color: #d9fff0;
-  cursor: pointer;
+}
+
+.miner-success-icon {
+  width: 62px;
+  height: 62px;
+  margin: 0 auto;
+  display: grid;
+  place-items: center;
+  border-radius: 18px;
+  color: #72ffc4;
+  background: rgba(70,238,160,.10);
+  border: 1px solid rgba(91,250,171,.34);
+  box-shadow: 0 0 32px rgba(62,232,161,.18);
+  animation: ng-success-icon-pulse 1.8s ease-in-out infinite;
+}
+
+.miner-success-kicker {
+  margin-top: 15px;
+  color: #62f5c0;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: .2em;
+}
+
+.miner-success-title {
+  display: block;
+  margin-top: 5px;
+  color: #effff7;
+  font: 800 21px/1.2 Orbitron, sans-serif;
+}
+
+.miner-success-detail {
+  display: block;
+  margin: 10px auto 0;
+  max-width: 340px;
+  color: rgba(222,255,240,.78);
+  font-size: 10px;
+  line-height: 1.55;
+}
+
+.miner-success-status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  margin: 16px 0 14px;
+  padding: 10px;
+  border-radius: 10px;
+  color: #9dffd7;
+  background: rgba(70,238,160,.07);
+  border: 1px solid rgba(91,250,171,.16);
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.miner-success-done {
+  width: 100%;
+  min-height: 44px;
+  border-radius: 10px;
+  border: 1px solid rgba(169,255,229,.64);
+  background: linear-gradient(135deg, #2fdcff 0%, #38e4de 44%, #62efb6 100%);
+  color: #021219;
+  font: 900 10px Rajdhani, sans-serif;
+  letter-spacing: .08em;
+  box-shadow: 0 0 24px rgba(52,230,255,.16);
+}
+
+@keyframes ng-purchase-success-overlay-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 @keyframes ng-purchase-success-in {
-  from { opacity: 0; transform: translate(-50%, 12px) scale(.97); }
-  to { opacity: 1; transform: translate(-50%, 0) scale(1); }
+  from { opacity: 0; transform: translateY(14px) scale(.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes ng-success-icon-pulse {
+  0%, 100% { box-shadow: 0 0 25px rgba(62,232,161,.12); }
+  50% { box-shadow: 0 0 38px rgba(62,232,161,.25), 0 0 55px rgba(62,232,255,.06); }
+}
+
+@media (max-width: 620px) {
+  .miner-purchase-success-overlay {
+    padding: 16px;
+  }
+
+  .miner-purchase-success-modal {
+    width: 100%;
+    padding: 23px 16px 17px;
+    border-radius: 18px;
+  }
+
+  .miner-success-title {
+    font-size: 18px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .miner-purchase-success-overlay,
+  .miner-purchase-success-modal,
+  .miner-success-icon {
+    animation: none !important;
+  }
 }
