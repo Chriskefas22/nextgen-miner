@@ -1,6 +1,6 @@
 'use client';
 
-import { Check, CheckCircle2, LockKeyhole, ShoppingCart, X, Zap } from 'lucide-react';
+import { Check, LockKeyhole, ShoppingCart, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { diamond, hash } from '@/lib/format';
@@ -48,18 +48,10 @@ export function MinerCard({ miner, diamondBalance, onChanged }: Props) {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [successOpen, setSuccessOpen] = useState(false);
-  const [successDetail, setSuccessDetail] = useState('');
 
   const isStarter = miner.slug === 'starter-keyboard';
   const starterOwned = isStarter && miner.owned;
   const canBuy = isStarter || diamondBalance >= miner.purchasePrice;
-
-  useEffect(() => {
-    if (!successOpen) return;
-    const timer = window.setTimeout(() => setSuccessOpen(false), 6500);
-    return () => window.clearTimeout(timer);
-  }, [successOpen]);
 
   async function confirmPurchase() {
     if (busy || starterOwned || !canBuy) return;
@@ -80,23 +72,26 @@ export function MinerCard({ miner, diamondBalance, onChanged }: Props) {
       );
 
       const bonus = Math.max(0, Math.min(5, rawBonus));
-      const pricePaid = isStarter ? 'FREE' : `${money(miner.purchasePrice)} 💎`;
+      const pricePaid = isStarter
+        ? 'FREE'
+        : `${money(miner.purchasePrice)} 💎`;
 
       setConfirmOpen(false);
-      setSuccessDetail(
-        `${miner.name} was purchased successfully and added to Inventory. Bonus +${bonus.toFixed(
-          1,
-        )}%. Price paid: ${pricePaid}.`,
+
+      window.dispatchEvent(
+        new CustomEvent('nextgen:purchase-success', {
+          detail: {
+            detail: `${miner.name} was purchased successfully and added to Inventory. Bonus +${bonus.toFixed(
+              1,
+            )}%. Price paid: ${pricePaid}.`,
+          },
+        }),
       );
 
       /*
-       * Show success BEFORE triggering the global refresh. The refresh is
-       * intentionally fire-and-forget so it cannot interfere with the
-       * purchase-success feedback state.
+       * The Shop page owns the success modal. This refresh may replace the
+       * miner card, but the success modal remains mounted at page level.
        */
-      setSuccessOpen(true);
-      setMessage('');
-
       window.dispatchEvent(new Event('nextgen:sync'));
       void onChanged?.();
     } catch (error) {
@@ -225,18 +220,26 @@ export function MinerCard({ miner, diamondBalance, onChanged }: Props) {
               <ShoppingCart size={20} />
             </div>
 
-            <div className="miner-modal-kicker">PURCHASE CONFIRMATION</div>
-            <h2 id={`confirm-purchase-${miner.catalogId}`}>Confirm Purchase</h2>
+            <div className="miner-modal-kicker">
+              PURCHASE CONFIRMATION
+            </div>
+            <h2 id={`confirm-purchase-${miner.catalogId}`}>
+              Confirm Purchase
+            </h2>
 
             <p className="miner-modal-copy">
-              Buy <strong>{miner.name}</strong>. The miner will enter Inventory and will not
-              start mining until it is deployed.
+              Buy <strong>{miner.name}</strong>. The miner will enter Inventory
+              and will not start mining until it is deployed.
             </p>
 
             <div className="miner-modal-summary">
               <div>
                 <span>PRICE</span>
-                <strong>{isStarter ? 'FREE' : `${money(miner.purchasePrice)} 💎`}</strong>
+                <strong>
+                  {isStarter
+                    ? 'FREE'
+                    : `${money(miner.purchasePrice)} 💎`}
+                </strong>
               </div>
               <div>
                 <span>YOUR BALANCE</span>
@@ -255,7 +258,11 @@ export function MinerCard({ miner, diamondBalance, onChanged }: Props) {
                 onClick={() => void confirmPurchase()}
                 disabled={busy || starterOwned || !canBuy}
               >
-                {busy ? 'PROCESSING…' : isStarter ? 'Yes, Add Starter' : 'Yes, Buy It'}
+                {busy
+                  ? 'PROCESSING…'
+                  : isStarter
+                    ? 'Yes, Add Starter'
+                    : 'Yes, Buy It'}
               </button>
 
               <button
@@ -267,52 +274,6 @@ export function MinerCard({ miner, diamondBalance, onChanged }: Props) {
                 Cancel
               </button>
             </div>
-          </section>
-        </div>
-      ) : null}
-
-      {successOpen ? (
-        <div
-          className="miner-purchase-success-overlay"
-          role="status"
-          aria-live="polite"
-          aria-label="Purchase successful"
-          onMouseDown={(event) => {
-            if (event.target === event.currentTarget) {
-              setSuccessOpen(false);
-            }
-          }}
-        >
-          <section className="miner-purchase-success-modal">
-            <button
-              type="button"
-              className="miner-success-close"
-              aria-label="Close purchase success message"
-              onClick={() => setSuccessOpen(false)}
-            >
-              <X size={17} />
-            </button>
-
-            <div className="miner-success-icon">
-              <CheckCircle2 size={28} />
-            </div>
-
-            <div className="miner-success-kicker">PURCHASE COMPLETE</div>
-            <strong className="miner-success-title">PURCHASE SUCCESSFUL! 🎉</strong>
-            <span className="miner-success-detail">{successDetail}</span>
-
-            <div className="miner-success-status">
-              <CheckCircle2 size={15} />
-              <span>Miner is now in your Inventory</span>
-            </div>
-
-            <button
-              type="button"
-              className="miner-success-done"
-              onClick={() => setSuccessOpen(false)}
-            >
-              DONE
-            </button>
           </section>
         </div>
       ) : null}
