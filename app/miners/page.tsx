@@ -39,6 +39,10 @@ type ShopSnapshot = {
   miners: ShopMinerRow[];
 };
 
+type PurchaseNotice = {
+  detail: string;
+};
+
 function imagePath(path: string | null, slug: string) {
   if (!path) return `/assets/miners/${slug}.webp`;
   const clean = path.replace(/^\/+/, '');
@@ -55,6 +59,8 @@ export default function MinersPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [helpOpen, setHelpOpen] = useState(false);
+  const [purchaseNotice, setPurchaseNotice] =
+    useState<PurchaseNotice | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -124,16 +130,42 @@ export default function MinersPage() {
       if (!document.hidden) void load();
     };
 
+    const purchaseSuccess = (event: Event) => {
+      const custom = event as CustomEvent<{ detail?: string }>;
+      setPurchaseNotice({
+        detail:
+          custom.detail?.detail ??
+          'The miner was purchased successfully and added to Inventory.',
+      });
+    };
+
     window.addEventListener('focus', sync);
     document.addEventListener('visibilitychange', sync);
     window.addEventListener('nextgen:sync', sync as EventListener);
+    window.addEventListener(
+      'nextgen:purchase-success',
+      purchaseSuccess as EventListener,
+    );
 
     return () => {
       window.removeEventListener('focus', sync);
       document.removeEventListener('visibilitychange', sync);
       window.removeEventListener('nextgen:sync', sync as EventListener);
+      window.removeEventListener(
+        'nextgen:purchase-success',
+        purchaseSuccess as EventListener,
+      );
     };
   }, [load]);
+
+  useEffect(() => {
+    if (!purchaseNotice) return;
+    const timer = window.setTimeout(
+      () => setPurchaseNotice(null),
+      6500,
+    );
+    return () => window.clearTimeout(timer);
+  }, [purchaseNotice]);
 
   const filtered = useMemo(
     () =>
@@ -254,8 +286,9 @@ export default function MinersPage() {
                 <div>
                   <b>3. Deploy to a Room</b>
                   <p>
-                    Place & power up the miner in Room 01. Deployment activates
-                    its server-side mining session.
+                    Choose any unlocked Room with a free slot. Deployment
+                    places the miner in that Room; funded capacity determines
+                    whether its mining session can be active immediately.
                   </p>
                 </div>
               </div>
@@ -326,6 +359,58 @@ export default function MinersPage() {
           ))}
         </div>
       )}
+
+      {purchaseNotice ? (
+        <div
+          className="miner-purchase-success-overlay"
+          role="status"
+          aria-live="polite"
+          aria-label="Purchase successful"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) {
+              setPurchaseNotice(null);
+            }
+          }}
+        >
+          <section className="miner-purchase-success-modal">
+            <button
+              type="button"
+              className="miner-success-close"
+              aria-label="Close purchase success message"
+              onClick={() => setPurchaseNotice(null)}
+            >
+              <X size={17} />
+            </button>
+
+            <div className="miner-success-icon">
+              <Sparkles size={28} />
+            </div>
+
+            <div className="miner-success-kicker">
+              PURCHASE COMPLETE
+            </div>
+            <strong className="miner-success-title">
+              PURCHASE SUCCESSFUL! 🎉
+            </strong>
+            <span className="miner-success-detail">
+              {purchaseNotice.detail}
+            </span>
+
+            <div className="miner-success-status">
+              <CheckCircle2 size={15} />
+              <span>Miner is now in your Inventory</span>
+            </div>
+
+            <button
+              type="button"
+              className="miner-success-done"
+              onClick={() => setPurchaseNotice(null)}
+            >
+              DONE
+            </button>
+          </section>
+        </div>
+      ) : null}
     </AppShell>
   );
 }
