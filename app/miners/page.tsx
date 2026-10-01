@@ -1,6 +1,6 @@
 'use client';
 
-import { HelpCircle, Layers, Package, Sparkles, X, Zap } from 'lucide-react';
+import { CheckCircle2, HelpCircle, Layers, Package, Sparkles, X, Zap } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AppShell } from '@/components/layout/AppShell';
 import { MinerCard, type Miner } from '@/components/miner/MinerCard';
@@ -130,31 +130,13 @@ export default function MinersPage() {
       if (!document.hidden) void load();
     };
 
-    const purchaseSuccess = (event: Event) => {
-      const custom = event as CustomEvent<{ detail?: string }>;
-      setPurchaseNotice({
-        detail:
-          custom.detail?.detail ??
-          'The miner was purchased successfully and added to Inventory.',
-      });
-    };
-
     window.addEventListener('focus', sync);
     document.addEventListener('visibilitychange', sync);
     window.addEventListener('nextgen:sync', sync as EventListener);
-    window.addEventListener(
-      'nextgen:purchase-success',
-      purchaseSuccess as EventListener,
-    );
-
     return () => {
       window.removeEventListener('focus', sync);
       document.removeEventListener('visibilitychange', sync);
       window.removeEventListener('nextgen:sync', sync as EventListener);
-      window.removeEventListener(
-        'nextgen:purchase-success',
-        purchaseSuccess as EventListener,
-      );
     };
   }, [load]);
 
@@ -355,6 +337,7 @@ export default function MinersPage() {
               miner={miner}
               diamondBalance={balance}
               onChanged={load}
+              onPurchaseSuccess={(detail) => setPurchaseNotice({ detail })}
             />
           ))}
         </div>
